@@ -12,12 +12,16 @@ use App\Models\Facultad;
 use App\Models\Escuela;
 use App\Models\Semestre;
 use App\Models\asignacion_persona;
+use Illuminate\Support\Facades\Log;
 
 class PersonaController extends Controller
 {
     public function lista_docentes(){
-        $personas = Persona::whereHas('asignacion_persona', function($query){
+        // Obtener lista de docentes del semestre actual
+        $id_semestre = session('semestre_actual_id');
+        $personas = Persona::whereHas('asignacion_persona', function($query) use ($id_semestre){
             $query->where('id_rol', 3);
+            $query->where('id_semestre', $id_semestre);
         })->get();
         $facultades = Facultad::where('estado', 1)->get();
         $escuelas = Escuela::where('estado', 1)->get();
@@ -25,8 +29,14 @@ class PersonaController extends Controller
     }
 
     public function lista_supervisores(){
-        $personas = Persona::whereHas('asignacion_persona', function($query){
+        $id_semestre = session('semestre_actual_id');
+        $personas = Persona::whereHas('asignacion_persona', function($query) use ($id_semestre){
             $query->where('id_rol', 4);
+            $query->where('id_semestre', $id_semestre);
+            if(auth()->user()->getRolId() == 3){
+                $query->where('id_escuela', auth()->user()->persona->asignacion_persona->id_escuela);
+            }
+            
         })->get();
         $facultades = Facultad::where('estado', 1)->get();
         $escuelas = Escuela::where('estado', 1)->get();
@@ -34,8 +44,13 @@ class PersonaController extends Controller
     }
 
     public function lista_estudiantes(){
-        $personas = Persona::whereHas('asignacion_persona', function($query){
+        $id_semestre = session('semestre_actual_id');
+        $personas = Persona::whereHas('asignacion_persona', function($query) use ($id_semestre){
             $query->where('id_rol', 5);
+            $query->where('id_semestre', $id_semestre);
+            if(auth()->user()->getRolId() == 3){
+                $query->where('id_escuela', auth()->user()->persona->asignacion_persona->id_escuela);
+            }
         })->get();
         $facultades = Facultad::where('estado', 1)->get();
         $escuelas = Escuela::where('estado', 1)->get();
@@ -70,11 +85,11 @@ class PersonaController extends Controller
         }
 
         $roles = $rolesQuery->get();
-    $facultades = Facultad::where('estado', 1)->get();
-    $escuelas = Escuela::where('estado', 1)->get();
-    $semestres = Semestre::where('estado', 1)->orderBy('ciclo', 'desc')->get();
-        
-    return view('segmento.registrar', compact('roles', 'facultades', 'escuelas', 'persona', 'semestres'));
+        $facultades = Facultad::where('estado', 1)->get();
+        $escuelas = Escuela::where('estado', 1)->get();
+        $semestres = Semestre::where('estado', 1)->orderBy('ciclo', 'desc')->get();
+            
+        return view('segmento.registrar', compact('roles', 'facultades', 'escuelas', 'persona', 'semestres'));
     }
 
     public function getEscuelas($facultad_id){
@@ -92,62 +107,194 @@ class PersonaController extends Controller
         return redirect()->back()->with('success', 'Persona eliminada correctamente.');
     }
 
-    public function store(Request $request){
-        // Si no se proporciona correo, usar el DNI como correo temporal
-        if (empty($request->correo_inst)) {
-            $request->correo_inst = $request->codigo . '@unjfsc.edu.pe';
+    public function verificar(Request $request) {
+        $type = $request->input('type');
+        $value = $request->input('value');
+        $semestre_id = $request->input('semestre_id');
+
+        $persona = Persona::where($type, $value)->first();
+
+        if ($persona) {
+            // El usuario existe, ahora verificamos si ya está asignado a este semestre
+            $asignacionExistente = asignacion_persona::where('id_persona', $persona->id)
+                ->where('id_semestre', $semestre_id)
+                ->exists();
+
+            return response()->json([
+                'found' => true,
+                'already_assigned' => $asignacionExistente,
+                'persona' => $persona
+            ]);
         }
 
-        // Si no se selecciona sexo, usar 'M' como valor por defecto
-        if (empty($request->sexo)) {
-            $request->sexo = 'M';
+        return response()->json(['found' => false]);
+    }
+
+    public function asignar(Request $request){
+        $request->validate([
+            'persona_id' => 'required|exists:personas,id',
+            'rol' => 'required|exists:type_users,id',
+            'semestre' => 'required|exists:semestres,id',
+            'facultad' => 'nullable|exists:facultades,id',
+            'escuela' => 'nullable|exists:escuelas,id',
+        ]);
+
+        // Verificar si ya existe una asignación para evitar duplicados por si acaso
+        $asignacionExistente = asignacion_persona::where('id_persona', $request->persona_id)
+            ->where('id_semestre', $request->semestre)
+            ->first();
+
+        if ($asignacionExistente) {
+            return back()->with('error', 'Esta persona ya tiene una asignación en este semestre.');
         }
 
         try {
-            // Crear el usuario
-            $user = User::create([
-                'name' => $request->correo_inst,
-                'email' => $request->correo_inst,
-                'password' => Hash::make($request->codigo), // Usar DNI como contraseña inicial
+            asignacion_persona::create([
+                'id_semestre' => $request->semestre,
+                'id_persona' => $request->persona_id,
+                'id_rol' => $request->rol,
+                'id_escuela' => in_array($request->rol, [1, 2]) ? null : $request->escuela,
+                'id_facultad' => $request->rol == 1 ? null : $request->facultad,
+                'date_create' => now(),
+                'date_update' => now(),
+                'estado' => 1
             ]);
+            return back()->with('success', 'Usuario asignado al semestre actual correctamente.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al asignar el usuario: ' . $e->getMessage());
+        }
+    }
 
-            // Crear la persona
+    public function registrarPersona(){
+        $request -> validate([
+            'codigo' => 'required|string|size:10|unique:personas,codigo',
+            'dni' => 'required|string|size:8|unique:personas,dni',
+            'nombres' => 'required|string|max:50',
+            'apellidos' => 'required|string|max:50',
+            'celular' => 'nullable|string|size:9',
+            'correo_inst' => 'nullable|email|max:150|unique:personas,correo_inst',
+            'sexo' => 'nullable|in:M,F',
+            'provincia' => 'nullable|string|max:50',
+            'distrito' => 'nullable|string|max:50'
+        ]);
+        try {
             $persona = new Persona([
-                'codigo' => $request->codigo,   
+                'codigo' => $request->codigo,
                 'dni' => $request->dni,
                 'nombres' => $request->nombres,
                 'apellidos' => $request->apellidos,
                 'celular' => $request->celular,
-                'sexo' => $request->sexo,
                 'correo_inst' => $request->correo_inst,
-                'departamento' => 'Lima Provincia',
+                'sexo' => $request->sexo,
                 'provincia' => $request->provincia,
                 'distrito' => $request->distrito,
-                'usuario_id' => $user->id,
                 'date_create' => now(),
                 'date_update' => now(),
                 'estado' => 1
             ]);
-
             $persona->save();
-
-            $asignar_personar = new asignacion_persona([
-                'id_semestre' => $request->semestre,
-                'id_persona' => $persona->id,
-                'id_rol' => $request->rol,
-                'id_escuela' => ($request->rol != 2 || $request->rol != 1) ? $request->escuela:null,
-                'id_facultad' => ($request->rol !=1) ? $request->facultad:null,
-                'date_create' => now(),
-                'date_update' => now(),
-                'estado' => 1
-            ]);
-
-            $asignar_personar->save();
-
-            return back()->with('success', 'Formulario de Trámite (FUT) subido correctamente.');
-
+            return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false]);
+        }
+    }
+
+    public function store(Request $request){
+        $persona_id = $request->input('persona_id');
+
+        $request->validate([
+            'rol' => 'required|exists:type_users,id',
+            'id_semestre' => 'required|exists:semestres,id',
+            'facultad' => 'required|exists:facultades,id',
+            'escuela' => 'required|exists:escuelas,id',
+        ]);
+
+        try {
+            $persona_id_final = $persona_id;
+            $success_message = '';
+            $persona = null;
+
+            if (empty($persona_id)) {
+                Log::info('Datos recibidos en el controller:', $request->all());
+                $request->validate([
+                    'codigo' => 'required|string|size:10|unique:personas,codigo',
+                    'dni' => 'required|string|size:8|unique:personas,dni',
+                    'nombres' => 'required|string|max:50',
+                    'apellidos' => 'required|string|max:50',
+                    'celular' => 'nullable|string|size:9',
+                    'correo_inst' => 'nullable|email|max:150|unique:personas,correo_inst',
+                    'sexo' => 'nullable|in:M,F',
+                    'provincia' => 'nullable|string|max:50',
+                    'distrito' => 'nullable|string|max:50'
+                ]);
+                
+                $correo_inst = $request->correo_inst ?: $request->codigo . '@unjfsc.edu.pe';
+                $sexo = $request->sexo ?: 'M';
+
+                $user = User::create([
+                    'name' => $request->codigo,
+                    'email' => $correo_inst,
+                    'password' => Hash::make($request->codigo),
+                ]);
+
+                $persona = Persona::create([
+                    'codigo' => $request->codigo,
+                    'dni' => $request->dni,
+                    'nombres' => $request->nombres,
+                    'apellidos' => $request->apellidos,
+                    'celular' => $request->celular,
+                    'sexo' => $sexo,
+                    'correo_inst' => $correo_inst,
+                    'departamento' => 'Lima Provincias',
+                    'provincia' => $request->provincia,
+                    'distrito' => $request->distrito,
+                    'usuario_id' => $user->id,
+                    'date_create' => now(),
+                    'date_update' => now(),
+                    'estado' => 1
+                ]);
+
+
+                $persona_id_final = $persona->id;
+                $success_message = 'Persona creada y asignada al semestre correctamente.';
+            } else {
+                $persona_id_final = $persona_id;
+                $success_message = 'Usuario existente asignado correctamente.';
+            }
+
+            $asignacionExistente = asignacion_persona::where('id_persona', $persona_id_final)
+                ->where('id_semestre', $request->id_semestre)
+                ->first();
+
+            if ($asignacionExistente) {
+                return back()->with('error', 'Esta persona ya tiene una asignación en este semestre.');
+            }
+
+            $is_admin_or_subadmin = in_array($request->rol, [1, 2]);
+            $is_doc_or_sup = in_array($request->rol, [3, 4]);
+
+            asignacion_persona::create([
+                'id_semestre' => $request->id_semestre,
+                'id_persona' => $persona_id_final,
+                'id_rol' => $request->rol,
+                'id_escuela' => $is_admin_or_subadmin ? null : $request->escuela,
+                'id_facultad' => $request->rol == 1 ? null : $request->facultad,
+                'date_create' => now(),
+                'date_update' => now(),
+                'estado' => $is_doc_or_sup ? 2 : 1
+            ]);
+
+            return back()->with('success', $success_message);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // MUY IMPORTANTE: Devolver la excepción de validación para que Laravel la maneje.
+            // Si no la devuelves, se va al catch general y pierdes el detalle del error.
+            throw $e; 
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error inesperado en el servidor: ' . $e->getMessage()
+            ], 500);
         }
     }
 

@@ -9,7 +9,21 @@ class adminDashboardController extends Controller
 {
     public function indexAdmin(Request $request)
     {
-        $facultades = DB::table('facultades')->get();
+        $authUser = auth()->user();
+        $userRolId = $authUser->getRolId();
+        
+        // Obtener la asignación actual del usuario (asumiendo que hay una lógica para el semestre activo)
+        // Por ahora, tomamos la primera que encuentre, pero idealmente se filtraría por el semestre activo.
+        $asignacionActual = $authUser->persona->asignacion_persona;
+        $idFacultadSubAdmin = ($userRolId == 2) ? $asignacionActual->id_facultad : null;
+
+        // Cargar facultades para el filtro
+        $facultadesQuery = DB::table('facultades');
+        if ($userRolId == 2) {
+            $facultadesQuery->where('id', $idFacultadSubAdmin);
+        }
+        $facultades = $facultadesQuery->get();
+
         $escuelas = DB::table('escuelas')->get();
         $semestres = DB::table('semestres')->get();
 
@@ -22,6 +36,11 @@ class adminDashboardController extends Controller
             ->join('personas as p', 'ge.id_estudiante', '=', 'p.id')
             ->leftJoin('matriculas as m', 'ge.id_estudiante', '=', 'm.persona_id');
 
+        // Si el usuario es Sub Admin, forzar el filtro por su facultad en todas las consultas.
+        if ($userRolId == 2) {
+            $baseQuery->where('f.id', $idFacultadSubAdmin);
+        }
+
         // Aplicar filtros si se envían desde el request
         if ($request->filled('facultad')) {
             $baseQuery->where('f.id', $request->facultad);
@@ -31,8 +50,10 @@ class adminDashboardController extends Controller
             $baseQuery->where('e.id', $request->escuela);
         }
 
-        if ($request->filled('semestre')) {
-            $baseQuery->where('s.id', $request->semestre);
+        // Aplicar siempre el filtro por el semestre activo en la sesión
+        $semestreActivoId = session('semestre_actual_id');
+        if ($semestreActivoId) {
+            $baseQuery->where('s.id', $semestreActivoId);
         }
 
         // Lista de estudiantes
@@ -78,6 +99,11 @@ class adminDashboardController extends Controller
     ->join('escuelas as e', 'gp.id_escuela', '=', 'e.id')
     ->join('facultades as f', 'e.facultad_id', '=', 'f.id')
     ->join('semestres as s', 'gp.id_semestre', '=', 's.id')
+    // Si es Sub Admin, restringir a su facultad
+    ->when($userRolId == 2, function ($query) use ($idFacultadSubAdmin) {
+        return $query->where('f.id', $idFacultadSubAdmin);
+    })
+    // Filtros del formulario
     ->when($request->filled('facultad'), function ($query) use ($request) {
         return $query->where('f.id', $request->facultad);
     })

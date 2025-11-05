@@ -12,6 +12,8 @@ class matricula extends Model
     protected $fillable = [
     'estado_ficha',
     'estado_record',
+    'ruta_ficha',
+    'ruta_record',
     'persona_id',
     'estado',
     'created_at',

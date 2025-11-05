@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Matricula;
+use App\Models\Acreditar;
+use App\Models\Archivo;
 use Illuminate\Http\Request;
+// Log
+use Illuminate\Support\Facades\Log;
 
 class ArchivoController extends Controller
 {
@@ -59,6 +63,119 @@ class ArchivoController extends Controller
         $matricula->save();
 
         return back()->with('success', 'Récord académico subido correctamente.');
+    }
+
+    public function subirCLectiva(Request $request)
+    {
+        $request->validate([
+            'ap_id' => 'required|exists:asignacion_persona,id',
+            'carga_lectiva' => 'required|file|mimes:pdf|max:20480',
+        ]);
+
+        $id_ap = $request->ap_id;
+
+        $acreditacion = Acreditar::firstOrCreate(
+            ['ap_id' => $id_ap],
+            [
+                'estado_acreditacion' => 'Pendiente',
+                'estado' => 1
+            ]
+        );
+
+        $file = $request->file('carga_lectiva');
+        $nombre = 'cl_' . $id_ap . '_' . time() . '.pdf';
+        //$ruta = $request->file('carga_lectiva')->storeAs('carga_lectiva', $nombre, 'public');
+        $ruta = $file->storeAs('cargas_lectivas', $nombre, 'public');
+        $rutaCompleta = 'storage/' . $ruta;
+
+        Archivo::create([
+            'archivo_id' => $acreditacion->id,
+            'archivo_type' => Acreditar::class,
+            'estado_archivo' => 'Enviado',
+            'tipo' => 'carga lectiva',
+            'ruta' => $rutaCompleta,
+            'comentario' => null,
+            'subido_por_user_id' => $id_ap,
+            'estado' => 1
+        ]);
+
+        $acreditacion->save;
+
+        return back()->with('success', 'Constancia de carga lectiva subida correctamente.');
+    }
+
+    public function subirHorario(Request $request)
+    {
+        $request->validate([
+            'ap_id' => 'required|exists:asignacion_persona,id',
+            'horario' => 'required|file|mimes:pdf|max:20480',
+        ]);
+        
+        $id_ap = $request->ap_id;
+
+        $acreditacion = Acreditar::firstOrCreate(
+            ['ap_id' => $id_ap],
+            [
+                'estado_acreditacion' => 'Pendiente',
+                'estado' => 1
+            ]
+        );
+
+        $file = $request->file('horario');
+        $nombre = 'horario_' . $id_ap . '_' . time() . '.pdf';
+        $ruta = $file->storeAs('horarios', $nombre, 'public');
+        $rutaCompleta = 'storage/' . $ruta;
+
+        Archivo::create([
+            'archivo_id' => $acreditacion->id,
+            'archivo_type' => Acreditar::class,
+            'estado_archivo' => 'Enviado',
+            'tipo' => 'horario',
+            'ruta' => $rutaCompleta,
+            'comentario' => null,
+            'subido_por_user_id' => $id_ap,
+            'estado' => 1
+        ]);
+
+        $acreditacion->save;
+        return back()->with('success', 'Horario subida correctamente.');
+    }
+
+    public function subirResolucion(Request $request)
+    {
+        $request->validate([
+            'ap_id' => 'required|exists:asignacion_persona,id',
+            'resolucion' => 'required|file|mimes:pdf|max:20480',
+        ]);
+
+        $id_ap = $request->ap_id;
+
+        $acreditacion = Acreditar::firstOrCreate(
+            ['ap_id' => $id_ap],
+            [
+                'estado_acreditacion' => 'Pendiente',
+                'estado' => 1
+            ]
+        );
+
+        $file = $request->file('resolucion');
+        $nombre = 'resolucion_' . $id_ap . '_' . time() . '.pdf';
+        $ruta = $file->storeAs('resoluciones', $nombre, 'public');
+        $rutaCompleta = 'storage/' . $ruta;
+
+        Archivo::create([
+            'archivo_id' => $acreditacion->id,
+            'archivo_type' => Acreditar::class,
+            'estado_archivo' => 'Enviado',
+            'tipo' => 'resolucion',
+            'ruta' => $rutaCompleta,
+            'comentario' => null,
+            'subido_por_user_id' => $id_ap,
+            'estado' => 1
+        ]);
+
+        $acreditacion->save;
+        return back()->with('success', 'Resolución subida correctamente.');
     }
 
     public function showPDF($documento)

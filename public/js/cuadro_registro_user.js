@@ -9,7 +9,7 @@ function completarCorreo() {
     
     const selectedRole = rolSelect ? parseInt(rolSelect.value) : 0;
     
-    if (selectedRole === 4) {
+    if (selectedRole === 5) {
         // For role 1 (students): Use code as email prefix
         correoInst.value = codigo ? codigo + '@unjfsc.edu.pe' : '';
     } else if (selectedRole === 2 || selectedRole === 3) {

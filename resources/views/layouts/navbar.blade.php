@@ -1,4 +1,4 @@
-    <div id="wrapper">
+<div id="wrapper">
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -7,23 +7,35 @@
                     UNJFSC
                 </a>
                 <div class="sidebar-subtitle">Sistema de Prácticas</div>
+                <!-- Agregar el semestre actual con la session semestre_actual_id del login -->
+                @php
+                    $semestre_activo = session('semestre_actual_id');
+                    $semestre = App\Models\Semestre::find($semestre_activo);
+                @endphp
+                <h4 class="mt-2 fw-bold text-center text-light">Semestre {{ $semestre->codigo }}</h4>
+                <!--- Semestre Selector, listar los semestres disponibles -->
+                @if(Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2)
+                <select id="semestreSelect" class="form-control" onchange="saveSemestre(this.value)">
+                    <option value="" disabled selected>Seleccionar Semestre</option>
+                </select>
+                @endif
+                
             </div>
 
             <div class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-section-title">Principal</div>
-                    @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2 || Auth::user()->getRolId() == 3)
+                    @if (Auth::user()->hasAnyRoles([1, 2, 3, 4]))
                         <a href="{{ route('panel') }}" class="nav-link {{ request()->routeIs('panel') ? 'active' : '' }}">
                             <i class="bi bi-house-door"></i>
                             <span>Dashboard</span>
                         </a>
-                        
                     @endif
                 </div>
 
                 <div class="nav-section">
                     <div class="nav-section-title">Gestión de Usuarios</div>
-                    @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2 || Auth::user()->getRolId() == 3)
+                    @if (Auth::user()->hasAnyRoles([1, 2, 3]))
                         <!-- Menú desplegable de Usuarios -->
                         <div class="nav-dropdown">
                             <a href="#" class="nav-link nav-dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#collapseUsuarios" aria-expanded="false">
@@ -58,7 +70,41 @@
                             </div>
                         </div>
                     @endif
+                    @if (Auth::user()->getRolId() == 4)
+                        <a href="{{ route('estudiante') }}" class="nav-link {{ request()->routeIs('estudiante.*') ? 'active' : '' }}">
+                            <i class="bi bi-people"></i>
+                            <span>Lista de Estudiantes</span>
+                        </a>
+                    @endif
                 </div>
+
+                <!-- Acreditar docente y supervisor -->
+                @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2 || Auth::user()->getRolId() == 3)
+                    <div class="nav-section">
+                        <div class="nav-section-title">Acreditar</div>
+                        <div class="nav-dropdown">
+                            <a href="#" class="nav-link nav-dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#collapseSupervision" aria-expanded="false">
+                                <i class="bi bi-clipboard-data"></i>
+                                <span>Acreditar</span>
+                                <i class="bi bi-chevron-down nav-arrow"></i>
+                            </a>
+                            <div class="collapse nav-submenu" id="collapseSupervision">
+                                <!-- Solo pueda rol 1 y 2 -->
+                                @if (Auth::user()->hasAnyRoles([1, 2]))
+                                    <a href="{{ route('Acreditar.Docente') }}" class="nav-link {{ request()->routeIs('acreditar.docente.*') ? 'active' : '' }}">
+                                        <i class="bi bi-eye"></i>
+                                        <span>Docente Titular</span>
+                                    </a>
+                                @endif
+                                <a href="{{ route('Acreditar.Supervisor') }}" class="nav-link {{ request()->routeIs('Validacion.Matricula.*') ? 'active' : '' }}">
+                                    <i class="bi bi-file-earmark-check"></i>
+                                    <span>Docente Supervisor</span>
+                                </a>
+                            </div>
+                        </div>                        
+                    </div>
+                @endif 
+
                 @if (Auth::user()->getRolId() == 1)
                     <div class="nav-section">
                         <div class="nav-section-title">Bloque Académico</div>
@@ -84,9 +130,9 @@
                             </div>
                         </div>
                     </div>
-                @endif
+                @endif 
 
-                @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2 || Auth::user()->getRolId() == 3)
+                @if (Auth::user()->hasAnyRoles([1, 2, 3]))
                     <div class="nav-section">
                         <div class="nav-section-title">Asignación</div>
                         <!-- Menú desplegable de Asignaturas -->
@@ -144,7 +190,7 @@
                     </div>
                 @endif
                 
-                @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 3)
+                @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 3 || Auth::user()->getRolId() == 4)
                     <div class="nav-section">
                         <div class="nav-section-title">Evaluación</div>
                         <a href="{{ route('pregunta.index') }}" class="nav-link {{ request()->routeIs('pregunta.*') ? 'active' : '' }}">
@@ -159,7 +205,7 @@
                 @endif
                 <div class="nav-section">
                     <div class="nav-section-title">Otros</div>
-                    @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2 || Auth::user()->getRolId() == 3)
+                    @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2 || Auth::user()->getRolId() == 3 || Auth::user()->getRolId() == 4)
                         <a href="{{ route('empresa') }}" class="nav-link {{ request()->routeIs('empresa.*') ? 'active' : '' }}">
                             <i class="bi bi-building"></i>
                             <span>Empresas</span>
@@ -232,3 +278,55 @@
                     </div>
                 </div>
             </header>
+<!-- Agregar el script para cargar los semestres dinámicamente -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/semestres')
+            .then(response => response.json())
+            .then(data => {
+                const semestreSelect = document.getElementById('semestreSelect');
+                const semestreActiveId = {{ session('semestre_actual_id', 'null') }};
+                data.forEach(semestre => {
+                    const option = document.createElement('option');
+                    option.value = semestre.id; // Ajusta la URL según sea necesario
+                    option.textContent = semestre.codigo;
+
+                    if(semestreActiveId && semestre.id === semestreActiveId) {
+                        option.selected = true;
+                    }
+                    semestreSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error al cargar los semestres:', error));
+    });
+
+    function saveSemestre(semestreId) {
+        if (!semestreId) return;
+
+        // probar la seleecion
+        //alert('Semestre seleccionado: ' + semestreId);
+        // Route::get('/semestre/set-active/{id}' la ruta para actualizar el semestre en la session
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        fetch(`/semestre/set-active/${semestreId}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Recargar la página para reflejar el cambio
+                window.location.reload();
+            } else {
+                console.error('Error al actualizar el semestre actual.');
+                alert('Error al actualizar el semestre actual.');
+            }
+        })
+        .catch(error => {
+            console.error('Error al actualizar el semestre actual:', error);
+            alert('Error al actualizar el semestre actual.');
+        });
+    }
+</script>

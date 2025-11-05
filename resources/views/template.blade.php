@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Sistema de gestión de practicantes">
     <meta name="author" content="DavidJA">
+    <!-- CSRF Token, necesario para la autenticación de los formularios -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>UNJFSC - @yield('title')</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
@@ -18,6 +20,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     @stack('css')
 </head>
 <style>
@@ -569,12 +572,12 @@
 
 <body>
 
-        @include('layouts.navbar')
-            <!-- Main Content -->
-            <main class="main-content fade-in">
-                @yield('content')
-            </main>
-        @include('layouts.footer')
+    @include('layouts.navbar')
+        <!-- Main Content -->
+        <main class="main-content fade-in">
+            @yield('content')
+        </main>
+    @include('layouts.footer')
     @stack('js')
 </body>
 

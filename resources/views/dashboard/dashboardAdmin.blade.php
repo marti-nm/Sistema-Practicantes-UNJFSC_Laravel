@@ -573,7 +573,6 @@
         </div>
 
         <div class="dashboard-card-body">
-
             {{-- Filtros --}}
             <div class="filters-section">
                 <h6 class="filters-title">
@@ -602,14 +601,8 @@
                             <select id="docente" name="docente" class="form-select">
                                 <option value="">-- Todos --</option>
                             </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="semestre" class="form-label">Semestre:</label>
-                            <select id="semestre" name="semestre" class="form-select">
-                                <option value="">-- Todos --</option>
-                            </select>
-                        </div>
-                        <div class="col-12 text-end">
+                        </div>                        
+                        <div class="col-md-3 d-flex align-items-end justify-content-end">
                             <button type="submit" class="btn-filter">
                                 <i class="bi bi-filter"></i> 
                                 Filtrar Datos
@@ -1010,17 +1003,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const facultadSelect = document.getElementById('facultad');
     const escuelaSelect = document.getElementById('escuela');
     const docenteSelect = document.getElementById('docente');
+    const semestreActivoId = {{ session('semestre_actual_id') ?? 'null' }};
 
     facultadSelect.addEventListener('change', function () {
         const facultadId = this.value;
-        escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
+        
+        // Reset dependants
+        escuelaSelect.innerHTML = '<option value="">-- Todas --</option>';
         docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
 
         if (!facultadId) {
-            escuelaSelect.innerHTML = '<option value="">-- Todas --</option>';
             return;
         }
 
+        escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
         fetch(`/api/escuelas/${facultadId}`)
             .then(res => res.json())
             .then(data => {
@@ -1037,14 +1033,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     escuelaSelect.addEventListener('change', function () {
         const escuelaId = this.value;
-        docenteSelect.innerHTML = '<option value="">Cargando...</option>';
+        docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
 
-        if (!escuelaId) {
-            docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
+        if (!escuelaId || !semestreActivoId) {
             return;
         }
 
-        fetch(`/api/docentes/${escuelaId}`)
+        docenteSelect.innerHTML = '<option value="">Cargando...</option>';
+        fetch(`/api/docentes/${escuelaId}/${semestreActivoId}`) // <-- Usar semestre activo
             .then(res => res.json())
             .then(data => {
                 let options = '<option value="">-- Todos --</option>';
@@ -1055,32 +1051,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(() => {
                 docenteSelect.innerHTML = '<option value="">Error al cargar</option>';
-            });
-    });
-
-    const semestreSelect = document.getElementById('semestre');
-
-    docenteSelect.addEventListener('change', function () {
-        const docenteId = this.value;
-        semestreSelect.innerHTML = '<option value="">Cargando...</option>';
-
-        if (!docenteId) {
-            semestreSelect.innerHTML = '<option value="">-- Todos --</option>';
-            return;
-        }
-
-        fetch(`/api/semestres/${docenteId}`)
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">-- Todos --</option>';
-                data.forEach(s => {
-                    options += `<option value="${s.id}">${s.codigo}</option>`;
-                });
-
-                semestreSelect.innerHTML = options;
-            })
-            .catch(() => {
-                semestreSelect.innerHTML = '<option value="">Error al cargar</option>';
             });
     });
 });

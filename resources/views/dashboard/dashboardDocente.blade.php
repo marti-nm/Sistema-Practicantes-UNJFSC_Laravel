@@ -625,7 +625,7 @@
         <div class="dashboard-card-header">
             <h5 class="dashboard-card-title">
                 <i class="bi bi-mortarboard"></i>
-                Dashboard Docente - Panel de Supervisión
+                Dashboard Docente - Panel de Supervisión {{ $escuelas }}
             </h5>
         </div>
 
@@ -644,18 +644,12 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label">Escuela</label>
+                            <!-- Solo es una escuela fija que viene del var $escuelas -->
+                            
                             <select id="escuela" name="escuela" class="form-select">
-                                <option value="">-- Todas --</option>
                                 @foreach ($escuelas as $escuela)
                                     <option value="{{ $escuela->id }}">{{ $escuela->name }}</option>
                                 @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Semestre</label>
-                            <select id="semestre" name="semestre" class="form-select">
-                                <option value="">-- Todos --</option>
                             </select>
                         </div>
 
@@ -666,7 +660,7 @@
                             </select>
                         </div>
 
-                        <div class="col-12 text-end">
+                        <div class="col-md-4 d-flex align-items-end justify-content-end">
                             <button type="submit" class="btn-filter">
                                 <i class="bi bi-filter"></i> 
                                 Filtrar Datos

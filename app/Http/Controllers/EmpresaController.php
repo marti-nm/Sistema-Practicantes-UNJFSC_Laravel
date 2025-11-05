@@ -16,10 +16,11 @@ class EmpresaController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $persona = $user->persona;
-        if($persona->rol_id == 1){
+        $rol = $user->getRolId();
+        $persona = $user;
+        if($rol == 1 || $rol == 2){
             $empresas = Empresa::all();
-        }else if($persona->rol_id == 2){
+        }else if($rol == 3){
             $empresas = collect();
             $grupos_practicas = grupos_practica::where('id_docente', $persona->id)->get();
             foreach ($grupos_practicas as $grupo) {
@@ -41,7 +42,7 @@ class EmpresaController extends Controller
                     }
                 }
             }
-        } else if($persona->rol_id == 3){
+        } else if($rol == 4){
             $empresas = collect();
             $grupo_estudiantes = grupo_estudiante::where('id_supervisor', $persona->id)->get();
     

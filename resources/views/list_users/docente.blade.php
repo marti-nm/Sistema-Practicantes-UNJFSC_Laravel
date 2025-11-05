@@ -717,13 +717,17 @@
 @section('content')
 <div class="docentes-container">
     <div class="docentes-card fade-in">
-        <div class="docentes-card-header">
+        <div class="docentes-card-header d-flex align-items-center justify-content-between">
             <h5 class="docentes-card-title">
                 <i class="bi bi-mortarboard"></i>
                 Lista de Docentes
             </h5>
+            <button type="button" class="btn btn-primary mb-3 p-4" data-bs-toggle="modal" data-bs-target="#modalAgregarDocente">
+                <i class="bi bi-plus-circle"></i> Añadir Docente
+            </button>
         </div>
         <div class="docentes-card-body">
+            <x-filter/>
             <div class="table-container">
                 <table class="table" id="dataTable" width="100%" cellspacing="0">
                     <thead>
@@ -783,6 +787,230 @@
                         @endif
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar Docente -->
+<div class="modal fade" id="modalAgregarDocente" tabindex="-1" role="dialog" aria-labelledby="modalAgregarDocenteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAgregarDocenteLabel">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Registro de Nuevo Docente
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formAgregarDocente" action="#" method="POST">
+                    {{-- El action se configurará después --}}
+                    @csrf
+                    <input type="hidden" name="rol" value="3"> {{-- Asumiendo que 3 es el ID para Docente --}}
+                    <input type="hidden" name="semestre" value="{{ session('semestre_actual_id') }}">
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_codigo">Código</label>
+                                <input type="tel" class="form-control" id="add_codigo" name="codigo" maxlength="10" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_dni">DNI</label>
+                                <input type="tel" class="form-control" id="add_dni" name="dni" required maxlength="8" pattern="\d{1,9}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_celular">Celular</label>
+                                <input type="tel" class="form-control" id="add_celular" name="celular" required maxlength="9" pattern="\d{1,9}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_nombres">Nombres</label>
+                                <input type="text" class="form-control" id="add_nombres" name="nombres" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_apellidos">Apellidos</label>
+                                <input type="text" class="form-control" id="add_apellidos" name="apellidos" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="add_correo_inst">Correo Institucional</label>
+                                <input type="email" class="form-control" id="add_correo_inst" name="correo_inst" placeholder="Se autocompletará" required disabled>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_sexo">Género</label>
+                                <select class="form-control" id="add_sexo" name="sexo" required>
+                                    <option value="">Seleccione</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_facultad">Facultad</label>
+                                <select class="form-control" id="add_facultad" name="facultad" required>
+                                    <option value="">Seleccione una facultad</option>
+                                    @foreach($facultades as $facultad)
+                                        <option value="{{ $facultad->id }}">{{ $facultad->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_escuela">Escuela</label>
+                                <select class="form-control" id="add_escuela" name="escuela" required disabled>
+                                    <option value="">Seleccione una escuela</option>
+                                    @foreach($escuelas as $escuela)
+                                        <option value="{{ $escuela->id }}" data-facultad="{{ $escuela->facultad_id }}" hidden>
+                                            {{ $escuela->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cerrar
+                </button>
+                <button type="submit" form="formAgregarDocente" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-2"></i>Registrar Docente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar Docente -->
+<div class="modal fade" id="modalAgregarDocente" tabindex="-1" role="dialog" aria-labelledby="modalAgregarDocenteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAgregarDocenteLabel">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Registro de Nuevo Docente
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formAgregarDocente" action="#" method="POST">
+                    {{-- El action se configurará después --}}
+                    @csrf
+                    <input type="hidden" name="rol" value="3"> {{-- Asumiendo que 3 es el ID para Docente --}}
+                    <input type="hidden" name="semestre" value="{{ session('semestre_actual_id') }}">
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_codigo">Código</label>
+                                <input type="tel" class="form-control" id="add_codigo" name="codigo" maxlength="10" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_dni">DNI</label>
+                                <input type="tel" class="form-control" id="add_dni" name="dni" required maxlength="8" pattern="\d{1,9}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_celular">Celular</label>
+                                <input type="tel" class="form-control" id="add_celular" name="celular" required maxlength="9" pattern="\d{1,9}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_nombres">Nombres</label>
+                                <input type="text" class="form-control" id="add_nombres" name="nombres" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_apellidos">Apellidos</label>
+                                <input type="text" class="form-control" id="add_apellidos" name="apellidos" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="add_correo_inst">Correo Institucional</label>
+                                <input type="email" class="form-control" id="add_correo_inst" name="correo_inst" placeholder="Se autocompletará" required disabled>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="add_sexo">Género</label>
+                                <select class="form-control" id="add_sexo" name="sexo" required>
+                                    <option value="">Seleccione</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_facultad">Facultad</label>
+                                <select class="form-control" id="add_facultad" name="facultad" required>
+                                    <option value="">Seleccione una facultad</option>
+                                    @foreach($facultades as $facultad)
+                                        <option value="{{ $facultad->id }}">{{ $facultad->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_escuela">Escuela</label>
+                                <select class="form-control" id="add_escuela" name="escuela" required disabled>
+                                    <option value="">Seleccione una escuela</option>
+                                    @foreach($escuelas as $escuela)
+                                        <option value="{{ $escuela->id }}" data-facultad="{{ $escuela->facultad_id }}" hidden>
+                                            {{ $escuela->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cerrar
+                </button>
+                <button type="submit" form="formAgregarDocente" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-2"></i>Registrar Docente
+                </button>
             </div>
         </div>
     </div>
@@ -973,7 +1201,14 @@
 </div>
 @endforeach
 @endsection
-
 @push('js')
 <script src="{{ asset('js/persona_edit.js') }}"></script>
+@endpush
+
+@push('js')
+<script>
+    // Pequeño ajuste para que el botón de añadir use los atributos correctos de Bootstrap 4
+    document.querySelector('[data-bs-target="#modalAgregarDocente"]').setAttribute('data-toggle', 'modal');
+    document.querySelector('[data-bs-target="#modalAgregarDocente"]').setAttribute('data-target', '#modalAgregarDocente');
+</script>
 @endpush

@@ -80,6 +80,7 @@ class validacionMatriculaController extends Controller
 
         return view('ValidacionMatricula.ValidacionMatricula', compact('estudiantes'));
     }
+    
     public function actualizarEstadoFicha(Request $request, $id)
     {
         $matricula = Matricula::findOrFail($id);

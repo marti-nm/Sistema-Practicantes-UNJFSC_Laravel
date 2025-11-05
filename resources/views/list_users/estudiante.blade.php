@@ -724,6 +724,50 @@
             </h5>
         </div>
         <div class="docentes-card-body">
+            {{-- Filtros --}}
+            <div class="filters-section">
+                <h6 class="filters-title">
+                    <i class="bi bi-funnel"></i>
+                    Filtros de Búsqueda
+                </h6>
+                <form method="GET" action="{{ route('admin.Dashboard') }}">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="facultad" class="form-label">Facultad:</label>
+                            <select id="facultad" name="facultad" class="form-select">
+                                <option value="">-- Todas --</option>
+                                @foreach($facultades as $fac)
+                                    <option value="{{ $fac->id }}">{{ $fac->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="escuela" class="form-label">Escuela:</label>
+                            <select id="escuela" name="escuela" class="form-select">
+                                <option value="">-- Todas --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="docente" class="form-label">Docente:</label>
+                            <select id="docente" name="docente" class="form-select">
+                                <option value="">-- Todos --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="semestre" class="form-label">Semestre:</label>
+                            <select id="semestre" name="semestre" class="form-select">
+                                <option value="">-- Todos --</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn-filter">
+                                <i class="bi bi-filter"></i> 
+                                Filtrar Datos
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
             <div class="table-container">
                 <table class="table" id="dataTable" width="100%" cellspacing="0">
                     <thead>
@@ -734,7 +778,10 @@
                             <th>DNI</th>
                             <th>Correo</th>
                             <th>Celular</th>
-                            <th>Acciones</th>
+                            @if (Auth::user()->getRolId() != 4)
+                               <th>Acciones</th> 
+                            @endif
+                            
                         </tr>
                     </thead>
                     <tbody>
@@ -754,7 +801,8 @@
                                 </a>
                             </td>
                             <td>{{ $persona->celular }}</td>
-                            <td>
+                            @if (Auth::user()->getRolId() != 4)
+                                <td>
                                 <button type="button" class="btn btn-info" 
                                 data-toggle="modal" data-target="#modalEditar{{ $persona->id }}" 
                                 data-d="{{ $persona->distrito }}" data-p="{{ $persona->provincia }}"
@@ -771,6 +819,8 @@
                                     </button>
                                 </form>
                             </td>
+                            @endif
+                            
                         </tr>
                         @endforeach
                         @if($personas->isEmpty())
@@ -976,4 +1026,84 @@
 
 @push('js')
 <script src="{{ asset('js/persona_edit.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const facultadSelect = document.getElementById('facultad');
+    const escuelaSelect = document.getElementById('escuela');
+    const docenteSelect = document.getElementById('docente');
+
+    facultadSelect.addEventListener('change', function () {
+        const facultadId = this.value;
+        escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
+        docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
+
+        if (!facultadId) {
+            escuelaSelect.innerHTML = '<option value="">-- Todas --</option>';
+            return;
+        }
+
+        fetch(`/api/escuelas/${facultadId}`)
+            .then(res => res.json())
+            .then(data => {
+                let options = '<option value="">-- Todas --</option>';
+                data.forEach(e => {
+                    options += `<option value="${e.id}">${e.name}</option>`;
+                });
+                escuelaSelect.innerHTML = options;
+            })
+            .catch(() => {
+                escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
+            });
+    });
+
+    escuelaSelect.addEventListener('change', function () {
+        const escuelaId = this.value;
+        docenteSelect.innerHTML = '<option value="">Cargando...</option>';
+
+        if (!escuelaId) {
+            docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
+            return;
+        }
+
+        fetch(`/api/docentes/${escuelaId}`)
+            .then(res => res.json())
+            .then(data => {
+                let options = '<option value="">-- Todos --</option>';
+                data.forEach(d => {
+                    options += `<option value="${d.id}">${d.nombre}</option>`;
+                });
+                docenteSelect.innerHTML = options;
+            })
+            .catch(() => {
+                docenteSelect.innerHTML = '<option value="">Error al cargar</option>';
+            });
+    });
+
+    const semestreSelect = document.getElementById('semestre');
+
+    docenteSelect.addEventListener('change', function () {
+        const docenteId = this.value;
+        semestreSelect.innerHTML = '<option value="">Cargando...</option>';
+
+        if (!docenteId) {
+            semestreSelect.innerHTML = '<option value="">-- Todos --</option>';
+            return;
+        }
+
+        fetch(`/api/semestres/${docenteId}`)
+            .then(res => res.json())
+            .then(data => {
+                let options = '<option value="">-- Todos --</option>';
+                data.forEach(s => {
+                    options += `<option value="${s.id}">${s.codigo}</option>`;
+                });
+
+                semestreSelect.innerHTML = options;
+            })
+            .catch(() => {
+                semestreSelect.innerHTML = '<option value="">Error al cargar</option>';
+            });
+    });
+});
+</script>
 @endpush

@@ -5,27 +5,58 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Persona;
+use App\Models\asignacion_persona;
+use App\Models\Escuela;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
+
 
 class DashboardDocenteController extends Controller
 {
     public function index(Request $request)
     {
-
         
-        $docenteId = Auth::id(); // ID del docente autenticado
+    $user_id = Auth::id(); // ID del docente autenticado
+    $docenteEmail = User::findOrFail($user_id)->name;
+    $docenteId = Persona::where('codigo', $docenteEmail)->value('id');
+    Log::info('ID del docente autenticado: ' . $docenteId);
+    
     $escuelaId = $request->get('escuela');
     $facultades = DB::table('facultades')->get();
 
     $semestreCodigo = $request->get('semestre');
     $supervisorId = $request->get('supervisor');
+
+    $semestreActivoId = session('semestre_actual_id');
+    Log::info('ID del semestre actual: ' . $semestreActivoId);
+
+
+    // Obtener la asignación principal del docente para el semestre actual
+    $asignacionDocente = asignacion_persona::where('id_persona', $docenteId)
+        ->where('id_semestre', $semestreActivoId)
+        ->first();
+    $escuelaIdDocente = $asignacionDocente ? $asignacionDocente->id_escuela : null;
  
-    // Escuelas a cargo del docente
-    $escuelas = DB::table('grupos_practicas as gp') 
+    // Obtener la escuela con el id_escuela en la tabla asignacion_persona que contiene el id_persona igual al docente autenticado
+    $id_escuela = asignacion_persona::where('id_persona', $docenteId)
+        ->where('id_semestre', $semestreActivoId)
+        ->value('id_escuela');
+    $escuelas = Escuela::where('id', $id_escuela)
+    ->select('id', 'name')
+    ->get();
+
+    Log::info('ID de la escuela del docente: ' . $id_escuela);
+
+
+
+
+    /*$escuelas = DB::table('grupos_practicas as gp') 
         ->join('escuelas as e', 'gp.id_escuela', '=', 'e.id')
         ->where('gp.id_docente', $docenteId)
         ->select('e.id', 'e.name')
         ->distinct()
-        ->get();
+        ->get();*/
 
     // Base query filtrada por los valores seleccionados
     $baseQuery = DB::table('grupo_estudiante as ge')
@@ -134,7 +165,7 @@ class DashboardDocenteController extends Controller
     return view('dashboard.dashboardDocente', compact(
         'totalEstudiantes', 'totalFichasValidadas', 'totalSupervisores',
         'estudiantesPorEscuela', 'estadoFichas', 'groupsData', 'fichasPorMes',
-        'supervisoresRanking', 'escuelas','chartData','listaEstudiantes', 'facultades'
+        'supervisoresRanking', 'escuelas','chartData','listaEstudiantes', 'facultades', 'escuelaIdDocente'
     ));
 
     }

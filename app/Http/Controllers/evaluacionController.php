@@ -6,6 +6,7 @@ use App\Models\Evaluacione;
 use App\Models\grupo_estudiante;
 use App\Models\Pregunta;
 use App\Models\Persona;
+use App\Models\asignacion_persona;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,12 +19,12 @@ class EvaluacionController extends Controller
 {
     $user = auth()->user();
     $userId = $user->id;
-    $userRol = $user->persona?->rol_id;
+    $userRol = $user->getRolId();
 
     if ($userRol == 1) {
         // Si es admin: ver todos los estudiantes asignados en algún grupo
         $grupoEstudiantes = grupo_estudiante::with([
-                'estudiante.escuela',
+                'estudiante.asignacion_persona.escuela',
                 'estudiante.evaluacione',
                 'estudiante.respuestas.pregunta',
                 'grupo.escuela',
@@ -34,7 +35,7 @@ class EvaluacionController extends Controller
     } else {
         // Docente o supervisor: solo sus asignados
         $grupoEstudiantes = grupo_estudiante::with([
-                'estudiante.escuela',
+                'estudiante.asignacion_persona.escuela',
                 'estudiante.evaluacione',
                 'estudiante.respuestas.pregunta',
                 'grupo.escuela',

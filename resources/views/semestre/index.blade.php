@@ -22,11 +22,14 @@
 
             <div class="table-responsive">
                 <table id="tablaSemestres" class="table table-bordered table-hover">
+                    <!-- Agregar otro campo estado del semestres, activo (1)/finalizado (0), de la bd del campo es_actual, con el JS -->
+                    <!-- si esta finalizado, no se puede editar ni eliminar -->
                     <thead class="table-dark text-center">
                         <tr>
                             <th>ID</th>
                             <th>Código</th>
                             <th>Ciclo</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -37,15 +40,33 @@
                             <td>{{ $semestre->codigo }}</td>
                             <td>{{ $semestre->ciclo }}</td>
                             <td>
-                                {{-- Botón Editar --}}
-                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar-{{ $semestre->id }}">
-                                    <i class="bi bi-pencil-square"></i> 
-                                </button>
+                                @if($semestre->es_actual == 1)
+                                    <span class="badge bg-success">Activo</span>
+                                    <button class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#modalFinalizar-{{ $semestre->id }}">
+                                        Finalizar
+                                    </button>
+                                @else
+                                    <span class="badge bg-secondary">Finalizado</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($semestre->es_actual == 1)
+                                    {{-- Botón Editar --}}
+                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar-{{ $semestre->id }}">
+                                        <i class="bi bi-pencil-square"></i> 
+                                    </button>
 
-                                {{-- Botón Eliminar --}}
-                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar-{{ $semestre->id }}">
-                                    <i class="bi bi-trash"></i> 
-                                </button>
+                                    {{-- Botón Eliminar --}}
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar-{{ $semestre->id }}">
+                                        <i class="bi bi-trash"></i> 
+                                    </button>
+                                @else
+                                    {{-- Agregar boton que diga visualizar o revisar --}}
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVisualizar-{{ $semestre->id }}">
+                                        <i class="bi bi-eye"></i> 
+                                    </button>
+                                @endif
+                                
                             </td>
                         </tr>
                         @endforeach

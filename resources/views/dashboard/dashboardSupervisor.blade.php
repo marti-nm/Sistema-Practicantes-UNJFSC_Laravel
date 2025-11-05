@@ -569,7 +569,9 @@
                     {{-- SEMESTRE --}}
                     <div class="col-md-4">
                         <label class="form-label">Semestre:</label>
-                        <x-semestre-selector name="semestre_codigo" class="form-select" />
+                        <select id="semestre" name="semestre" class="form-select">
+                            <option value="">-- Todos --</option>
+                        </select>
                     </div>
                     
                     <div class="col-12 text-end">

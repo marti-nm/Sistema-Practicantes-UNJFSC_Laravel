@@ -56,4 +56,9 @@ class User extends Authenticatable
         return $this->persona?->asignacion_persona?->rol?->name;
     }
 
+    // Que roles acceden
+    public function hasAnyRoles(array $roles)
+    {
+        return in_array($this->getRolId(), $roles);
+    }
 }

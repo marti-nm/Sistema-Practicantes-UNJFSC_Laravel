@@ -16,10 +16,11 @@ class JefeInmediatoController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $persona = $user->persona;
-        if($persona->rol_id == 1){
+        $rol = $user->getRolId();
+        $persona = $user;
+        if($rol == 1){
             $jefes = JefeInmediato::all();
-        }else if($persona->rol_id == 2){
+        }else if($rol == 3){
             $jefes = collect();
             $grupos_practicas = grupos_practica::where('id_docente', $persona->id)->get();
             foreach ($grupos_practicas as $grupo) {
@@ -41,9 +42,9 @@ class JefeInmediatoController extends Controller
                     }
                 }
             }
-        } else if($persona->rol_id == 3){
+        } else if($rol == 4){
             $jefes = collect();
-            $grupo_estudiantes = grupo_estudiante::where('id_supervisor', $persona->id)->get();
+            $grupo_estudiantes = grupo_estudiante::where('id_supervisor', $persona)->get();
     
             foreach ($grupo_estudiantes as $ge) {
                 // Busca la práctica del estudiante

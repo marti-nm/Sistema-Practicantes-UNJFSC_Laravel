@@ -19,10 +19,14 @@ class PracticaController extends Controller
                 'practica.empresa', 
                 'practica.jefeInmediato'
             ])
-            ->whereHas('rol', function ($query) {
-                $query->where('id', 4);
+            ->whereHas('asignacion_persona', function ($query) {
+                $query->where('id_rol', 5);
             })
             ->get();
+            /*->whereHas('rol', function ($query) {
+                $query->where('id', 4);
+            })
+            ->get();*/
     
             //dd($personas);
             

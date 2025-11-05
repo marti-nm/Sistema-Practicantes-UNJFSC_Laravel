@@ -386,6 +386,10 @@
     </div>
 </div>
 
+@php
+    $id_semestre = session('semestre_actual_id');
+@endphp
+
 <!--Carga_Masiva-->
 <div class="modal fade" id="modalCargaMasiva" tabindex="-1" role="dialog" aria-labelledby="modalCargaMasivaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -483,74 +487,113 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="modalRegistroLabel">
                     <i class="bi bi-person-plus me-2"></i>
-                    Registro de Usuario
+                    Añadir Usuario {{ $id_semestre }}
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="formRegistro" action="{{ route('personas.store') }}" method="POST">
-                    <meta name="csrf-token" content="{{ csrf_token() }}">
-                    @csrf
-                    @method('POST')
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="semestre">Semestre</label>
-                                <select class="form-control" id="semestreRegistro" name="semestre" required>
-                                    <option value="">Seleccione un semestre</option>
-                                    @foreach($semestres as $semestre)
-                                        <option value="{{ $semestre->id }}">{{ $semestre->codigo }} - {{ $semestre->ciclo }}</option>
-                                    @endforeach
+                <!-- Sección de BÚSQUEDA (Siempre Visible) -->
+                    <div id="search-input-container">
+                        <h6 class="mb-3 text-primary"><i class="bi bi-search me-1"></i> 1. Verificar Usuario Existente</h6>
+                        <div class="row g-3 align-items-end">
+                            <!-- Selector DNI/CÓDIGO -->
+                            <div class="col-md-4">
+                                <label for="searchType" class="form-label">Buscar por:</label>
+                                <select id="searchType" class="form-control">
+                                    <option value="dni">DNI</option>
+                                    <option value="codigo" selected>Código</option>
                                 </select>
                             </div>
+                            <!-- Campo de Búsqueda -->
+                            <div class="col-md-5">
+                                <label for="searchValue" class="form-label">Valor de Búsqueda</label>
+                                <input type="text" class="form-control" id="searchValue" placeholder="Ingrese Código o DNI" minlength="8" maxlength="10" required>
+                            </div>
+                            <!-- Botón de Verificación -->
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="button" class="btn btn-success p-3 w-100" id="btnVerify" onclick="verifyUser()">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    Verificar
+                                </button>
+                            </div>
                         </div>
+                        
+                        <!-- Mensaje de Resultado de Búsqueda -->
+                        <div id="searchResult" class="mt-3"></div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="codigo">Código</label>
-                                <input type="tel" class="form-control" id="codigo" name="codigo" maxlength="10" required  oninput="completarCorreo()">
+                <form id="formRegistro" action="{{ route('personas.store') }}" method="POST">
+                    @csrf
+                    <!-- Campo Oculto para el ID del Semestre -->
+                    <input type="hidden" name="id_semestre" value="{{ $id_semestre }}">
+                    
+                    <!-- CAMPO CLAVE: ID de Persona. Será llenado por JS si la persona existe. -->
+                    <input type="hidden" id="personaId" name="persona_id">
+
+                    <!-- Sección de DATOS PERSONALES (Oculta por defecto) -->
+                    <div id="personalDataContainer" style="display: none;" class="section-box">
+                        <h6 class="mb-3 text-secondary"><i class="bi bi-person-lines-fill me-1"></i> 2. Datos Personales</h6>
+                        
+                        <!-- Campos solo lectura para existentes / Editables para nuevos -->
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="codigo" class="form-label">Código</label>
+                                <input type="tel" class="form-control" id="codigo" name="codigo" maxlength="10" required disabled>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="dni">DNI</label>
-                                <input type="tel" class="form-control" id="dni" name="dni" required maxlength="8" pattern="\d{1,9}">
+                            <div class="col-md-4">
+                                <label for="dni" class="form-label">DNI</label>
+                                <input type="tel" class="form-control" id="dni" name="dni" maxlength="8" required disabled>
+                            </div>                            
+                            <div class="col-md-4">
+                                <label for="nombres" class="form-label">Nombres</label>
+                                <input type="text" class="form-control" id="nombres" name="nombres" required disabled>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="celular">Celular</label>
-                                <input type="tel" class="form-control" id="celular" name="celular" required maxlength="9" pattern="\d{1,9}">
+                            <div class="col-md-4">
+                                <label for="apellidos" class="form-label">Apellidos</label>
+                                <input type="text" class="form-control" id="apellidos" name="apellidos" required disabled>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="nombres">Nombres</label>
-                                <input type="text" class="form-control" id="nombres" name="nombres" required oninput="completarCorreo()">
+                            <div class="col-md-4">
+                                <label for="celular" class="form-label">Celular</label>
+                                <input type="tel" class="form-control" id="celular" name="celular" required disabled maxlength="9">
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="apellidos">Apellidos</label>
-                                <input type="text" class="form-control" id="apellidos" name="apellidos" required oninput="completarCorreo()">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="correo_inst">Correo Institucional</label>
+                            <div class="col-md-4">
+                                <label for="correo_inst" class="form-label">Correo Institucional</label>
                                 <input type="email" class="form-control" id="correo_inst" name="correo_inst" placeholder="ejemplo@unjfsc.edu.pe" required disabled>
                             </div>
+                            <div class="col-md-4">
+                                <label for="sexo" class="form-label">Género</label>
+                                <select class="form-control" id="sexo" name="sexo" required disabled>
+                                    <option value="">Seleccione su género</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="provincia">Provincia</label>
+                                    <select class="form-control" id="provincia" name="provincia" required>
+                                        <option value="">Seleccione una provincia</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="distrito">Distrito</label>
+                                    <select class="form-control" id="distrito" name="distrito" required disabled>
+                                        <option value="">Seleccione un distrito</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="rol">Tipo de Usuario</label>
+                    </div>
+                    <!-- Sección de ASIGNACIÓN (Habilitada en ambos casos, pero con lógica) -->
+                    <div id="assignmentContainer" class="section-box mt-4">
+                        <h6 class="mb-3 text-secondary"><i class="bi bi-clipboard-check-fill me-1"></i> 3. Asignación y Rol</h6>
+                        <div class="row g-3">
+                            <!-- Rol -->
+                            <div class="col-md-4">
+                                <label for="rolRegistro" class="form-label">Tipo de Usuario (Rol)</label>
                                 <select class="form-control" id="rolRegistro" name="rol" required onchange="toggleFacultadEscuela('facultadEscuelaContainerRegistro'); completarCorreo();">
                                     <option value="">Seleccione un tipo de usuario</option>
                                     @foreach($roles as $rol)
@@ -558,67 +601,27 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="sexo">Género</label>
-                                <select class="form-control" id="sexo" name="sexo" required>
-                                    <option value="">Seleccione su género</option>
-                                    <option value="M">Masculino</option>
-                                    <option value="F">Femenino</option>
+                            <!-- Facultad -->
+                            <div class="col-md-4">
+                                <label for="facultadRegistro" class="form-label">Facultad</label>
+                                <select class="form-control" id="facultadRegistro" name="facultad" >
+                                    <option value="">Seleccione una facultad</option>
+                                    @foreach($facultades as $facultad)
+                                        <option value="{{ $facultad->id }}">{{ $facultad->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="departamento">Departamento</label>
-                                <input type="text" class="form-control" id="departamento" name="departamento" value="Lima Provincias" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="provincia">Provincia</label>
-                                <select class="form-control" id="provincia" name="provincia" required>
-                                    <option value="">Seleccione una provincia</option>
+                            <!-- Escuela -->
+                            <div class="col-md-4">
+                                <label for="escuelaRegistro" class="form-label">Escuela</label>
+                                <select class="form-control" id="escuelaRegistro" name="escuela" disabled>
+                                    <option value="">Seleccione una escuela</option>
+                                    @foreach($escuelas as $escuela)
+                                        <option value="{{ $escuela->id }}" data-facultad="{{ $escuela->facultad_id }}" hidden>
+                                            {{ $escuela->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="distrito">Distrito</label>
-                                <select class="form-control" id="distrito" name="distrito" required disabled>
-                                    <option value="">Seleccione un distrito</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="facultadEscuelaContainerRegistro">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="facultadRegistro">Facultad</label>
-                                    <select class="form-control" id="facultadRegistro" name="facultad" >
-                                        <option value="">Seleccione una facultad</option>
-                                        @foreach($facultades as $facultad)
-                                            <option value="{{ $facultad->id }}">{{ $facultad->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="escuelaRegistro">Escuela</label>
-                                    <select class="form-control" id="escuelaRegistro" name="escuela"  disabled>
-                                        <option value="">Seleccione una escuela</option>
-                                        @foreach($escuelas as $escuela)
-                                            <option value="{{ $escuela->id }}" data-facultad="{{ $escuela->facultad_id }}" hidden>
-                                                {{ $escuela->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -687,4 +690,264 @@
     });
 </script>
 <script src="{{ asset('js/cuadro_registro_user.js') }}"></script>
+@endpush
+
+@push('js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /**
+     * Configura el filtrado dinámico de escuelas basado en la facultad seleccionada.
+     * @param {string} facultySelectId - El ID del <select> de facultades.
+     * @param {string} schoolSelectId - El ID del <select> de escuelas.
+     */
+    function setupDynamicSchools(facultySelectId, schoolSelectId) {
+        const facultySelect = document.getElementById(facultySelectId);
+        const schoolSelect = document.getElementById(schoolSelectId);
+
+        if (!facultySelect || !schoolSelect) {
+            console.warn(`No se encontraron los selectores: ${facultySelectId} o ${schoolSelectId}`);
+            return;
+        }
+
+        facultySelect.addEventListener('change', function () {
+            const selectedFacultyId = this.value;
+            const schoolOptions = schoolSelect.options;
+
+            // Resetea y deshabilita el selector de escuelas
+            schoolSelect.value = '';
+            schoolSelect.disabled = true;
+
+            if (selectedFacultyId) {
+                let hasVisibleSchools = false;
+                // Itera sobre las opciones de escuela para mostrarlas/ocultarlas
+                for (let i = 0; i < schoolOptions.length; i++) {
+                    const option = schoolOptions[i];
+                    if (option.value === '') continue; // No tocar el placeholder
+
+                    if (option.getAttribute('data-facultad') === selectedFacultyId) {
+                        option.hidden = false;
+                        hasVisibleSchools = true;
+                    } else {
+                        option.hidden = true;
+                    }
+                }
+                // Habilita el selector de escuelas solo si hay opciones disponibles
+                if (hasVisibleSchools) {
+                    schoolSelect.disabled = false;
+                }
+            }
+        });
+    }
+
+    // Aplicar la lógica a ambos modales
+    setupDynamicSchools('facultadRegistro', 'escuelaRegistro'); // Para el modal de registro individual
+    setupDynamicSchools('facultadMasiva', 'escuelaMasiva');   // Para el modal de carga masiva
+    
+
+});
+
+    const ELEMENTS = {
+        form: document.getElementById('formRegistro'),
+        searchType: document.getElementById('searchType'),
+        searchValue: document.getElementById('searchValue'),
+        btnVerify: document.getElementById('btnVerify'),
+        searchResult: document.getElementById('searchResult'),
+        personalDataContainer: document.getElementById('personalDataContainer'),
+        btnSubmit: document.querySelector('#modalRegistro .modal-footer button[type="submit"]'), // Obtener el botón de submit
+        
+        // Campos del formulario
+        inputPersonaId: document.getElementById('personaId'), 
+        inputDni: document.getElementById('dni'),
+        inputCodigo: document.getElementById('codigo'),
+        inputNombres: document.getElementById('nombres'),
+        inputApellidos: document.getElementById('apellidos'),
+        
+        // Campos de Asignación
+        rolRegistro: document.getElementById('rolRegistro'),
+        facultadRegistro: document.getElementById('facultadRegistro'),
+        escuelaRegistro: document.getElementById('escuelaRegistro'),
+        
+        // Lista de todos los campos de datos personales (excepto los de búsqueda)
+        personalInputs: [
+            document.getElementById('dni'),
+            document.getElementById('codigo'),
+            document.getElementById('nombres'),
+            document.getElementById('apellidos'),
+            document.getElementById('celular'),
+            document.getElementById('correo_inst'),
+            document.getElementById('sexo'),
+            document.getElementById('provincia'),
+            document.getElementById('distrito'),
+        ]
+    };
+
+    /**
+     * Establece el estado (habilitado/deshabilitado) y el valor de los campos de datos personales.
+     * @param {boolean} disabled - Si los campos deben estar deshabilitados (true) o habilitados (false).
+     * @param {object} persona - Objeto con los datos de la persona si existe, o null si es nuevo.
+     */
+    function setPersonalDataState(disabled, persona = null) {
+        ELEMENTS.personalInputs.forEach(input => {
+            // Habilitar/Deshabilitar todos los campos
+            input.disabled = disabled;
+            
+            // Manejar el atributo 'required'
+            if (disabled) {
+                input.removeAttribute('required');
+            } else if (input.id !== 'provincia' && input.id !== 'distrito') {
+                // Re-establecer required solo para campos obligatorios si son nuevos
+                input.setAttribute('required', 'required');
+            }
+            
+            // Rellenar valores si la persona existe
+            if (persona) {
+                // Usamos input.name ya que coincide con las claves del objeto persona
+                input.value = persona[input.name] || ''; 
+                if (input.tagName === 'SELECT' && persona[input.name]) {
+                    input.value = persona[input.name];
+                }
+            } else {
+                // Limpiar valores para nuevo registro, excepto los rellenados por verifyUser
+                if (input.id !== 'dni' && input.id !== 'codigo') {
+                    input.value = '';
+                }
+            }
+        });
+
+        // Los campos de Asignación se habilitan solo si el proceso está listo para un submit
+        ELEMENTS.rolRegistro.disabled = false;
+        ELEMENTS.facultadRegistro.disabled = false;
+        ELEMENTS.escuelaRegistro.disabled = true; // Se habilita con la lógica de escuelas
+    }
+
+    /**
+     * Resetea el formulario a su estado inicial.
+     */
+    function resetForm() {
+        ELEMENTS.searchResult.innerHTML = '';
+        ELEMENTS.personalDataContainer.style.display = 'none';
+        ELEMENTS.inputPersonaId.value = '';
+        ELEMENTS.btnSubmit.disabled = true;
+        ELEMENTS.rolRegistro.disabled = true;
+        ELEMENTS.facultadRegistro.disabled = true;
+        ELEMENTS.escuelaRegistro.disabled = true;
+    }
+
+    // Verificar usuario existente btnVerify
+    function verifyUser() {
+        const searchType = ELEMENTS.searchType.value;
+        const searchValue = ELEMENTS.searchValue.value.trim();
+        
+        if (!searchValue) {
+            ELEMENTS.searchResult.innerHTML = `<div class="alert alert-warning">Ingrese un valor de ${searchType.toUpperCase()} para buscar.</div>`;
+            resetForm();
+            return;
+        }
+
+        // Limpia resultados previos y prepara el botón
+        ELEMENTS.searchResult.innerHTML = '';
+        ELEMENTS.personalDataContainer.style.display = 'none';
+        ELEMENTS.btnVerify.disabled = true;
+        ELEMENTS.btnVerify.classList.add('loading');
+        ELEMENTS.btnSubmit.disabled = true;
+        
+        // Limpia el ID de persona anterior
+        ELEMENTS.inputPersonaId.value = '';
+
+        // Obtener el token CSRF del meta tag (asumiendo que está en el layout principal)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Fetch a la ruta de verificación
+        fetch('{{ route('personas.verificar') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                type: searchType,
+                value: searchValue,
+                semestre_id: document.querySelector('input[name="id_semestre"]').value
+            })
+        }).then(response => {
+            ELEMENTS.btnVerify.disabled = false;
+            ELEMENTS.btnVerify.classList.remove('loading');
+            if (!response.ok) throw new Error('Error de red o servidor.');
+            return response.json();
+        })
+        .then(data => {
+            
+            if (data.found) {
+                // ----------------------------------------------------
+                // A. USUARIO ENCONTRADO
+                // ----------------------------------------------------
+                
+                // 1. Verificar si ya fue asignado
+                if (data.already_assigned) {
+                    ELEMENTS.searchResult.innerHTML = `<div class="alert alert-danger">
+                        <i class="bi bi-x-circle-fill me-2"></i>
+                        Usuario encontrado, pero **YA ESTÁ ASIGNADO** a este semestre.
+                    </div>`;
+                    // Deshabilitar submit y mantener campos en solo lectura
+                    setPersonalDataState(true, data.persona); 
+                    ELEMENTS.btnSubmit.disabled = true;
+                } else {
+                    ELEMENTS.searchResult.innerHTML = `<div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Usuario encontrado: <strong>${data.persona.nombres} ${data.persona.apellidos}</strong>. 
+                        Proceda a la Asignación (Paso 3).
+                    </div>`;
+
+                    // Cargar datos y deshabilitar todos los campos personales
+                    setPersonalDataState(true, data.persona);
+
+                    // Guardar el ID de la persona encontrada
+                    ELEMENTS.inputPersonaId.value = data.persona.id;
+                    ELEMENTS.btnSubmit.disabled = false;
+                }
+
+
+            } else {
+                // ----------------------------------------------------
+                // B. NUEVO USUARIO
+                // ----------------------------------------------------
+                ELEMENTS.searchResult.innerHTML = `<div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    No se encontró usuario. Complete los datos personales y asigne el rol.
+                </div>`;
+
+                setPersonalDataState(false, null);
+
+                if (searchType === 'dni') {
+                    ELEMENTS.inputDni.value = searchValue; 
+                    //ELEMENTS.inputDni.disabled = true;
+                    ELEMENTS.inputDni.readOnly = true;
+                    ELEMENTS.inputCodigo.focus();          
+                } else {
+                    ELEMENTS.inputCodigo.value = searchValue; 
+                    //ELEMENTS.inputCodigo.disabled = true;  
+                    ELEMENTS.inputCodigo.readOnly = true;
+                    ELEMENTS.inputDni.focus();             
+                }
+                
+                ELEMENTS.inputPersonaId.value = '';
+                ELEMENTS.btnSubmit.disabled = false;
+            }
+
+            // Mostrar sección de datos personales y asignación
+            ELEMENTS.personalDataContainer.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error al verificar usuario:', error);
+            ELEMENTS.btnVerify.disabled = false;
+            ELEMENTS.btnVerify.classList.remove('loading');
+            ELEMENTS.searchResult.innerHTML = `<div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Ocurrió un error al verificar el usuario.
+            </div>`;
+            ELEMENTS.btnSubmit.disabled = true;
+        });
+    }
+    </script>
 @endpush

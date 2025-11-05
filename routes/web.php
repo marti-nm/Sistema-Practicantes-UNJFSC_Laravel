@@ -13,7 +13,8 @@ use App\Http\Controllers\escuelaController;
 use App\Http\Controllers\grupoEstudianteController;
 use App\Http\Controllers\matriculaController;
 use App\Http\Controllers\semestreController;
-use App\Http\Controllers\supervisorDashboard;
+use App\Http\Controllers\supervisorDashboardController;
+use App\Http\Controllers\AcreditarController;
 use App\Http\Controllers\validacionMatriculaController;
 use App\Http\Controllers\evaluacionController;
 use App\Http\Requests\StoreFacultadRequest;
@@ -70,6 +71,9 @@ Route::get('/list_users/modal-editar', function () {
     return view('list_users.edit_persona');
 })->middleware('auth')->name('modal.editar');
 
+Route::post('/personas/verificar', [PersonaController::class, 'verificar'])->middleware('auth')->name('personas.verificar');
+Route::post('/personas/asignar', [PersonaController::class, 'asignar'])->middleware('auth')->name('personas.asignar');
+
 Route::post('/persona/editar', [PersonaController::class, 'update'])->middleware('auth')->name('persona.editar');
 
 Route::get('/list_users/docente', [PersonaController::class, 'lista_docentes'])->middleware('auth')->name('docente');
@@ -108,6 +112,11 @@ Route::get("/matricula", [matriculaController::class, "index" ])->middleware('au
 Route::get("/matricula/estudiante", [matriculaController::class, "modal" ])->middleware('auth')->name("matricula_modal");
 Route::post('/subir/ficha', [ArchivoController::class, 'subirFicha'])->middleware('auth')->name('subir.ficha');
 Route::post('/subir/record', [ArchivoController::class, 'subirRecord'])->middleware('auth')->name('subir.record');
+Route::post('/subir/clectiva', [ArchivoController::class, 'subirCLectiva'])->middleware('auth')->name('subir.clectiva');
+Route::post('/subir/horario', [ArchivoController::class, 'subirHorario'])->middleware('auth')->name('subir.horario');
+Route::post('/subir/resolucion', [ArchivoController::class, 'subirResolucion'])->middleware('auth')->name('subir.resolucion');
+
+Route::get('/documentos', [ArchivoController::class, 'showPDF'])->middleware('auth')->name('documentos.show');
 
 Route::get('/practicas/desarrollo', [PracticaController::class, 'desarrollo'])->middleware('auth')->name('desarrollo');
 Route::post('/practicas', [PracticaController::class, 'storeDesarrollo'])->middleware('auth')->name('desarrollo.store');
@@ -159,8 +168,19 @@ Route::post('/asignarAlumnos', [grupoEstudianteController::class, 'asignarAlumno
 
 Route::GET('/grupos/eliminar-asignado/{id}', [GrupoEstudianteController::class, 'destroy'])->name('grupos.eliminarAsignado');
 
-Route::get('/vMatricula', [validacionMatriculaController::class, 'Vmatricula'])->name('Validacion.Matricula');
+// public function acreditarDocente()
+Route::GET('/acreditarDTitular', [AcreditarController::class, 'acreditarDTitular'])->name('acreditar.dtitular');
+Route::GET('/acreditarDSupervisor', [AcreditarController::class, 'acreditarDSupervisor'])->name('acreditar.dsupervisor');
 
+Route::get('/vMatricula', [ValidacionMatriculaController::class, 'Vmatricula'])->name('Validacion.Matricula');
+// Validar docente titular
+Route::get('/aDTitular', [AcreditarController::class, 'ADTitular'])->name('Acreditar.Docente');
+Route::get('/aDSupervisor', [AcreditarController::class, 'ADSupervisor'])->name('Acreditar.Supervisor');
+
+Route::post('/acreditar/actualizar-archivo/{id}', [AcreditarController::class, 'actualizarEstadoArchivo'])->name('actualizar.estado.archivo');
+Route::post('/acreditar/actualizar-cl/{id}', [AcreditarController::class, 'actualizarEstadoCL'])->name('actualizar.estado.cl');
+Route::post('/acreditar/actualizar-horario/{id}', [AcreditarController::class, 'actualizarEstadoHorario'])->name('actualizar.estado.horario');
+Route::post('/acreditar/actualizar-resolucion/{id}', [AcreditarController::class, 'actualizarEstadoResolucion'])->name('actualizar.estado.resolucion');
 Route::post('/matricula/actualizar-ficha/{id}', [ValidacionMatriculaController::class, 'actualizarEstadoFicha'])->name('actualizar.estado.ficha');
 Route::post('/matricula/actualizar-record/{id}', [ValidacionMatriculaController::class, 'actualizarEstadoRecord'])->name('actualizar.estado.record');
 
@@ -172,7 +192,7 @@ Route::post('/store.foto', [PersonaController::class, 'storeFoto'])->name('store
 Route::get('/practica/{id}', [PracticaController::class, 'show'])->name('practica.show');
 
 Route::get('/dashboard-docente', [DashboardDocenteController::class, 'index'])->name('dashboard.docente');
-Route::get('/dashboardSupervisor', [supervisorDashboard::class, 'indexsupervisor'])->name('supervisor.Dashboard');
+Route::get('/dashboardSupervisor', [supervisorDashboardController::class, 'indexsupervisor'])->name('supervisor.Dashboard');
 
 Route::get('/dashboardAdmin', [adminDashboardController::class, 'indexAdmin'])->name('admin.Dashboard');
 
@@ -213,3 +233,32 @@ Route::post('/practica/{id}/edit', [EmpresaController::class, 'update'])->name('
 Route::post('/jefe_inmediato/{id}/edit', [JefeInmediatoController::class, 'update'])->name('jefe_inmediato.edit');
 
 
+
+// Rutas para el dashboard de administrador (filtros dinámicos)
+Route::get('/api/semestres/escuela/{escuelaId}', function ($escuelaId) {
+    /*return DB::table('grupos_practicas')
+        ->join('semestres', 'grupos_practicas.id_semestre', '=', 'semestres.id')
+        ->where('grupos_practicas.id_escuela', $escuelaId)
+        ->select('semestres.id', 'semestres.codigo')
+        ->distinct()
+        ->get();*/
+        return DB::table('semestres')->get();
+});
+
+Route::get('/api/docentes/{escuelaId}/{semestreId}', function ($escuelaId, $semestreId) {
+    return DB::table('personas')
+        ->join('grupos_practicas', 'personas.id', '=', 'grupos_practicas.id_docente')
+        ->where('grupos_practicas.id_escuela', $escuelaId)
+        ->where('grupos_practicas.id_semestre', $semestreId)
+        ->select('personas.id', DB::raw("CONCAT(personas.nombres, ' ', personas.apellidos) as nombre"))
+        ->distinct()
+        ->get();
+});
+
+// Listar los semestres de la tabla semestres
+Route::get('/api/semestres', function () {
+    return DB::table('semestres')->get();
+});
+
+// Actualizar semestre actual en la sesión /set-active/{id}
+Route::get('/semestre/set-active/{id}', [semestreController::class, 'setActive'])->name('semestre.setActive');

@@ -127,4 +127,15 @@ class semestreController extends Controller
         return redirect()->route('semestre.index')->with('success', 'Semestre eliminado correctamente.');
   
     }
+
+    public function setActive($id)
+    {
+        // validar que el semestre exista
+        $semestre = Semestre::findOrFail($id);
+
+        // actualizar el semestre en la session
+        session(['semestre_actual_id' => $semestre->id]);
+
+        return redirect()->route('semestre.index')->with('success', 'Semestre actual establecido correctamente.');
+    }
 }
