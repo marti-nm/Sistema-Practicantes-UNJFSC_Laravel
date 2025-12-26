@@ -21,8 +21,9 @@ return new class extends Migration
             $table->date('fecha_inicio')->nullable();
             $table->date('fecha_fin')->nullable();
             $table->string('observacion')->nullable();
+            $table->decimal('calificacion', 5, 2)->nullable();
             $table->timestamps();
-            $table->boolean('state')->default(true);
+            $table->integer('state')->default(0);
 
             /*
             $table->string('ruta_fut')->nullable();

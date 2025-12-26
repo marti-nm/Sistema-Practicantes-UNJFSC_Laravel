@@ -190,32 +190,6 @@
         left: 100%;
     }
 
-    .btn-ver-pdf-e4.constancia {
-        background: linear-gradient(135deg, var(--rose-color), #be123c);
-        color: white;
-    }
-
-    .btn-ver-pdf-e4.constancia:hover {
-        background: linear-gradient(135deg, #be123c, #9f1239);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-ver-pdf-e4.informe-final {
-        background: linear-gradient(135deg, var(--indigo-color), #3730a3);
-        color: white;
-    }
-
-    .btn-ver-pdf-e4.informe-final:hover {
-        background: linear-gradient(135deg, #3730a3, #312e81);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        color: white;
-        text-decoration: none;
-    }
-
     .supervision-e4-footer {
         background: linear-gradient(135deg, #eef2ff, #e0e7ff);
         border-top: 1px solid #c7d2fe;
@@ -396,10 +370,6 @@
                 <i class="bi bi-file-earmark-check-fill"></i>
                 Cuarta Etapa - Presentación de Informes
             </h6>
-            <div class="completion-badge">
-                <i class="bi bi-check-circle-fill"></i>
-                Etapa Final
-            </div>
         </div>
         
         <div class="supervision-e4-body">
@@ -411,7 +381,7 @@
                             <i class="bi bi-award final-document-icon"></i>
                             <div class="final-document-details">
                                 <h5>Constancia de Cumplimiento</h5>
-                                <a href="#" class="btn-ver-pdf-e4 constancia btn-review-doc" id="btn-ruta-constancia-cumplimiento" data-doctype="constancia_cumplimiento">
+                                <a href="#" class="btn-ver-pdf constancia btn-review-doc" id="btn-ruta-constancia-cumplimiento" data-doctype="constancia_cumplimiento">
                                     <i class="bi bi-file-pdf"></i>
                                     Ver PDF
                                 </a>
@@ -427,7 +397,7 @@
                             <i class="bi bi-file-earmark-text final-document-icon"></i>
                             <div class="final-document-details">
                                 <h5>Informe Final de PPP</h5>
-                                <a href="#" class="btn-ver-pdf-e4 informe-final btn-review-doc" id="btn-ruta-informe-final" data-doctype="informe_final_ppp">
+                                <a href="#" class="btn-ver-pdf informe-final btn-review-doc" id="btn-ruta-informe-final" data-doctype="informe_final_ppp">
                                     <i class="bi bi-file-pdf"></i>
                                     Ver PDF
                                 </a>
@@ -439,7 +409,7 @@
         </div>
         
         <div class="supervision-e4-footer">
-            <form id="formProcesoE4" class="form-etapa" action="{{ route('proceso') }}" method="POST" data-estado="4">
+            <!--<form id="formProcesoE4" class="form-etapa" action="{{ route('proceso') }}" method="POST" data-estado="4">
                 @csrf
                 <input type="hidden" name="id" id="idE4">
                 <div class="row align-items-end">
@@ -465,7 +435,7 @@
                         </div>
                     </div>
                 </div>
-            </form>
+            </form>-->
         </div>
     </div>
 </div>

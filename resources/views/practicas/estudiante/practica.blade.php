@@ -1,15 +1,8 @@
-    @if(!$practicas || $practicas->tipo_practica === null)
-        <div class="modal fade" id="modalPracticas" tabindex="-1" aria-labelledby="modalPracticasLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-blue), #1d4ed8); color: white;">
-                        <h5 class="modal-title" id="modalPracticasLabel">
-                            <i class="bi bi-briefcase me-2"></i>
-                            Selección de Prácticas Pre-profesionales
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                    </div>
-                    <div class="modal-body p-4">
+    <!-- Que ya no sea modal, que sea un plano un div normal -->
+    <div class=" container mt-5" id="practicas" tabindex="-1" aria-labelledby="practicasLabel" aria-hidden="true">
+        <div class="">
+            <div class="">
+                    <div class="p-4">
                         <!-- Verificación de requisitos -->
                         <div class="row mb-4" id="requirementsCheck">
                             <div class="col-12">
@@ -101,5 +94,4 @@
                 </div>
             </div>
         </div>
-    @endif
     

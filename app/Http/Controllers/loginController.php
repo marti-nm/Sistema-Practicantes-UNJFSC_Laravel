@@ -10,6 +10,13 @@ use App\Models\Semestre;
 
 class loginController extends Controller
 {
+    public function landing(){
+        if(Auth::check()){
+            return redirect()->route('panel');
+        }
+        return view('landing');
+    }
+
     public function index(){
         if(Auth::check()){
             return redirect()->route('panel');
@@ -26,16 +33,11 @@ class loginController extends Controller
         $user = Auth::getProvider()->retrieveByCredentials($request->only('email','password'));
         Auth::login($user);
         $persona = $user->persona;
-        $asignacion = asignacion_persona::where('id_persona', $persona->id)->first();
+        // Obtener la asignación más reciente del usuario
+        $asignacion = asignacion_persona::where('id_persona', $persona->id)
+                        ->orderBy('id', 'desc')
+                        ->first();
         
-        // saber el semestre actual y comprobar si el usuario tiene asignacion en el semestre actual
-        $semestre_actual = semestre::where('state', 1)->first();
-
-        if ($asignacion && $asignacion->id_semestre != $semestre_actual->id) {
-            Auth::logout();
-            return redirect()->to('login')->withErrors('No se encontró asignación para este usuario en el semestre actual');
-        }
-
         if (!$asignacion) {
             Auth::logout();
             return redirect()->to('login')->withErrors('No se encontró asignación para este usuario');
@@ -43,10 +45,9 @@ class loginController extends Controller
         
         $tipoUsuario = $asignacion->id_rol;
         $estado = $asignacion->state;
-
-
-        // en la session guardar el id del semestre actual
-        session(['semestre_actual_id' => $semestre_actual->id]);
+        
+        // en la session guardar el id del semestre de SU asignación (sea actual o pasado)
+        session(['semestre_actual_id' => $asignacion->id_semestre]);
         
         // Redirección según el nuevo sistema de 5 roles:
         // 1: Admin, 2: Sub Admin, 3: Docente Titular, 4: Docente Supervisor, 5: Estudiante
@@ -65,7 +66,7 @@ class loginController extends Controller
             case 4: // Docente Supervisor
                 return redirect()->route('supervisor.Dashboard');
             case 5: // Estudiante
-                return redirect()->route('panel.estudiantes');
+                return redirect()->route('dashboard.dashboardEstudiante');
             default:
                 return redirect()->route('panel');
         }

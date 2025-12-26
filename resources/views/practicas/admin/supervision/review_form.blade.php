@@ -1,6 +1,6 @@
 <div id="review-form-container" style="display: none;" class="fade-in">
     <div class="etapa-card">
-        <div class="etapa-header">
+        <div class="etapa-header bg-header" id="review-form-header">
             <h5 class="etapa-title">
                 <i class="bi bi-building"></i>
                 <span id="review-form-title">Formulario de Revisión</span>
@@ -8,6 +8,36 @@
         </div>
         
         <div class="etapa-body">
+            <div id="no-file-container" style="display: none;">
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-file-earmark-x" style="font-size: 2rem;"></i>
+                    <h5 class="alert-heading mt-2">No se ha enviado ningún archivo</h5>
+                    <p>No se ha encontrado ningún archivo para revisar.</p>
+                </div>
+            </div>
+            <div id="approved-file-container" style="display: none;">
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-clipboard-check" style="font-size: 2rem;"></i>
+                    <h5 class="alert-heading mt-2">Aprobado el Archivo</h5>
+                    <p>El docente ya revisó y ha aprobado este anexo. No es posible modificarlo.</p>
+                </div>
+                <div class="col-md-12">                        
+                    <div class="d-flex flex-column">
+                        <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
+                        <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
+                            <span class="text-truncate">
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                <span id="approved_file_name">Documento.pdf</span>
+                            </span>
+                            <span id="approved_file_date">Fecha: --/--/----</span>
+                            <span id="approved_file_status_badge" class="badge bg-secondary">Pendiente</span>
+                            <a href="#" id="approved_file_link" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2" target="_blank">
+                                <i class="bi bi-box-arrow-up-right"></i> Ver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <form id="genericReviewForm" class="form-etapa" action="{{ route('actualizar.archivo') }}" method="POST">
                 @csrf
                 <!-- Hidden inputs populated by JS -->

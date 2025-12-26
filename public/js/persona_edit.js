@@ -2,7 +2,7 @@ function previewImagen(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const img = document.getElementById('previewFoto');
             const icon = document.getElementById('iconoDefault');
             img.src = e.target.result;
@@ -62,38 +62,38 @@ async function cargarDistritosEn(selectElement, provinciaId, selectedDistritoId 
 
 
 // Iniciar cuando el DOM esté cargado
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Configurar los eventos para cada modal
-    $('.modal').on('show.bs.modal', async function(event) {
+    $('.modal').on('show.bs.modal', async function (event) {
         const button = event.relatedTarget;
         const provinciaId = button.getAttribute('data-p');
         const distritoId = button.getAttribute('data-d');
         const facultadId = button.getAttribute('data-f');
         const escuelaId = button.getAttribute('data-e');
-    
+
         const provinciaSelect = this.querySelector('select[name="provincia"]');
         const distritoSelect = this.querySelector('select[name="distrito"]');
         const facultadSelect = this.querySelector('select[name="facultad"]');
         const escuelaSelect = this.querySelector('select[name="escuela"]');
-    
+
         // Cargar provincias
         await cargarProvinciasEn(provinciaSelect, provinciaId);
-    
+
         // Cargar distritos
         if (provinciaId) {
             await cargarDistritosEn(distritoSelect, provinciaId, distritoId);
         }
-    
+
         // Lógica de facultad y escuela
         if (facultadId && facultadSelect && escuelaSelect) {
             facultadSelect.value = facultadId;
             escuelaSelect.disabled = false;
-    
+
             Array.from(escuelaSelect.options).forEach(option => {
                 const escuelaFacultadId = option.getAttribute('data-facultad');
                 option.hidden = (option.value !== "") && escuelaFacultadId !== facultadId;
             });
-    
+
             if (escuelaId) {
                 escuelaSelect.value = escuelaId;
             }
@@ -101,30 +101,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         facultadSelect.addEventListener('change', function () {
             const facultadId = this.value;
-        
+
             if (!facultadId) {
                 escuelaSelect.disabled = true;
                 escuelaSelect.value = "";
                 Array.from(escuelaSelect.options).forEach(option => option.hidden = true);
                 return;
             }
-        
+
             escuelaSelect.disabled = false;
-        
+
             Array.from(escuelaSelect.options).forEach(option => {
                 const escuelaFacultadId = option.getAttribute('data-facultad');
-        
+
                 option.hidden = (option.value !== "") && escuelaFacultadId !== facultadId;
             });
-        
+
             escuelaSelect.value = "";
         });
-    
+
         provinciaSelect.disabled = true;
         distritoSelect.disabled = true;
         facultadSelect.disabled = true;
         escuelaSelect.disabled = true;
-    
+
         provinciaSelect.addEventListener('change', function () {
             const newProvinciaId = this.value;
             cargarDistritosEn(distritoSelect, newProvinciaId);
@@ -135,12 +135,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.modal').forEach(modal => {
         const editBtn = modal.querySelector('#btnEditar');
         const updateBtn = modal.querySelector('#btnUpdate');
-        const formInputs = modal.querySelectorAll('#codigo, #dni, #celular, #nombres, #apellidos, #correo_inst, #provincia, #distrito, #sexo, #facultad, #escuela');
+        const formInputs = modal.querySelectorAll('#dni, #celular, #nombres, #apellidos, #provincia, #distrito, #sexo');
 
         let editing = false;
 
         if (editBtn) {
-            editBtn.addEventListener('click', function() {
+            editBtn.addEventListener('click', function () {
                 editing = !editing; // alterna el estado
 
                 if (editing) {
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     editBtn.classList.remove('btn-info');
                     editBtn.classList.add('btn-warning');
                     formInputs.forEach(input => input.removeAttribute('disabled'));
-                    
+
                 } else {
                     // Restaurar campos
                     formInputs.forEach(input => {

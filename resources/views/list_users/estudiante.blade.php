@@ -732,60 +732,86 @@
             />
             @endif
             <div class="table-container">
-                <table class="table" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Email</th>
-                            <th>Apellidos y Nombres</th>
-                            <th>Facultad</th>
-                            <th>Escuela</th>
-                            <th>Sección</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($personas as $index => $persona)
-                        <tr data-docente-id="{{ $persona->id }}">
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <span class="badge badge-light" style="background: var(--background-color); color: var(--text-primary); font-weight: 500;">
-                                    {{ $persona->correo_inst }}
-                                </span>
-                            </td>
-                            <td>{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) }}</td>
-                            <td>{{ $persona->asignacion_persona->seccion_academica->facultad->name }}</td>
-                            <td>{{ $persona->asignacion_persona->seccion_academica->escuela->name }}</td>
-                            <td>{{ $persona->asignacion_persona->seccion_academica->seccion}}</td>
-                            <td>
-                                <button type="button" class="btn btn-info" 
-                                data-toggle="modal" data-target="#modalEditar{{ $persona->id }}" 
-                                data-d="{{ $persona->distrito }}" data-p="{{ $persona->provincia }}"
-                                data-f="{{ $persona->escuela->facultad_id ?? '' }}" data-e="{{ $persona->id_escuela ?? '' }}">
-                                    <i class="bi bi-eye"></i>
-                                    
-                                </button>
-                                <form action="{{ route('personas.destroy', $persona->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro de eliminar este docente?')">
-                                        <i class="bi bi-trash"></i>
+                <div class="table-responsive">
+                    <table class="table" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Email</th>
+                                <th>Apellidos y Nombres</th>
+                                <th>Facultad</th>
+                                <th>Escuela</th>
+                                <th>Sección</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($personas as $index => $persona)
+                            <tr data-docente-id="{{ $persona->id }}">
+                                <td>{{ $index + 1 }}</td>
+                                <td>
+                                    <span class="badge badge-light" style="background: var(--background-color); color: var(--text-primary); font-weight: 500;">
+                                        {{ $persona->correo_inst }}
+                                    </span>
+                                </td>
+                                <td>{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) }}</td>
+                                <td>{{ $persona->asignacion_persona->seccion_academica->facultad->name }}</td>
+                                <td>{{ $persona->asignacion_persona->seccion_academica->escuela->name }}</td>
+                                <td>{{ $persona->asignacion_persona->seccion_academica->seccion}}</td>
+                                <td>
+                                    @if($persona->asignacion_persona->state == 1 || $persona->asignacion_persona->state == 2)
+                                    <button type="button" class="btn btn-info" 
+                                    data-toggle="modal" data-target="#modalEditar{{ $persona->id }}" 
+                                    data-d="{{ $persona->distrito }}" data-p="{{ $persona->provincia }}"
+                                    data-f="{{ $persona->escuela->facultad_id ?? '' }}" data-e="{{ $persona->id_escuela ?? '' }}">
+                                        <i class="bi bi-eye"></i>
                                         
                                     </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                        @if($personas->isEmpty())
-                        <tr>
-                            <td colspan="7" class="empty-state">
-                                <i class="bi bi-person-x"></i>
-                                <p class="mb-0">No se encontraron docentes registrados.</p>
-                            </td>
-                        </tr>
-                        @endif
-                    </tbody>
-                </table>
+                                    @if(!$semestre_bloqueado)
+                                    <button type="button" class="btn btn-danger btn-disabled-ap" 
+                                        data-id-ap="{{ $persona->asignacion_persona->id }}"
+                                        data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
+                                        data-state-ap="{{ $persona->asignacion_persona->state }}"
+                                        data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
+                                        data-email-ap="{{ $persona->correo_inst }}">
+                                        <i class="bi bi-person-x-fill"></i>
+                                    </button>
+                                    @endif
+                                    @elseif($persona->asignacion_persona->state == 3 && Auth::user()->hasAnyRoles([1,2]))
+                                    <button type="button" class="btn btn-secondary btn-management-ap" 
+                                        data-id-ap="{{ $persona->asignacion_persona->id }}"
+                                        data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
+                                        data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
+                                        data-email-ap="{{ $persona->correo_inst }}">
+                                        <i class="bi bi-hourglass-bottom"></i>
+                                    </button>
+                                    @elseif($persona->asignacion_persona->state == 3)
+                                        <label class="badge badge-warning text-black">Pendiente</label>
+                                    @elseif($persona->asignacion_persona->state == 4)
+                                        <!-- button para habilitar -->
+                                        <button type="button" class="btn btn-warning btn-disabled-ap" 
+                                            data-id-ap="{{ $persona->asignacion_persona->id }}"
+                                            data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
+                                            data-state-ap="{{ $persona->asignacion_persona->state }}"
+                                            data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
+                                            data-email-ap="{{ $persona->correo_inst }}">
+                                            <i class="bi bi-person-check-fill"></i>
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                            @if($personas->isEmpty())
+                            <tr>
+                                <td colspan="7" class="empty-state">
+                                    <i class="bi bi-person-x"></i>
+                                    <p class="mb-0">No se encontraron docentes registrados.</p>
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -975,88 +1001,429 @@
     </div>
 </div>
 @endforeach
+
+{{--  
+<div class="modal" id="modalDisabledAp">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Deshabilitar Estudiante</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- mensaje que primero tendra ser aprobado por el administrador -->
+                <div id="alertDeshabilitarAp" class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Advertencia!</strong>
+                    <p>El estudiante debe ser aprobado por el administrador antes de deshabilitarlo o eliminado.</p>
+                </div>
+                <!-- mensaje que tendra el docente para habilitar a un estudiante -->
+                <div id="alertHabilitarAp" class="alert alert-info">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Advertencia!</strong>
+                    <p>Para habilitar a un estudiante debe ser aprobado por el administrador.</p>
+                </div>
+                <form id="formEliminar" action="{{ route('solicitud_ap') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="id_ap" id="id_ap">
+                    <input type="hidden" name="id_sa" id="id_sa">
+                    <!-- mostrar el nombre del estudiante -->
+                    <div class="form-group">
+                        <label class="font-weight-bold"><i class="bi bi-person"></i> Nombre del Estudiante:</label>
+                        <p id="nombre_ap" class="font-weight-bold align-items-center"></p>
+                    </div>
+                    <div class="form-group mt-3" id="correccion-options-ap">
+                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Seleccionar una opción:</label>
+                        <div id="option-deshabilitar-ap">
+                            <div class="row g-2">
+                                <div class="col">
+                                    <div class="correccion-cell h-100" id="deshabilitar-ap" onclick="selectCorreccion('deshabilitar', 'ap')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Podra deshabilitar y luego habilitar.">
+                                        <i class="bi bi-lock" style="font-size: 1.5em;"></i><br>Deshabilitar
+                                        <input type="radio" name="opcion" id="correccionDeshabilitar-ap" value="1" class="d-none" checked>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="correccion-cell h-100" id="eliminar-ap" onclick="selectCorreccion('eliminar', 'ap')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Tendrá que enviar otra nota y aprueba el archivo.">
+                                        <i class="bi bi-trash" style="font-size: 1.5em;"></i><br>Eliminar
+                                        <input type="radio" name="opcion" id="correccionEliminar-ap" value="2" class="d-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="option-habilitar-ap" class="row g-2">
+                            <div class="col">
+                                <div class="correccion-cell h-100" id="habilitar-ap" onclick="selectCorreccion('habilitar', 'ap')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Podra deshabilitar y luego habilitar.">
+                                    <i class="bi bi-unlock" style="font-size: 1.5em;"></i><br>Habilitar
+                                    <input type="radio" name="opcion" id="correccionHabilitar-ap" value="3" class="d-none" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="comentario-ap" class="font-weight-bold">
+                            <i class="bi bi-chat-dots"></i> Comentario
+                        </label>
+                        <textarea name="comentario" id="comentario-ap" class="form-control" required rows="3" placeholder="Ej: La firma no es visible, por favor, vuelva a escanear el documento."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formEliminar" class="btn btn-danger" id="btnEliminar">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modalManagementAp">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Gestionar Estudiante</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formManagement" action="{{ route('solicitud.ap') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="id_sol" id="id_sol">
+                    <div class="form-group">
+                        <label class="font-weight-bold"><i class="bi bi-person"></i> Nombre del Estudiante:</label>
+                        <p id="nombre_m_ap" class="font-weight-bold align-items-center text-capitalize"></p>
+                    </div>
+                    <!-- mostrar el estado de la solicitud de baja -->
+                    <div class="form-group mt-3" id="estado-solicitud-ap">
+                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Acción a realizar:</label>
+                        <p id="accion_ap" class="font-weight-bold align-items-center"></p>
+                    </div>
+                    <!-- justificacion de la solicitud -->
+                    <div class="form-group mt-3">
+                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Justificación:</label>
+                        <p id="justificacion_ap" class="font-weight-bold align-items-center"></p>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Seleccionar una opción:</label>
+                        <div class="row g-2">
+                            <div class="col">
+                                <div class="correccion-cell h-100" id="aprobar-management" onclick="selectGestion('aprobar')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;">
+                                    <i class="bi bi-check-circle" style="font-size: 1.5em;"></i><br>Aprobar
+                                    <input type="radio" name="estado" id="gestionAprobar" value="1" class="d-none" checked>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="correccion-cell h-100" id="rechazar-management" onclick="selectGestion('rechazar')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;">
+                                    <i class="bi bi-x-circle" style="font-size: 1.5em;"></i><br>Rechazar
+                                    <input type="radio" name="estado" id="gestionRechazar" value="2" class="d-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="comentario-ap" class="font-weight-bold">
+                            <i class="bi bi-chat-dots"></i> Comentario
+                        </label>
+                        <textarea name="comentario" id="comentario-management" required class="form-control" rows="3" placeholder="Ej: Documentación incompleta."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formManagement" class="btn btn-primary" id="btnManagement">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- modal para enabledAp -->
+<div class="modal" id="modalEnabledAp">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Habilitar Estudiante</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de habilitar al estudiante?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnEnabledAp">Habilitar</button>
+            </div>
+        </div>
+    </div>
+</div>
+ --}}
+
+ @include('list_users.partials.modales_gestion_estado')
 @endsection
 
 @push('js')
 <script src="{{ asset('js/persona_edit.js') }}"></script>
+<script src="{{ asset('js/gestion_estado_usuario.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(session('success'))
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '{{ session('success') }}',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    </script>
+@endif
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const facultadSelect = document.getElementById('facultad');
-    const escuelaSelect = document.getElementById('escuela');
-    const docenteSelect = document.getElementById('docente');
+    document.addEventListener("DOMContentLoaded", function () {
+        const facultadSelect = document.getElementById('facultad');
+        const escuelaSelect = document.getElementById('escuela');
+        const docenteSelect = document.getElementById('docente');
 
-    facultadSelect.addEventListener('change', function () {
-        const facultadId = this.value;
-        escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
-        docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
-
-        if (!facultadId) {
-            escuelaSelect.innerHTML = '<option value="">-- Todas --</option>';
-            return;
-        }
-
-        fetch(`/api/escuelas/${facultadId}`)
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">-- Todas --</option>';
-                data.forEach(e => {
-                    options += `<option value="${e.id}">${e.name}</option>`;
-                });
-                escuelaSelect.innerHTML = options;
-            })
-            .catch(() => {
-                escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
-            });
-    });
-
-    escuelaSelect.addEventListener('change', function () {
-        const escuelaId = this.value;
-        docenteSelect.innerHTML = '<option value="">Cargando...</option>';
-
-        if (!escuelaId) {
+        facultadSelect.addEventListener('change', function () {
+            const facultadId = this.value;
+            escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
             docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
-            return;
-        }
 
-        fetch(`/api/docentes/${escuelaId}`)
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">-- Todos --</option>';
-                data.forEach(d => {
-                    options += `<option value="${d.id}">${d.nombre}</option>`;
+            if (!facultadId) {
+                escuelaSelect.innerHTML = '<option value="">-- Todas --</option>';
+                return;
+            }
+
+            fetch(`/api/escuelas/${facultadId}`)
+                .then(res => res.json())
+                .then(data => {
+                    let options = '<option value="">-- Todas --</option>';
+                    data.forEach(e => {
+                        options += `<option value="${e.id}">${e.name}</option>`;
+                    });
+                    escuelaSelect.innerHTML = options;
+                })
+                .catch(() => {
+                    escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
                 });
-                docenteSelect.innerHTML = options;
-            })
-            .catch(() => {
-                docenteSelect.innerHTML = '<option value="">Error al cargar</option>';
-            });
-    });
+        });
 
-    const semestreSelect = document.getElementById('semestre');
+        escuelaSelect.addEventListener('change', function () {
+            const escuelaId = this.value;
+            docenteSelect.innerHTML = '<option value="">Cargando...</option>';
 
-    docenteSelect.addEventListener('change', function () {
-        const docenteId = this.value;
-        semestreSelect.innerHTML = '<option value="">Cargando...</option>';
+            if (!escuelaId) {
+                docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
+                return;
+            }
 
-        if (!docenteId) {
-            semestreSelect.innerHTML = '<option value="">-- Todos --</option>';
-            return;
-        }
-
-        fetch(`/api/semestres/${docenteId}`)
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">-- Todos --</option>';
-                data.forEach(s => {
-                    options += `<option value="${s.id}">${s.codigo}</option>`;
+            fetch(`/api/docentes/${escuelaId}`)
+                .then(res => res.json())
+                .then(data => {
+                    let options = '<option value="">-- Todos --</option>';
+                    data.forEach(d => {
+                        options += `<option value="${d.id}">${d.nombre}</option>`;
+                    });
+                    docenteSelect.innerHTML = options;
+                })
+                .catch(() => {
+                    docenteSelect.innerHTML = '<option value="">Error al cargar</option>';
                 });
+        });
 
-                semestreSelect.innerHTML = options;
-            })
-            .catch(() => {
-                semestreSelect.innerHTML = '<option value="">Error al cargar</option>';
-            });
+        const semestreSelect = document.getElementById('semestre');
+
+        docenteSelect.addEventListener('change', function () {
+            const docenteId = this.value;
+            semestreSelect.innerHTML = '<option value="">Cargando...</option>';
+
+            if (!docenteId) {
+                semestreSelect.innerHTML = '<option value="">-- Todos --</option>';
+                return;
+            }
+
+            fetch(`/api/semestres/${docenteId}`)
+                .then(res => res.json())
+                .then(data => {
+                    let options = '<option value="">-- Todos --</option>';
+                    data.forEach(s => {
+                        options += `<option value="${s.id}">${s.codigo}</option>`;
+                    });
+
+                    semestreSelect.innerHTML = options;
+                })
+                .catch(() => {
+                    semestreSelect.innerHTML = '<option value="">Error al cargar</option>';
+                });
+        });
     });
-});
 </script>
+{{--  
+<script>
+    // btn-disabled-ap
+    document.addEventListener('DOMContentLoaded', function () {
+        const btnDisabledAp = document.querySelectorAll('.btn-disabled-ap');
+
+        const MODAL_SELECTOR = '#modalDisabledAp';
+        const modalElement = document.querySelector(MODAL_SELECTOR);
+        const myModal = new bootstrap.Modal(modalElement);
+
+        btnDisabledAp.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const ID_AP = this.getAttribute('data-id-ap');
+                document.getElementById('id_ap').value = ID_AP;
+                document.getElementById('nombre_ap').textContent = this.getAttribute('data-nombre-ap');
+                document.getElementById('id_sa').value = this.getAttribute('data-id-sa');
+                const stateAp = this.getAttribute('data-state-ap');
+
+                const optionHabilitarAp = document.getElementById('option-habilitar-ap');
+                const optionDeshabilitarAp = document.getElementById('option-deshabilitar-ap');
+                if(stateAp < 4){
+                    document.getElementById('alertDeshabilitarAp').classList.remove('d-none');
+                    document.getElementById('alertHabilitarAp').classList.add('d-none');
+
+                    optionHabilitarAp.style.display = 'none';
+                    optionDeshabilitarAp.style.display = 'block';
+
+                    selectCorreccion('deshabilitar', 'ap');
+                }else{
+                    document.getElementById('alertDeshabilitarAp').classList.add('d-none');
+                    document.getElementById('alertHabilitarAp').classList.remove('d-none');
+
+                    optionHabilitarAp.style.display = 'block';
+                    optionDeshabilitarAp.style.display = 'none';
+                    selectCorreccion('habilitar', 'ap');
+                }
+                
+                myModal.show();
+            });
+        });
+
+        // Inicializar estilo por defecto
+        updateCorreccionStyles('deshabilitar', 'ap');
+    });
+
+    // Función global para seleccionar corrección
+    window.selectCorreccion = function(tipo, suffix) {
+        // Actualizar Radio Button
+        const radioId = 'correccion' + tipo.charAt(0).toUpperCase() + tipo.slice(1) + '-' + suffix;
+        const radioParams = document.getElementById(radioId);
+        if(radioParams) radioParams.checked = true;
+
+        // Actualizar Estilos Visuales
+        updateCorreccionStyles(tipo, suffix);
+    };
+
+    function updateCorreccionStyles(selectedTipo, suffix) {
+        // IDs de las celdas
+        const cellDeshabilitar = document.getElementById('deshabilitar-' + suffix);
+        const cellEliminar = document.getElementById('eliminar-' + suffix);
+
+        // Reset styles
+        [cellDeshabilitar, cellEliminar].forEach(cell => {
+            if(cell) {
+                cell.classList.remove('bg-primary', 'text-white', 'border-primary');
+                cell.classList.add('border-secondary', 'text-secondary');
+                cell.style.backgroundColor = '#f8f9fa'; // Un gris muy claro por defecto
+            }
+        });
+
+        // Apply active style
+        const activeCell = document.getElementById(selectedTipo + '-' + suffix);
+        if (activeCell) {
+            activeCell.classList.remove('border-secondary', 'text-secondary');
+            activeCell.classList.add('bg-primary', 'text-white', 'border-primary');
+            activeCell.style.backgroundColor = ''; // Limpiar inline style para que tome la clase bg-primary
+        }
+    }
+
+    const btnManagementAp = document.querySelectorAll('.btn-management-ap');
+    document.addEventListener('DOMContentLoaded', function () {
+        const MODAL_SELECTOR = '#modalManagementAp';
+        const modalElement = document.querySelector(MODAL_SELECTOR);
+        const myModal = new bootstrap.Modal(modalElement);
+
+        btnManagementAp.forEach(button => {
+            button.addEventListener('click', async function () {
+                const idAp = this.getAttribute('data-id-ap');
+                const nombreAp = this.getAttribute('data-nombre-ap');
+                const idSa = this.getAttribute('data-id-sa');
+                document.getElementById('id_ap').value = idAp;
+                document.getElementById('nombre_m_ap').textContent = nombreAp;
+
+                const reponse = await fetch(`/api/solicitud/getSolicitudAp/${idAp}`);
+                const data = await reponse.json();
+                console.log(data);
+
+                document.getElementById('id_sol').value = data.id;
+                document.getElementById('accion_ap').textContent = data.data.opcion.toUpperCase() ?? 'Error';
+                document.getElementById('accion_ap').classList.add('font-weight-bold');
+
+                document.getElementById('justificacion_ap').textContent = data.motivo.toUpperCase() ?? 'Error';
+                document.getElementById('justificacion_ap').classList.add('font-weight-bold');
+
+                selectGestion('aprobar');
+                myModal.show();
+            });
+        });
+
+        if(document.getElementById('aprobar-management')) {
+            updateGestionStyles('aprobar');
+        }
+    })
+
+    // Función para seleccionar gestión (Aprobar/Rechazar)
+    window.selectGestion = function(tipo) {
+        const radioId = 'gestion' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
+        const radioBtn = document.getElementById(radioId);
+        if(radioBtn) radioBtn.checked = true;
+
+        updateGestionStyles(tipo);
+    };
+
+    function updateGestionStyles(selectedTipo) {
+        const cellAprobar = document.getElementById('aprobar-management');
+        const cellRechazar = document.getElementById('rechazar-management');
+
+        // Reset
+        [cellAprobar, cellRechazar].forEach(cell => {
+            if(cell) {
+                cell.classList.remove('bg-success', 'bg-danger', 'text-white', 'border-success', 'border-danger');
+                cell.classList.add('border-secondary', 'text-secondary');
+                cell.style.backgroundColor = '#f8f9fa';
+            }
+        });
+
+        // Active
+        const activeCell = document.getElementById(selectedTipo + '-management');
+        if(activeCell) {
+            activeCell.classList.remove('border-secondary', 'text-secondary');
+            activeCell.style.backgroundColor = '';
+            
+            if(selectedTipo === 'aprobar') {
+                activeCell.classList.add('bg-success', 'text-white', 'border-success');
+            } else {
+                activeCell.classList.add('bg-danger', 'text-white', 'border-danger');
+            }
+        }
+    }
+
+    const btnEnabledAp = document.querySelectorAll('.btn-enabled-ap');
+    document.addEventListener('DOMContentLoaded', function () {
+        const MODAL_SELECTOR = '#modalEnabledAp';
+        const modalElement = document.querySelector(MODAL_SELECTOR);
+        const myModal = new bootstrap.Modal(modalElement);
+
+        btnEnabledAp.forEach(button => {
+            button.addEventListener('click', function () {
+                console.log('Habilitar');
+                myModal.show();
+            });
+        });
+    });
+
+</script>
+--}}
 @endpush

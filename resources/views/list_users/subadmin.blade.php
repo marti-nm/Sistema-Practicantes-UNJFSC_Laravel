@@ -749,7 +749,7 @@
                                 </span>
                             </td>
                             <td>{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) }}</td>
-                            <td>{{ $persona->asignacion_persona->facultad->name }}</td>
+                            <td>{{ $persona->asignacion_persona->seccion_academica->facultad->name }}</td>
                             <td>
                                 <button type="button" class="btn btn-info" 
                                 data-toggle="modal" data-target="#modalEditar{{ $persona->id }}" 

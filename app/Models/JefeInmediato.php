@@ -15,6 +15,7 @@ class JefeInmediato extends Model
         'correo',
         'telefono',
         'web',
+        'comentario',
         'id_practica',
         'state'
     ];

@@ -63,7 +63,7 @@
                                 </div>
                                 <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
                                     <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Ficha Enviada</span>
-                                    <a href="{{ route('documentos.show', ['documento' => str_replace('storage/', '', $ficha->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $ficha->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="bi bi-eye"></i> Ver
                                     </a>
                                 </div>
@@ -77,7 +77,7 @@
                                 </div>
                                 <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
                                     <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Ficha Enviada</span>
-                                    <a href="{{ route('documentos.show', ['documento' => str_replace('storage/', '', $ficha->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $ficha->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="bi bi-eye"></i> Ver
                                     </a>
                                 </div>
@@ -136,7 +136,7 @@
                                 </div>
                                 <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
                                     <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Record Enviado</span>
-                                    <a href="{{ route('documentos.show', ['documento' => str_replace('storage/', '', $record->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $record->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="bi bi-eye"></i> Ver
                                     </a>
                                 </div>
@@ -150,7 +150,7 @@
                                 </div>
                                 <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
                                     <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Record Enviado</span>
-                                    <a href="{{ route('documentos.show', ['documento' => str_replace('storage/', '', $record->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $record->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
                                         <i class="bi bi-eye"></i> Ver
                                     </a>
                                 </div>

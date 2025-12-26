@@ -1,5 +1,5 @@
 @extends('template')
-@section('title', 'Dashboard Supervisor')
+@section('title', 'Evaluación de Supervisión de Prácticas')
 @section('subtitle', 'Panel de supervisión y seguimiento de estudiantes')
 
 @push('css')
@@ -750,92 +750,138 @@
             </h1>
         </div>
         <div class="app-card-body">
-            <form id="form-modulo" method="GET" action="{{ route('evaluacionPractica.index') }}" class="mt-4">
-                <input type="hidden" name="modulo" id="selected_modulo" value="{{ request('modulo', 1) }}">
-
-                <div class="form-group">
-                    <label class="font-weight-bold mb-2"><i class="bi bi-journal-bookmark-fill"></i> Seleccionar el Módulo:</label>
-                    <div class="row g-2">
-                        @php
-                        $modules = [1 => 'Módulo I', 2 => 'Módulo II', 3 => 'Módulo III', 4 => 'Módulo IV'];
-                        $currentModulo = isset($id_modulo_now) ? (int)$id_modulo_now : null;
-                        $selectedModuloRequest = (int) request('modulo', 1);
-                        @endphp
-                        @foreach($modules as $m => $label)
-                        @php
-                        $isActive = ($selectedModuloRequest === $m);
-                        $locked = is_null($selected_grupo_id) || is_null($currentModulo) || ($m > $currentModulo);
-                        @endphp
-                        <div class="col">
-                            <div
-                                class="module-selector-cell btn-etapa h-100 {{ $isActive ? 'active' : '' }} {{ $locked ? 'locked' : 'unlocked' }}"
-                                role="button"
-                                tabindex="{{ $locked ? '-1' : '0' }}"
-                                aria-disabled="{{ $locked ? 'true' : 'false' }}"
-                                data-module="{{ $m }}"
-                                data-locked="{{ $locked ? 1 : 0 }}"
-                                onclick="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})">
-                                <i class="bi bi-{{ $m }}-circle" style="font-size: 1.5em;"></i><br>{{ $label }}
-                                @if($locked)
-                                <span class="lock-overlay" title="Módulo bloqueado"><i class="bi bi-lock-fill"></i></span>
-                                @endif
+            @if(Auth::user()->hasAnyRoles([1, 2]))
+                <x-data-filter
+                    route="evaluacionPractica.index"
+                    :facultades="$facultades"
+                />
+            @endif
+            <div class="etapas-container">
+                <form method="GET" action="{{ route('evaluacionPractica.index') }}">
+                    <div class="row g-3 d-flex justify-content-between">
+                        <div class="col-md-4">
+                            <label for="grupo">Seleccionar Grupo:</label>
+                            <select class="form-control" id="grupo" name="grupo" onchange="this.form.submit()">
+                                <option value="">-- Seleccione un grupo --</option>
+                                @foreach ($grupos_practica as $gp)
+                                    <option value="{{ $gp->id }}" {{ $selected_grupo_id == $gp->id ? 'selected' : '' }}>{{ $gp->seccion_academica->escuela->name }} - {{ $gp->seccion_academica->seccion }} : {{ $gp->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="descripcion">Descripción:</label>
+                            <div class="form-control bg-primary text-white" id="descripcion">
+                                {{ $name_escuela }} - {{ $name_seccion }} : {{ $name_grupo }}
                             </div>
                         </div>
-                        @endforeach
                     </div>
-                </div>
-            </form>
-            </br>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Estudiante</th>
-                            <th scope="col">Anexo 7</th>
-                            <th scope="col">Anexo 8</th>
-                            <th scope="col">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="evaluation-table-body">
-                        @foreach ($grupo_estudiante as $index => $item)
-                        @php
-                        $getBgColor = function ($estado) {
-                        switch ($estado) {
-                        case 'Aprobado':
-                        return 'primary';
-                        case 'Enviado':
-                        return 'warning';
-                        case 'Corregir':
-                        return 'danger';
-                        default:
-                        return 'secondary';
-                        }
-                        };
-                        @endphp
-                        <tr>
-                            <td>{{ $index+1 }}</td>
-                            <td>{{ optional($item->asignacion_persona->persona)->apellidos }} {{ optional($item->asignacion_persona->persona)->nombres }}</td>
-                            <td>
-                                <button class="btn btn-sm btn-success btn-subir-anexo"
-                                    data-id-estudiante="{{ $item->id_ap }}"
-                                    data-anexo-numero="7">Subir</button>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-primary btn-subir-anexo"
-                                    data-id-estudiante="{{ $item->id_ap }}"
-                                    data-anexo-numero="8">Subir</button>
-                            </td>
-                            <td class="status-cell">
-                                <span class="badge bg-{{ $getBgColor($item->estado_evaluacion) }} status-badge"><i class="bi bi-hourglass-split"></i>{{ $item->estado_evaluacion }}</span>
-                            </td>
-                        </tr>
-                        <!-- Modales para Anexo 7 y Anexo 8 -->
+                </form>
+                <form id="form-modulo" method="GET" action="{{ route('evaluacionPractica.index') }}" class="mt-4">
+                    <input type="hidden" name="grupo" value="{{ $selected_grupo_id }}">
+                    <input type="hidden" name="modulo" id="selected_modulo" value="{{ $id_modulo ?? 1 }}">
 
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold mb-2"><i class="bi bi-journal-bookmark-fill"></i> Seleccionar el Módulo:</label>
+                        <div class="row g-2">
+                            @php
+                            $modules = [1 => 'Módulo I', 2 => 'Módulo II', 3 => 'Módulo III', 4 => 'Módulo IV'];
+                            $currentModulo = isset($id_modulo_now) ? (int)$id_modulo_now : null;
+                            $selectedModuloRequest = (int) ($id_modulo ?? 1);
+                            @endphp
+                            @foreach($modules as $m => $label)
+                            @php
+                            $isActive = ($selectedModuloRequest === $m);
+                            $locked = is_null($selected_grupo_id) || is_null($currentModulo) || ($m > $currentModulo);
+                            @endphp
+                            <div class="col">
+                                <div
+                                    class="module-selector-cell btn-etapa h-100 {{ $isActive ? 'active' : '' }} {{ $locked ? 'locked' : 'unlocked' }}"
+                                    role="button"
+                                    tabindex="{{ $locked ? '-1' : '0' }}"
+                                    aria-disabled="{{ $locked ? 'true' : 'false' }}"
+                                    data-module="{{ $m }}"
+                                    data-locked="{{ $locked ? 1 : 0 }}"
+                                    onclick="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})">
+                                    <i class="bi bi-{{ $m }}-circle" style="font-size: 1.5em;"></i><br>{{ $label }}
+                                    @if($locked)
+                                    <span class="lock-overlay" title="Módulo bloqueado"><i class="bi bi-lock-fill"></i></span>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </form>
+                </br>
+                <div class="table-responsive">
+                    <table class="table" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Facultad</th>
+                                <th>Escuela</th>
+                                <th>Estudiante</th>
+                                <th>Anexo 7</th>
+                                <th>Anexo 8</th>
+                            </tr>
+                        </thead>
+                        <tbody id="evaluation-table-body">
+                            @foreach ($grupo_estudiante as $index => $item)
+                            @php
+                                $getStatusInfo = function ($state) {
+                                    if (is_null($state)) return ['color' => 'secondary', 'label' => 'Sin envío'];
+                                    
+                                    // state 1: Enviado, 5: Aprobado, 2,3,4: Corregir
+                                    switch ($state) {
+                                        case 5: return ['color' => 'success', 'label' => 'Aprobado'];
+                                        case 1: return ['color' => 'warning', 'label' => 'Revisar'];
+                                        case 2:
+                                        case 3:
+                                        case 4: return ['color' => 'danger', 'label' => 'Por Corregir'];
+                                        default: return ['color' => 'secondary', 'label' => 'Pendiente'];
+                                    }
+                                };
+
+                                $status7 = $getStatusInfo($item->status_anexo_7);
+                                $status8 = $getStatusInfo($item->status_anexo_8);
+                            @endphp
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $item->asignacion_persona->seccion_academica->facultad->name }}</td>
+                                <td>{{ $item->asignacion_persona->seccion_academica->escuela->name }}</td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <strong>{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</strong>
+                                        <small class="text-muted">Estado Gral: 
+                                            @if($item->state == 2)
+                                                <span class="badge bg-success">Aprobado</span>
+                                            @else
+                                                <span class="badge bg-info">En Proceso</span>
+                                            @endif
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-{{ $status7['color'] }} btn-subir-anexo w-100" 
+                                        data-id-estudiante="{{ $item->id_ap }}" 
+                                        data-anexo-numero="7">
+                                        <i class="bi bi-file-earmark-arrow-up"></i> Anexo 7 ({{ $status7['label'] }})
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-{{ $status8['color'] }} btn-subir-anexo w-100" 
+                                        data-id-estudiante="{{ $item->id_ap }}" 
+                                        data-anexo-numero="8">
+                                        <i class="bi bi-file-earmark-arrow-up"></i> Anexo 8 ({{ $status8['label'] }})
+                                    </button>
+                                </td>
+                            </tr>
+                            <!-- Modales para Anexo 7 y Anexo 8 -->
+
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
         </div>
     </div>
 </div>
@@ -921,17 +967,28 @@
                         <label for="finalScore" class="form-label">Nota Final (0-20)</label>
                         <input type="number" name="nota" class="form-control" id="finalScore" min="0" max="20">
                     </div>
-                    <div class="mb-3 d-flex justify-content-between gap-2">
+                    <div class="d-flex justify-content-between gap-2">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                         <button type="submit" class="btn btn-primary" id="saveEvaluation">Guardar y Aprobar</button>
                     </div>
                 </form>
-                <div class="history-container mb-3">
-                    <h6 class="mt-4">Documentos enviados (Historial)</h6>
-                    <ul class="list-group history-list" id="archivosEnviadosList">
-                        <!-- Los elementos de la lista se agregarán dinámicamente aquí -->
-                    </ul>
+                <div id="historyContainer" class="history-container mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mt-4">Documentos enviados (Historial)</h6>
+                        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                            Ver historial
+                        </button>
+                    </div>
+                    <div class="collapse" id="collapseExample">
+                        <div class="card card-body">
+                            <ul class="list-group history-list" id="archivosEnviadosList">
+                                <!-- Los elementos de la lista se agregarán dinámicamente aquí -->
+                            </ul>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            <div class="modal-footer">
             </div>
         </div>
     </div>
@@ -939,6 +996,33 @@
 @endsection
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(session('success'))
+<script>
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: '{{ session('success') }}',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+</script>
+@endif
+@if(session('error'))
+<script>
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: '{{ session('error') }}',
+        showConfirmButton: false,
+        timer: 4000, // Un poco más de tiempo para errores
+        timerProgressBar: true,
+    });
+</script>
+@endif
 <script>
     // Función para manejar la selección de módulo (controla bloqueo)
     function selectModule(moduleId, locked) {
@@ -999,7 +1083,7 @@
 
                 const ANEXO = 'anexo_' + anexoNumero;
 
-                console.log(`Buscando datos para estudiante ID: ${ID_EST}, Módulo: ${ID_MODULO}, Anexo: ${ANEXO}`);
+                //console.log(`Buscando datos para estudiante ID: ${ID_EST}, Módulo: ${ID_MODULO}, Anexo: ${ANEXO}`);
 
                 try {
                     const response = await fetch(`/api/evaluacion_practica/${ID_EST}/${ID_MODULO}/${ANEXO}`);
@@ -1016,30 +1100,78 @@
                     const formContainer = document.getElementById('submission-form');
                     const pendingReviewContainer = document.getElementById('pending-review-container');
                     const approvedFileContainer = document.getElementById('approved-file-container');
+                    const historyContainer = document.getElementById('historyContainer');
 
                     const fileAnexo = document.getElementById('archivoAnexo');
                     const fileLatest = document.getElementById('archivoLatest');
 
                     const historyList = document.getElementById('archivosEnviadosList');
+
+                    // limpiar todo
+                    formContainer.style.display = 'none';
+                    pendingReviewContainer.style.display = 'none';
+                    approvedFileContainer.style.display = 'none';
+                    historyContainer.style.display = 'none';
                     historyList.innerHTML = '';
 
+                    document.getElementById('finalScore').value = '';
+
+                    // cerrar collapse
+                    //document.getElementById('collapseExample').classList.remove('show');
+
                     if (data && data.evaluacion_archivo && data.evaluacion_archivo.length > 0) {
-                        console.log('Archivos asociados:', data);
                         document.getElementById('modalTitle').textContent = `Calificar Estudiante: ${data.id_ap} - Anexo ${anexoNumero}`;
                         // LÓGICA DE VISIBILIDAD DEL FORMULARIO
                         const ultimoEnvio = data.evaluacion_archivo[0];
+
+                        formContainer.style.display = 'block';
+                        document.getElementById('ap_id').value = data.id_ap;
+                        document.getElementById('number').value = anexoNumero;
+                        document.getElementById('modulo').value = ID_MODULO;
                         if (ultimoEnvio && ultimoEnvio.state === 1) {
-                            approvedFileContainer.style.display = 'none';
-                            // Estado 1: Enviado para revisión. Ocultar form, mostrar info.
+                            document.getElementById('pending-nota').textContent = ultimoEnvio.nota;
+                            document.getElementById('pending-ruta').href = `/${ultimoEnvio.archivos[0].ruta}`;
+
                             formContainer.style.display = 'none';
                             pendingReviewContainer.style.display = 'block';
+                            approvedFileContainer.style.display = 'none';
+                        } 
+                        if(ultimoEnvio.state === 2) {
+                            document.getElementById('finalScore').value = ultimoEnvio.nota;
+                            document.getElementById('finalScore').readOnly = true;
+                            console.log('Mostrando formulario para nuevo envío. STATE 2');
+                            fileAnexo.style.display = 'block'; // Mostrar input de archivo (aunque podría estar deshabilitado)
+                            fileLatest.style.display = 'none'; // Ocultar el archivo ya enviado
+                            approvedFileContainer.style.display = 'none';
 
-                            // Llenar los datos del envío pendiente
-                            document.getElementById('pending-nota').textContent = ultimoEnvio.nota;
-                            const rutaArchivoPendiente = document.getElementById('pending-ruta');
-                            rutaArchivoPendiente.href = `/${ultimoEnvio.archivos[0].ruta}`;
+                        }
 
-                        } else {
+                        if(ultimoEnvio.state === 3) {
+                            approvedFileContainer.style.display = 'none';
+                            fileAnexo.style.display = 'none';
+                            fileLatest.style.display = 'block';
+                            document.getElementById('finalScore').readOnly = false;
+                            document.getElementById('pending-ruta-form').href = `/${ultimoEnvio.archivos[0].ruta}`;
+                            document.getElementById('rutaAnexo').value = ultimoEnvio.archivos[0].ruta;
+                            document.getElementById('modulo').value = data.id_modulo;
+                        }
+
+                        if(ultimoEnvio.state === 4) {
+                            approvedFileContainer.style.display = 'none';
+                            fileLatest.style.display = 'none';
+                            fileAnexo.style.display = 'block';
+                            document.getElementById('finalScore').readOnly = false;
+                        }
+
+                        if(ultimoEnvio.state === 5) {
+                            approvedFileContainer.style.display = 'block';
+                            document.getElementById('finalScore').value = ultimoEnvio.nota;
+                            document.getElementById('finalScore').readOnly = true;
+                            formContainer.style.display = 'none';
+                            document.getElementById('pending-ruta-form').href = `/${ultimoEnvio.archivos[0].ruta}`;
+                        }
+
+                        /*else {
                             // Estado no es 1 (o no hay envío): Mostrar form, ocultar info.
                             formContainer.style.display = 'block';
                             document.getElementById('ap_id').value = data.id_ap;
@@ -1080,13 +1212,15 @@
 
                             console.log('Mostrando formulario para nuevo envío.');
                             pendingReviewContainer.style.display = 'none';
-                        }
+                        }*/
 
                         data.evaluacion_archivo.forEach((ear, index) => {
                             let archivo = null;
                             if (ear.archivos && ear.archivos.length > 0) {
                                 archivo = ear.archivos[0]; // Suponiendo que solo hay un archivo por evaluación
                             }
+
+                            if(index === 0 && archivo.state === 1) return;
 
                             let li = document.createElement('li');
                             li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
@@ -1101,6 +1235,7 @@
                                 </a>
                             `;
                             historyList.appendChild(li);
+                            historyContainer.style.display = 'block';
                         });
                     } else {
                         console.log('No se encontraron archivos asociados.');
@@ -1112,6 +1247,8 @@
                         console.log('Mostrando formulario para nuevo envío.');
                         console.log('ID_MODULO: ' + ID_MODULO);
                         pendingReviewContainer.style.display = 'none';
+
+                        document.getElementById('finalScore').readOnly = false;
                     }
                     myModal.show();
                 } catch (error) {

@@ -688,10 +688,12 @@
             position: fixed;
             left: -280px;
             transition: left 0.3s ease;
+            z-index: 1030;
         }
         
         .sidebar.show {
             left: 0;
+            z-index: 1030;
         }
 
         #content-wrapper {
@@ -699,16 +701,93 @@
             width: 100%;
         }
         
+        /* TOPBAR MÓVIL - Una sola fila compacta */
         .topbar {
-            padding: 1rem;
+            padding: 0.5rem 0.75rem;
+            min-height: 56px;
+            flex-wrap: nowrap;
+            gap: 0.5rem;
+        }
+        
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .topbar-left h1 {
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .topbar-subtitle {
+            display: none;
+        }
+        
+        .topbar-right {
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        
+        /* Simplificar dropdown de usuario en móvil */
+        .user-info {
+            padding: 0.25rem 0.5rem;
+            gap: 0.5rem;
+        }
+        
+        .user-avatar {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        .user-avatar img {
+            width: 32px !important;
+            height: 32px !important;
+        }
+        
+        .user-details {
+            display: none;
+        }
+        
+        .user-info > .bi-chevron-down {
+            display: none;
+        }
+        
+        /* Botón hamburguesa más visible */
+        #sidebarToggle {
+            padding: 0.375rem 0.5rem;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+        }
+        
+        /* Notificaciones más compactas */
+        .topbar-right .btn-link {
+            padding: 0.25rem;
         }
         
         .main-content {
             padding: 1rem;
         }
-        
+    }
+    
+    /* Para pantallas muy pequeñas */
+    @media (max-width: 400px) {
         .topbar-left h1 {
-            font-size: 1.5rem;
+            font-size: 0.875rem;
+            max-width: 120px;
+        }
+        
+        .topbar {
+            padding: 0.5rem;
         }
     }
 

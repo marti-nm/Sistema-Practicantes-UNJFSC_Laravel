@@ -19,6 +19,7 @@ class Empresa extends Model
         'telefono',
         'correo',
         'web',
+        'comentario',
         'state'
     ];
 

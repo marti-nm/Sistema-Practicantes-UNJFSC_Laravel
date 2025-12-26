@@ -137,7 +137,7 @@
             <div class="modal-body">
                 <div class="text-center mb-3">
                     @if ($ap->persona->ruta_foto)
-                        <img src="{{ asset($persona->ruta_foto) }}" alt="Vista previa" class="img-fluid rounded-circle" 
+                        <img src="{{ asset($ap->persona->ruta_foto) }}" alt="Vista previa" class="img-fluid rounded-circle" 
                             style="width: 150px; height: 150px; object-fit: cover;" 
                             id="previewImage">
                     @else

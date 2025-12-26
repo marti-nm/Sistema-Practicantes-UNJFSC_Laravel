@@ -10,7 +10,7 @@
 
     <div class="row">
         <!-- Carta de Aceptación -->
-        <div class="col-md-6 mb-4">
+        <div class="col-md-6 mb-4" style="display: {{ $practicas->tipo_practica == 'convalidacion' ? 'none' : 'block' }}">
             <div class="practice-stage-card text-center h-100">
                 <div class="stage-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;">
                     <i class="bi bi-envelope-check"></i>
@@ -22,36 +22,11 @@
                         data-type="carta_aceptacion"
                         data-bs-target="#archivoModal">Visualizar</button>
                 </div>
-                <!--<div id="cartaAceptacionStatus">
-                    @if ($practicaData->ruta_carta_aceptacion != null)
-                        @if ($practicaData->estado_proceso === 'en proceso' || $practicaData->estado_proceso === 'rechazado')
-                            <p class="text-muted mb-3">Visualiza o edita tu carta de aceptación</p>
-                            <div class="d-flex flex-column gap-2 align-items-center">
-                                <a href="{{ asset($practicaData->ruta_carta_aceptacion) }}" target="_blank" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-file-pdf me-1"></i> Ver PDF
-                                </a>
-                                <button class="btn btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#modalCartaAceptacion">
-                                    <i class="bi bi-pencil-square me-1"></i> Editar Documento
-                                </button>
-                            </div>
-                        @elseif ($practicaData->estado_proceso === 'completo')
-                            <p class="text-muted mb-3">Visualiza tu carta de aceptación aprobada</p>
-                            <a href="{{ asset($practicaData->ruta_carta_aceptacion) }}" target="_blank" class="btn btn-warning btn-sm">
-                                <i class="bi bi-file-pdf me-1"></i> Ver PDF
-                            </a>
-                        @endif
-                    @else
-                        <p class="text-muted mb-3">Sube la carta de aceptación de la empresa</p>
-                        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#modalCartaAceptacion">
-                            <i class="bi bi-cloud-upload me-1"></i> Subir Documento
-                        </button>
-                    @endif
-                </div>-->
             </div>
         </div>
 
         <!-- Plan de Actividades de las PPP -->
-        <div class="col-md-6 mb-4">
+        <div class="col-md-{{ $practicas->tipo_practica == 'convalidacion' ? '12' : '6'}} mb-4">
             <div class="practice-stage-card text-center h-100">
                 <div class="stage-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;">
                     <i class="bi bi-list-check"></i>
@@ -62,6 +37,40 @@
                     <button class="btn btn-primary-custom btn-sm btn-view-archivo"
                         data-type="plan_actividades_ppp"
                         data-bs-target="#archivoModal">Visualizar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row d-flex" style="display: {{ $practicas->tipo_practica == 'convalidacion' ? 'block' : 'none' }}">
+            <!-- Registro de Actividades -->
+            <div class="col-md-6 mb-4">
+                <div class="practice-stage-card text-center h-100">
+                    <div class="stage-icon" style="background: linear-gradient(135deg, #7b91e5, #5975e5ff); color: white;">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                    <h5 class="text-primary font-weight-bold text-uppercase mb-3">Registro de Actividades</h5>
+                    <div id="registroActividadesStatus">
+                        <span id="status-file-plan" class="status-badge status-completed">Completo</span>
+                        <button class="btn btn-primary-custom btn-sm btn-view-archivo"
+                            data-type="registro_actividades"
+                            data-bs-target="#archivoModal">Visualizar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Mensual de Actividades -->
+            <div class="col-md-6 mb-4">
+                <div class="practice-stage-card text-center h-100">
+                    <div class="stage-icon" style="background: linear-gradient(135deg, #d166e9ff, #9128a3ff); color: white;">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <h5 class="text-primary font-weight-bold text-uppercase mb-3">Control Mensual de Actividadess</h5>
+                    <div id="controlActividadesStatus">
+                        <span id="status-file-plan" class="status-badge status-completed">Completo</span>
+                        <button class="btn btn-primary-custom btn-sm btn-view-archivo"
+                            data-type="control_actividades"
+                            data-bs-target="#archivoModal">Visualizar</button>
+                    </div>
                 </div>
             </div>
         </div>

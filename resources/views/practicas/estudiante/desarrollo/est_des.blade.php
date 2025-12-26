@@ -5,6 +5,27 @@
 
 @push('css')
   <style>
+    .stage-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 2rem;
+    }
+
+    .stage-icon.company {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+    }
+
+    .stage-icon.supervisor {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
     .stepper {
         display: flex;
         justify-content: space-between;
@@ -119,7 +140,7 @@
 
 <div class="container-fluid practice-development-view">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="section-title mb-0">
                     <i class="bi bi-info-circle me-2"></i>
                     Detalles de la Práctica Desarrollo
@@ -128,44 +149,7 @@
                     <i class="bi bi-arrow-left me-1"></i>
                     Volver al Inicio
                 </button>
-        </div>
-        <!--<div class="section-card mb-4">
-            
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <div class="info-label">Docente Titular</div>
-                        <div class="info-value">{{ $docente->apellidos }}  {{ $docente->nombres }}</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <div class="info-label">Supervisor Asignado</div>
-                        <div class="info-value">{{ $supervisor->apellidos }} {{ $supervisor->nombres }}</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <div class="info-label">Estado</div>
-                        <div class="info-value">
-                            @if($practicas->estado == 5)
-                            <span class="status-badge status-completed">Completo</span>
-                            <span class="text-success">✓</span>
-                            @else
-                            <span class="status-badge status-active">Activo</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <div class="info-label">Período</div>
-                        <div class="info-value">{{ $semestre->codigo }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>-->
+        </div> -->
         <h2 class="fs-5 fw-semibold text-dark mb-4">
             Fase de Prácticas: <span id="current-stage-title">Segunda Etapa - Documentación</span>
         </h2>
@@ -173,7 +157,7 @@
         <div class="bg-white p-4 rounded-3 shadow-sm mb-5">
             <div id="stepper" class="stepper">
                 @php
-                    $stageNames = ['Registro','Documentación','Doc. de Informes','Ejecución','Informes','Finalización'];
+                    $stageNames = ['Registro','Documentación','Doc. de Informes','Ejecución','Finalización'];
                     $maxStage = isset($practicas->state) ? min(intval($practicas->state), 5) : 1;
                 @endphp
 
@@ -368,7 +352,7 @@
 @endif
 <script>
     // Allowed stage viene del servidor
-    const allowedStage = @json(isset($practicas->state) ? min(intval($practicas->state), 6) : 1);
+    const allowedStage = @json(isset($practicas->state) ? min(intval($practicas->state), 5) : 1);
 
     // Actualiza visual del stepper y muestra el contenido del stage seleccionado
     async function navigateToStage(stageId) {
@@ -408,7 +392,7 @@
 
         // 2. Actualiza el título de la etapa
         const stageNames = ['Primera','Segunda','Tercera','Cuarta','Quinta','Sexta'];
-        const stageLabels = ['Registro','Documentación','Doc. de Informes','Ejecución','Informes','Finalización'];
+        const stageLabels = ['Registro','Documentación','Doc. de Informes','Ejecución','Finalización'];
         const stageTitle = stageNames[stageId - 1] || '';
         const stageName = stageLabels[stageId - 1] || '';
         const titleEl = document.getElementById('current-stage-title');
@@ -428,31 +412,6 @@
 
         const ID_PRACTICA = {{ $practicas->id }};
 
-        // Minimal stage configuration for now (only stage 1)
-        const stageConfig = {
-            1: {
-                id: 1,
-                name: 'Empresa y Jefe Inmediato',
-                // summary endpoints (return small objects used to fill the cards)
-                summaryEndpoints: [
-                    (pr) => `/api/empresa/${pr}`,
-                    (pr) => `/api/jefeinmediato/${pr}`,
-                ],
-                // detail endpoints can be added later for modal editing
-                detailEndpoints: {
-                    empresa: (pr) => `/api/empresa/${pr}/detail`,
-                    jefe: (pr) => `/api/jefeinmediato/${pr}/detail`,
-                }
-            },
-            2: {
-                id: 1,
-                name: 'Fut y Carta',
-                summaryEndpoints:[
-                    (pr) => `api/archivos/${pr}`,
-                    (pr) => `api/archivos/${pr}`
-                ]
-            }
-        };
         if(stageId === 1) {
             console.log('Entrando a Etapa 1: carga lazy de Empresa y Jefe Inmediato');
             try {
@@ -523,10 +482,6 @@
             formContainer.style.display = 'none';
             historyContainer.style.display = 'none';
 
-            // Opcional: Mostrar un indicador de carga (spinner)
-            // if (loadingContainer) loadingContainer.style.display = 'block';
-
-            // Mostrar el modal inmediatamente (ahora está "limpio" o "en carga")
             modal.show();
 
             // ----------------------------------------------
@@ -552,12 +507,12 @@
                             approvedFileContainer.style.display = 'none'; // Se mantiene el 'none'
                             pendingReviewContainer.style.display = 'block';
                             formContainer.style.display = 'none';
-                            document.getElementById('pending-ruta').href = ldata.ruta;
+                            document.getElementById('pending-ruta').href = '/documento/' + ldata.ruta;
                         } else if (ldata.estado_archivo === 'Aprobado') {
                             approvedFileContainer.style.display = 'block';
                             pendingReviewContainer.style.display = 'none';
                             formContainer.style.display = 'none';
-                            document.getElementById('approved-ruta').href = ldata.ruta;
+                            document.getElementById('approved-ruta').href = '/documento/' + ldata.ruta;
                         } else if (ldata.estado_archivo === 'Corregir') {
                             formContainer.style.display = 'block';
                             approvedFileContainer.style.display = 'none';
@@ -579,7 +534,7 @@
                                     li.innerHTML = `
                                     <span>${new Date(item.created_at).toLocaleString()}</span>
                                     <span>${item.estado_archivo}</span>
-                                    <a href="${item.ruta}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
+                                    <a href="/documento/${item.ruta}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
                                 `;
                                     historyList.appendChild(li);
                                 }
@@ -606,15 +561,5 @@
             // Ya no necesitas 'modal.show()' aquí, lo movimos al inicio para UX.
         });
     });
-
-    // ruta dinamica de type de archivo
-    const routeUrls = {
-        'fut': '{{ route('store.fut') }}',
-        'cp': '{{ route('store.cartapresentacion') }}'
-    }
-
-    function getRouteUrl(type) {
-        return routeUrls[type] || '';
-    }
 </script>
 @endpush

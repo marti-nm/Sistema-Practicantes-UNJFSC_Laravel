@@ -22,12 +22,17 @@
                 <div id="companyStatus">
                     @if ($empresaExiste)
                         @php $empresa = $practicaData->empresa; @endphp
-                        @if (($empresa->state == 1 && $practicaData->estado_practica == 'en proceso') || $practicaData->estado_practica == 'completo')
+                        @if ($empresa->state == 1)
                             <p class="text-muted mb-3">Visualiza los datos de la empresa registrada</p>
                             <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEmpresa">
-                                <i class="bi bi-eye-fill me-1"></i> Visualizar
+                                <i class="bi bi-eye-fill me-1"></i> Pendiente
                             </a>
                         @elseif ($empresa->state == 2)
+                            <p class="text-muted mb-3">Ha sido aprobado los datos de la empresa</p>
+                            <a class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEmpresa">
+                                <i class="bi bi-eye-fill me-1"></i> Ver
+                            </a>
+                        @elseif ($empresa->state == 3)
                             <p class="text-muted mb-3">Corrige los datos observados de la empresa</p>
                             <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEmpresa">
                                 <i class="bi bi-pencil-square me-1"></i> Editar
@@ -53,12 +58,17 @@
                 <div id="supervisorStatus">
                     @if ($jefeExiste)
                         @php $jefeInmediato = $practicaData->jefeInmediato; @endphp
-                        @if (($jefeInmediato->state == 1 && $practicaData->estado_practica == 'en proceso') || $practicaData->estado_practica == 'completo')
+                        @if ($jefeInmediato->state == 1)
                             <p class="text-muted mb-3">Visualiza los datos de tu jefe inmediato</p>
                             <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalJefeInmediato">
-                                <i class="bi bi-eye-fill me-1"></i> Visualizar
+                                <i class="bi bi-eye-fill me-1"></i> Pendiente
                             </a>
                         @elseif ($jefeInmediato->state == 2)
+                            <p class="text-muted mb-3">Ha sido aprobado los datos de tu jefe inmediato</p>
+                            <a class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalJefeInmediato">
+                                <i class="bi bi-eye-fill me-1"></i> Aprobado
+                            </a>
+                        @elseif ($jefeInmediato->state == 3)
                             <p class="text-muted mb-3">Corrige los datos observados del jefe inmediato</p>
                             <a class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalJefeInmediato">
                                 <i class="bi bi-pencil-square me-1"></i> Editar
@@ -105,7 +115,7 @@
                     $empresa = $practicaData->empresa;
                 @endphp
                 @if ($empresaExiste)
-                    @if ($empresa->state == 2)
+                    @if ($empresa->state == 3)
                         <form id="formEmpresa" action="{{ route('empresa.edit', $empresa->id) }}" method="POST">
                     @else
                         <form id="formEmpresa" action="{{ route('empresas.store', $practicaData->id) }}" method="POST">
@@ -115,7 +125,7 @@
                 @endif
                     @csrf
                     <div class="mb-3">
-                        <label for="empresa" class="form-label">Nombre de la Empresa {{ $practicaData->id }}</label>
+                        <label for="empresa" class="form-label">Nombre de la Empresa</label>
                         <input type="text" class="form-control" id="empresa" name="empresa" value="{{ $practicaData->empresa->nombre  ?? '' }}" @if(($empresaExiste ) && $practicaData->empresa->estado == 1) readonly @endif required>
                     </div>
                     <div class="row">
@@ -158,7 +168,7 @@
             </div>
             <div class="modal-footer">
                 @if($empresaExiste)
-                    @if ($empresa->state == 2)
+                    @if ($empresa->state == 3)
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" form="formEmpresa" class="btn btn-primary-custom">
                             <i class="bi bi-check-circle me-1"></i> Actualizar
@@ -193,8 +203,8 @@
                     $jefeInmediato = $practicaData->jefeInmediato;
                 @endphp
                 @if ($jefeExiste)
-                    @if ($jefeInmediato->state == 2)
-                        <form id="formJefeInmediato" action="{{ route('jefe_inmediato.edit', $practicaData->id) }}" method="POST">
+                    @if ($jefeInmediato->state == 3)
+                        <form id="formJefeInmediato" action="{{ route('jefe_inmediato.edit', $jefeInmediato->id) }}" method="POST">
                     @else
                         <form id="formJefeInmediato" action="{{ route('jefe_inmediato.store', $practicaData->id) }}" method="POST">
                     @endif
@@ -248,7 +258,7 @@
             </div>
             <div class="modal-footer">
                 @if($jefeExiste)
-                    @if ($jefeInmediato->state == 2)
+                    @if ($jefeInmediato->state == 3)
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" form="formJefeInmediato" class="btn btn-primary-custom">
                             <i class="bi bi-check-circle me-1"></i> Actualizar
@@ -257,10 +267,13 @@
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
                     @endif
                 @else
+                    
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    @if(!$semestre_bloqueado)
                     <button type="submit" form="formJefeInmediato" class="btn btn-primary-custom">
                         <i class="bi bi-save me-1"></i> Guardar
                     </button>
+                    @endif
                 @endif
             </div>
         </div>

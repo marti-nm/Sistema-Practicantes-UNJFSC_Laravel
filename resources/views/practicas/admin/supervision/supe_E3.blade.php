@@ -32,7 +32,6 @@
         box-shadow: var(--shadow-md);
         overflow: hidden;
         transition: all 0.3s ease;
-        min-height: 500px;
     }
 
     .supervision-e3-card:hover {
@@ -258,7 +257,6 @@
     .supervision-e3-footer {
         background: #f0fdf4;
         border-top: 1px solid #bbf7d0;
-        padding: 1.5rem 2rem;
         margin-top: auto;
     }
 
@@ -392,7 +390,7 @@
     }
 </style>
 
-<div class="supervision-e3-container fade-in">
+<div class="supervision-e3-container fade-in supervision-content">
     <div class="supervision-e3-card">
         <div class="supervision-e3-header">
             <h6 class="supervision-e3-title">
@@ -404,7 +402,7 @@
         <div class="supervision-e3-body">
 
             <!-- Sección Desarrollo -->
-            <div class="document-section" id="seccion-desarrollo-E3" style="display: none;">
+            <div class="document-section" id="seccion-desarrollo-E3">
                 <div class="row">
                     <div class="col-xl-6 col-lg-6 mb-4">
                         <div class="document-card-e3 carta-aceptacion-e3 slide-in">
@@ -412,7 +410,7 @@
                                 <i class="bi bi-envelope-check document-icon-e3"></i>
                                 <div class="document-details-e3">
                                     <h5>Carta de Aceptación</h5>
-                                    <a href="#" class="btn-ver-pdf-e3 carta-aceptacion-e3 btn-review-doc" id="btn-ruta-carta-aceptacion-E3" data-doctype="carta_aceptacion">
+                                    <a href="#" class="btn-ver-pdf carta-aceptacion btn-review-doc" id="btn-ruta-carta-aceptacion-E3" data-doctype="carta_aceptacion">
                                         <i class="bi bi-file-pdf"></i>
                                         Ver PDF
                                     </a>
@@ -426,7 +424,7 @@
                                 <i class="bi bi-calendar-check document-icon-e3"></i>
                                 <div class="document-details-e3">
                                     <h5>Plan de Actividades de las PPP</h5>
-                                    <a href="#" class="btn-ver-pdf-e3 plan-actividades btn-review-doc" id="btn-ruta-plan-actividades" data-doctype="plan_actividades_ppp">
+                                    <a href="#" class="btn-ver-pdf plan-actividades btn-review-doc" id="btn-ruta-plan-actividades" data-doctype="plan_actividades_ppp">
                                         <i class="bi bi-file-pdf"></i>
                                         Ver PDF
                                     </a>
@@ -439,6 +437,23 @@
 
             <!-- Sección Convalidación -->
             <div class="document-section" id="seccion-convalidacion-E3" style="display: none;">
+                <!-- aqui mejor Plan de actividades -->
+                <div class="row">
+                    <div class="col-xl-12 col-lg-12 mb-4">
+                        <div class="document-card-e3 plan-actividades slide-in">
+                            <div class="document-card-e3-content">
+                                <i class="bi bi-calendar-check document-icon-e3"></i>
+                                <div class="document-details-e3">
+                                    <h5>Plan de Actividades de las PPP</h5>
+                                    <a href="#" class="btn-ver-pdf plan-actividades btn-review-doc" id="btn-ruta-plan-actividades" data-doctype="plan_actividades_ppp">
+                                        <i class="bi bi-file-pdf"></i>
+                                        Ver PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-xl-6 col-lg-6 mb-4">
                         <div class="document-card-e3 registro-actividades slide-in">
@@ -473,7 +488,7 @@
         </div>
         
         <div class="supervision-e3-footer">
-            <form id="formProcesoE3" class="form-etapa" action="{{ route('proceso') }}" method="POST" data-estado="3">
+            <!--<form id="formProcesoE3" class="form-etapa" action="{{ route('proceso') }}" method="POST" data-estado="3">
                 @csrf
                 <input type="hidden" name="id" id="idE3">
                 <div class="row align-items-end">
@@ -496,7 +511,7 @@
                         </div>
                     </div>
                 </div>
-            </form>
+            </form>-->
         </div>
     </div>
 </div>

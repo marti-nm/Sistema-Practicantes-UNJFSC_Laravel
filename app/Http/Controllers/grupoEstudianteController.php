@@ -8,7 +8,6 @@ use App\Models\grupo_estudiante;
 use App\Models\grupo_practica;
 use App\Models\EvaluacionPractica;
 use App\Models\Persona;
-use App\Models\Semestre;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,63 +15,41 @@ use Illuminate\Support\Facades\Log;
 
 class grupoEstudianteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $id = auth()->id(); 
-        if($id == 1){
-            $grupos_practica = grupo_practica::all();
-        }else{
-            $grupos_practica = grupo_practica::where('id_docente',$id )->get();
-        }
+        $id_semestre = session('semestre_actual_id');
+        $authUser = auth()->user();
+        $ap_now = $authUser->persona->asignacion_persona;
 
-        $semestre = session('semestre_actual_id');
+        $gpQuery = grupo_practica::whereHas('seccion_academica', function($query) use ($request, $ap_now, $id_semestre){
+            $query->where('id_semestre', $id_semestre);
+            if($request->filled('facultad')){
+                $query->where('id_facultad', ($ap_now->id_rol == 2) ? $ap_now->seccion_academica->id_facultad : $request->facultad);
+            }
+            if($request->filled('escuela')){
+                $query->where('id_escuela', $request->escuela);
+            }
+            if($request->filled('seccion')){
+                $query->where('id', $request->seccion);
+            }
+        });
 
-        $gp = grupo_practica::with([
+        $gp = $gpQuery->with([
             'docente.persona',
-            'supervisor.persona',
-            'seccion_academica' => function($query) use ($semestre) {
-                $query->where('id_semestre', $semestre);
-            },
-            'grupo_estudiante.estudiante.persona'
+            'supervisor.persona'
         ])->get();
 
-        //$docentes = Persona::where('rol_id', 3)->get(); // Ajusta rol_id si es necesario
-        $docentes = Persona::whereHas('asignacion_persona', function ($query) {
-            $query->where('id_rol', 3);
-        })->get();
-        $supervisoresAsignados = DB::table('grupo_estudiante')
-            ->select('id_estudiante')
-            ->distinct()
-            ->pluck('id_estudiante');
-
-        /*$docente2 = Persona::where('rol_id', 3)
-            ->whereNotIn('id', $supervisoresAsignados)
-            ->get();*/
-        $docente2 = Persona::whereHas('asignacion_persona', function ($query) use ($supervisoresAsignados) {
-            $query->where('id_rol', 3)
-                  ->whereNotIn('id_persona', $supervisoresAsignados);
-        })->get();
-
-        $semestres = Semestre::all();
-        $escuelas = Escuela::all();
-        $facultades = Facultad::all();
-        
-        //$estudiantes = Persona::with(relations: 'escuela')->get();
-        $estudiantes = Persona::whereHas('asignacion_persona', function ($query) {
-            $query->where('id_rol', 5);
-        })->get();
+        $facQuery = Facultad::query();
+        if ($ap_now->id_rol == 2) {
+            $facQuery->where('id', $ap_now->seccion_academica->id_facultad);
+        }
+        $facultades = $facQuery->get();
 
         return view('asignatura.grupoAsignatura', compact(
             'gp',
-            'docentes','docente2',
-            'semestres',
-            'escuelas',
-            'facultades',
-            'grupos_practica',
-            'estudiantes'
+            'facultades'
         ));
     }
-
 
     public function asignarAlumnos(Request $request)
     {
@@ -91,7 +68,7 @@ class grupoEstudianteController extends Controller
             // Si la combinación de grupo y estudiante ya existe, no hace nada.
             // Si no existe, la crea.
             $asignacion = grupo_estudiante::firstOrCreate([
-                'id_grupo_practica' => $grupoId,
+                'id_gp' => $grupoId,
                 'id_estudiante' => $estudianteApId, // El ID del estudiante es el ID de asignacion_persona
             ]);
 
@@ -117,11 +94,12 @@ class grupoEstudianteController extends Controller
 
 public function destroy($id)
 {
-    // verificar que el state de evaluacion_practica sea 0, para elinar todo eso
-    //$ep = EvaluacionPractica::
-
-    $registro = grupo_estudiante::findOrFail($id);
-    $registro->delete();
+    try {
+        $registro = grupo_estudiante::findOrFail($id);
+        $registro->delete();
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error al eliminar el estudiante del grupo: ' . $e->getMessage());
+    }
 
     return back()->with('success', 'Estudiante eliminado del grupo correctamente.');
 }

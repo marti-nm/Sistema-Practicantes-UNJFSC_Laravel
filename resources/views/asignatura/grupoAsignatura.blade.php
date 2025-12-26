@@ -615,16 +615,23 @@
       </h5>
     </div>
     <div class="grupo-card-body">
+        @if(Auth::user()->hasAnyRoles([1, 2]))
+            <x-data-filter
+                route="estudiante_index"
+                :facultades="$facultades"
+            />
+        @endif
       <div class="table-container">
         <div class="table-responsive">
           <table class="table" id="dataTable" width="100%" cellspacing="0">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Docente</th>
-                <th>Semestre</th>
                 <th>Escuela</th>
+                <th>Seccion</th>
                 <th>Nombre de grupo</th>
+                <th>Docente</th>
+                <th>Supervisor</th>
                 <th>Agregar alumno</th>
                 <th>Opciones</th>
               </tr>
@@ -635,14 +642,15 @@
                 <td>
                   <span class="grupo-name">{{ $index + 1 }}</span>
                 </td>
-                <td class="docente-name">{{ $grupo->docente->persona->nombres }} {{ $grupo->docente->apellidos }}</td>
-                <td>
-                  <span class="grupo-name">{{ $grupo->seccion_academica->semestre->codigo }}</span>
-                </td>
                 <td>
                   <span class="grupo-name">{{ $grupo->seccion_academica->escuela->name }}</span>
                 </td>
+                <td>
+                  <span class="grupo-name">{{ $grupo->seccion_academica->semestre->codigo }}</span>
+                </td>
                 <td class="grupo-name">{{ $grupo->name }}</td>
+                <td class="docente-name">{{ $grupo->docente->persona->nombres }} {{ $grupo->docente->persona->apellidos }}</td>
+                <td class="supervisor-name">{{ $grupo->supervisor->persona->nombres }} {{ $grupo->supervisor->persona->apellidos }}</td>
                 <td>
                   <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modalEditar{{ $grupo->id }}">
                     <i class="bi bi-person-plus"></i>
@@ -657,7 +665,7 @@
                 </td>
               </tr>
               @endforeach
-              @if($grupos_practica->isEmpty())
+              @if($gp->isEmpty())
               <tr>
                 <td colspan="7" class="text-muted">
                   <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
@@ -674,7 +682,7 @@
 </div>
 
 <!-- MODALES POR CADA GRUPO -->
-@foreach($grupos_practica as $grupo)
+@foreach($gp as $grupo)
 <!-- Modal Asignar alumnos -->
 <div class="modal fade" id="modalEditar{{ $grupo->id }}" tabindex="-1" role="dialog" aria-hidden="true" data-sa-id="{{ $grupo->seccion_academica->id }}">
   <div class="modal-dialog modal-xl" role="document">
@@ -686,7 +694,6 @@
           <h5 class="modal-title">
             <i class="bi bi-person-plus-fill"></i> 
             Asignar Alumnos al Grupo: <strong>{{ $grupo->name }}</strong>
-            {{ $grupo->seccion_academica->id }}
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal">
             <span>&times;</span>
@@ -778,7 +785,7 @@
           <div class="col-md-6">
             <div class="info-card">
               <p><strong><i class="bi bi-collection"></i> Nombre del grupo:</strong> {{ $grupo->name }}</p>
-              <p><strong><i class="bi bi-person-badge"></i> Docente:</strong> {{ $grupo->docente->persona->nombres }} {{ $grupo->docente->persona->apellidos }}</p>
+              <p><strong><i class="bi bi-person-badge"></i> Docente Supervisor:</strong> {{ $grupo->supervisor->persona->nombres }} {{ $grupo->supervisor->persona->apellidos }}</p>
             </div>
           </div>
           <div class="col-md-6">
@@ -858,115 +865,60 @@
   </div>
 </div>
 
+<div class="modal" id="modalTemp">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h5>Eliminar Estudiante</h5>
+        </div>
+        <div class="modal-body">
+            <p>¿Está seguro de eliminar al estudiante?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(session('success'))
 <script>
-  function mostrarNuevoSupervisor(grupoId) {
-    document.getElementById(`supervisor-asignado-${grupoId}`).style.display = 'none';
-    document.getElementById(`nuevo-supervisor-${grupoId}`).style.display = 'block';
-
-    const nuevoSelect = document.getElementById(`select-nuevo-supervisor-${grupoId}`);
-    if (nuevoSelect) {
-        nuevoSelect.disabled = false;
-    }
-  }
-
-  function cancelarNuevoSupervisor(grupoId) {
-    document.getElementById(`nuevo-supervisor-${grupoId}`).style.display = 'none';
-    document.getElementById(`supervisor-asignado-${grupoId}`).style.display = 'block';
-
-    const nuevoSelect = document.getElementById(`select-nuevo-supervisor-${grupoId}`);
-    if (nuevoSelect) {
-        nuevoSelect.disabled = true;
-    }
-  }
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("JS cargado directamente sin stack");
-
-    // FILTRO estudiantes NO asignados
-    document.querySelectorAll('.buscar-estudiante').forEach(function(input){
-        input.addEventListener('keyup', function(){
-            let valor = this.value.toLowerCase();
-            let grupoId = this.dataset.grupo;
-
-            document.querySelectorAll(`.tabla-estudiantes[data-grupo="${grupoId}"] tbody tr`).forEach(function(tr){
-                let textoFila = tr.textContent.toLowerCase();
-                tr.style.display = textoFila.includes(valor) ? '' : 'none';
-            });
-        });
-    });
-
-    // FILTRO estudiantes YA asignados
-    document.querySelectorAll('.buscar-estudiante-asignado').forEach(function(input){
-        input.addEventListener('keyup', function(){
-            let valor = this.value.toLowerCase();
-            let grupoId = this.dataset.grupo;
-
-            document.querySelectorAll(`#tablaAsignados${grupoId} tbody tr`).forEach(function(tr){
-                let textoFila = tr.textContent.toLowerCase();
-                tr.style.display = textoFila.includes(valor) ? '' : 'none';
-            });
-        });
-    });
+Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'success',
+    title: '{{ session('success') }}',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
 });
 </script>
+@endif
+
+@if(session('error'))
+<script>
+Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'error',
+    title: '{{ session('error') }}',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+});
+</script>
+@endif
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("JS cargado sin duplicados");
-
-    // FILTRO estudiantes NO asignados
-    document.querySelectorAll('.buscar-estudiante').forEach(function(input){
-        input.addEventListener('keyup', function(){
-            let grupoId = this.dataset.grupo;
-            let valor = this.value.toLowerCase();
-            document.querySelectorAll(`.tabla-estudiantes[data-grupo="${grupoId}"] tbody tr`).forEach(function(tr){
-                tr.style.display = tr.textContent.toLowerCase().includes(valor) ? '' : 'none';
-            });
-        });
-    });
-
-    // FILTRO estudiantes YA asignados
-    document.querySelectorAll('.buscar-estudiante-asignado').forEach(function(input){
-        input.addEventListener('keyup', function(){
-            let grupoId = this.dataset.grupo;
-            let valor = this.value.toLowerCase();
-            let tabla = document.getElementById(`tablaAsignados${grupoId}`);
-            if (tabla) {
-                tabla.querySelectorAll('tbody tr').forEach(function(tr){
-                    tr.style.display = tr.textContent.toLowerCase().includes(valor) ? '' : 'none';
-                });
-            }
-        });
-    });
-
-    // CHECK ALL
-    document.querySelectorAll('.check-all').forEach(function(checkbox){
-        checkbox.addEventListener('change', function(){
-            let grupoId = this.dataset.grupo;
-            document.querySelectorAll(`.check-estudiante[data-grupo="${grupoId}"]`).forEach(function(cb){
-                cb.checked = checkbox.checked;
-            });
-        });
-    });
-
-    // MODAL ELIMINAR
-    // Usamos delegación de eventos en el 'document' para que funcione con botones creados dinámicamente.
-    $(document).on('click', '.abrir-eliminar', function() {
-        const nombre = $(this).data('nombre');
-        const grupo = $(this).data('grupo');
-        const url = $(this).data('url');
-        abrirModalEliminar(nombre, grupo, url);
-    });
-});
-
 function abrirModalEliminar(nombre, grupo, url){
-    $('.modal.show').modal('hide');
+    const modalElement = document.querySelector('#modalConfirmarEliminar');
+    const myModal = new bootstrap.Modal(modalElement);
     document.getElementById('textoModalEliminar').innerText = `¿Estás seguro de eliminar a ${nombre} del grupo ${grupo}?`;
     document.getElementById('formEliminarAsignado').action = url;
-    setTimeout(() => $('#modalConfirmarEliminar').modal('show'), 300);
+    myModal.show();
 }
 
 // Limpiar backdrops cuando se cierra el modal de eliminar
@@ -978,8 +930,6 @@ $('#modalConfirmarEliminar').on('hidden.bs.modal', () => {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("JS mejorado cargado");
-
     // FILTRO estudiantes NO asignados con efectos
     document.querySelectorAll('.buscar-estudiante').forEach(function(input){
         input.addEventListener('keyup', function(){
@@ -1055,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // MODAL ELIMINAR con loading
-    document.querySelectorAll('.abrir-eliminar').forEach(function(btn){
+    /*document.querySelectorAll('.abrir-eliminar').forEach(function(btn){
         btn.addEventListener('click', function(){
             let nombre = this.dataset.nombre;
             let grupo = this.dataset.grupo;
@@ -1068,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.remove('loading');
             }, 300);
         });
-    });
+    });*/
 
     // Auto-focus en búsquedas
     document.querySelectorAll('.modal').forEach(modal => {
@@ -1099,7 +1049,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             tr.style.display = '';
                         });
                     }
-                    
                     updateSelectedCount(grupoId);
                 }
             });
@@ -1142,14 +1091,12 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Escuchar cuando un modal de asignación está a punto de mostrarse
-    $('.modal[id^="modalEditar"]').on('show.bs.modal', function (event) {
+    $('.modal[id^="modalEditar"]').on('show.bs.modal', async function (event) {
         const modal = $(this);
         const saId = modal.data('sa-id');
         const grupoId = modal.attr('id').replace('modalEditar', '');
         const tbody = modal.find('.tabla-estudiantes tbody');
 
-        console.log('SA ID ', saId)
-        // Mostrar estado de carga
         tbody.html(`
             <tr class="loading-row">
                 <td colspan="4" class="text-center text-muted py-4">
@@ -1159,53 +1106,46 @@ document.addEventListener('DOMContentLoaded', function() {
             </tr>
         `);
 
-        // Realizar la petición a la API
-        fetch(`/api/asignar_estudiantes/${saId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta de la red');
-                }
-                return response.json();
-            })
-            .then(data => {
-                tbody.empty(); // Limpiar la tabla
-                console.log('Datos recibidos:', data);
-
-                if (data.length === 0) {
-                    tbody.html(`
+        const response = await fetch(`/api/asignar_estudiantes/${saId}`)
+        const data = await response.json();
+        if(!response.ok) {
+            throw new Error('Error en la respuesta de la red');
+        }
+        try {
+            tbody.empty(); // Limpiar la tabla
+            if (data.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            <i class="bi bi-person-x" style="font-size: 2rem; display: block; margin: 1rem 0;"></i>
+                            No hay estudiantes disponibles para asignar en esta sección.
+                        </td>
+                    </tr>
+                `);
+            } else {
+                data.forEach(estudiante => {
+                    // El id del estudiante ahora es `estudiante.id` que viene de `ap.id`
+                    const row = `
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
-                                <i class="bi bi-person-x" style="font-size: 2rem; display: block; margin: 1rem 0;"></i>
-                                No hay estudiantes disponibles para asignar en esta sección.
+                            <td class="text-center">
+                                <input type="checkbox" name="estudiantes[]" value="${estudiante.id}" class="check-estudiante" data-grupo="${grupoId}">
                             </td>
+                            <td>${estudiante.nombres} ${estudiante.apellidos}</td>
+                            <td><span class="badge bg-success text-white">${estudiante.codigo ?? 'N/A'}</span></td>
                         </tr>
-                    `);
-                } else {
-                    data.forEach(estudiante => {
-                        // El id del estudiante ahora es `estudiante.id` que viene de `ap.id`
-                        const row = `
-                            <tr>
-                                <td class="text-center">
-                                    <input type="checkbox" name="estudiantes[]" value="${estudiante.id}" class="check-estudiante" data-grupo="${grupoId}">
-                                </td>
-                                <td>${estudiante.nombres} ${estudiante.apellidos}</td>
-                                <td><span class="badge badge-secondary">${estudiante.codigo ?? 'N/A'}</span></td>
-                            </tr>
-                        `;
-                        tbody.append(row);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error al cargar estudiantes:', error);
-                tbody.html('<tr><td colspan="4" class="text-center text-danger">Error al cargar los estudiantes.</td></tr>');
-            });
+                    `;
+                    tbody.append(row);
+                });
+            }
+        } catch (error) {
+            tbody.html('<tr><td colspan="5" class="text-center text-danger">Error al cargar los estudiantes.</td></tr>');
+        }
     });
 });
 
 // Carga de estudiantes en modal "Ver Detalles"
 document.addEventListener('DOMContentLoaded', function() {
-    $('.modal[id^="modalVer"]').on('show.bs.modal', function (event) {
+    $('.modal[id^="modalVer"]').on('show.bs.modal', async function (event) {
         const modal = $(this);
         const grupoId = modal.data('grupo-id');
         const tbody = modal.find('.tabla-estudiantes-asignados tbody');
@@ -1222,55 +1162,46 @@ document.addEventListener('DOMContentLoaded', function() {
             </tr>
         `);
 
-        fetch(`/api/grupo_estudiantes/${grupoId}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Error en la respuesta de la red');
-                return response.json();
-            })
-            .then(data => {
-                tbody.empty();
-
-                if (data.length === 0) {
-                    // Ocultar la tabla y mostrar un mensaje
-                    wrapper.hide();
-                    if (wrapper.parent().find('.empty-state').length === 0) {
-                        wrapper.parent().append(`
-                            <div class="text-center text-muted py-4 empty-state">
-                                <i class="bi bi-person-x" style="font-size: 3rem; display: block; margin-bottom: 1rem; color: var(--border-color);"></i>
-                                <p class="mb-0">No hay estudiantes asignados a este grupo.</p>
-                            </div>
-                        `);
-                    }
-                } else {
-                    wrapper.parent().find('.empty-state').remove(); // Quitar mensaje de vacío si existía
-                    wrapper.show();
-                    data.forEach((registro, index) => {
-                        const row = `
-                            <tr>
-                                <td><span class=" badge-primary">${index + 1}</span></td>
-                                <td>${registro.nombres} ${registro.apellidos}</td>
-                                <td><span class="badge badge-secondary">${registro.codigo ?? 'N/A'}</span></td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm abrir-eliminar"
-                                        data-nombre="${registro.nombres} ${registro.apellidos}"
-                                        data-grupo="${registro.grupo_name}"
-                                        data-url="/grupos/eliminar-asignado/${registro.id}">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>`;
-                        tbody.append(row);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error al cargar estudiantes asignados:', error);
-                tbody.html('<tr><td colspan="5" class="text-center text-danger">Error al cargar los estudiantes.</td></tr>');
-            });
+        try {
+            const response = await fetch(`/api/grupo_estudiantes/${grupoId}`);
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error('Error en la respuesta de la red');
+            tbody.empty();
+            if(data.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-person-x" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                            No hay estudiantes asignados a este grupo.
+                        </td>
+                    </tr>
+                `);
+            } else {
+                data.forEach((registro, index) => {
+                    const row = `
+                        <tr>
+                            <td><span class=" badge-primary">${index + 1}</span></td>
+                            <td>${registro.nombres} ${registro.apellidos}</td>
+                            <td><span class="badge bg-info text-white">${registro.codigo ?? 'N/A'}</span></td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm btn-abrir-eliminar"
+                                    data-nombre="${registro.nombres} ${registro.apellidos}"
+                                    data-grupo="${registro.grupo_name}"
+                                    data-url="/grupos/eliminar-asignado/${registro.id}"
+                                    onclick="abrirModalEliminar('${registro.nombres} ${registro.apellidos}', '${registro.grupo_name}', '/grupos/eliminar-asignado/${registro.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    tbody.append(row);
+                });
+            }
+            
+        } catch (error) {
+            tbody.html('<tr><td colspan="5" class="text-center text-danger">Error al cargar los estudiantes.</td></tr>');
+        }
     });
 });
 </script>
-@endsection
-
-@push('js')
 @endpush

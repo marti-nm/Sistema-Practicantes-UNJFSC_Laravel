@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('id_persona')->constrained('personas')->onDelete('restrict');
             $table->foreignId('id_rol')->constrained('type_users')->onDelete('restrict');
             $table->foreignId('id_semestre')->constrained('semestres')->onDelete('restrict');
-            $table->foreignId('id_facultad')->nullable()->constrained('facultades')->onDelete('restrict');
             $table->foreignId('id_sa')->nullable()->constrained('seccion_academica')->onDelete('restrict');
             $table->timestamps();
             $table->integer('state')->default(2);

@@ -24,7 +24,7 @@ class adminDashboardController extends Controller
         // Usar la asignación del semestre activo. ¡Esto debe ser implementado!
         // $asignacionActual = $authUser->getAsignacionActual();
         $asignacionActual = $authUser->persona->asignacion_persona; // Manteniendo la lógica original por ahora
-        $idFacultadSubAdmin = ($userRolId == 2) ? $asignacionActual->id_facultad : null;
+        $idFacultadSubAdmin = ($userRolId == 2) ? $asignacionActual->seccion_academica->facultad->id : null;
         $semestreActivoId = session('semestre_actual_id');
 
         // Cargar facultades para el filtro
@@ -46,19 +46,25 @@ class adminDashboardController extends Controller
             //->where('id_rol', 5); // Rol de Estudiante
 
         if ($userRolId == 2) {
-            $baseAsignacionQuery->where('id_facultad', $idFacultadSubAdmin);
+            $baseAsignacionQuery->whereHas('seccion_academica', function ($q) use ($idFacultadSubAdmin) {
+                $q->where('id_facultad', $idFacultadSubAdmin);
+            });
         }
 
         if ($request->filled('facultad')) {
-            $baseAsignacionQuery->where('id_facultad', $request->facultad);
+            $baseAsignacionQuery->whereHas('seccion_academica', function ($q) use ($request) {
+                $q->where('id_facultad', $request->facultad);
+            });
         }
 
         if ($request->filled('escuela')) {
-            $baseAsignacionQuery->where('id_escuela', $request->escuela);
+            $baseAsignacionQuery->whereHas('seccion_academica', function ($q) use ($request) {
+                $q->where('id_escuela', $request->escuela);
+            });
         }
 
         if ($request->filled('seccion')) {
-            $baseAsignacionQuery->where('id_seccion', $request->seccion);
+            $baseAsignacionQuery->where('id_sa', $request->seccion);
         }
 
         // Lista de estudiantes, su matricula y su estado, Juntar asignacion_persona con Matricula -> Archivo

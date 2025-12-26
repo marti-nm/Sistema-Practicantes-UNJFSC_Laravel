@@ -33,19 +33,24 @@ class AcreditarController extends Controller
         $facultades = $queryFac->get();
 
         // debe reunir los datos de la tabla
-        $acreditar = Acreditar::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
+        // los datos de la persona
+        $acreditar = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
             $query->where('id_semestre', $id_semestre);
             $query->where('id_rol', 3); // Rol de Supervisor
         })->with([
-            'asignacion_persona.persona', 
+            'asignacion_persona', 
             'asignacion_persona.semestre', 
-            'asignacion_persona.seccion_academica.escuela'
+            'asignacion_persona.seccion_academica.escuela',
+            'asignacion_persona.acreditacion.archivos' => function($query) {
+                $query->select('id', 'archivo_id', 'tipo', 'estado_archivo', 'created_at')
+                      ->orderBy('created_at', 'desc');
+            }
         ])->get();
 
         $option = 1;
 
         if (!$acreditar) {
-            $acreditar = new Acreditar(['id_ap' => $ap->id, 'estado_acreditacion' => 'Pendiente']);
+            $acreditar = collect();
         }
 
         $msj = 'Docente';
@@ -66,24 +71,48 @@ class AcreditarController extends Controller
         $facultades = $queryFac->get();
     
         // Obtener las acreditaciones de los supervisores para el semestre actual
-        $acreditar = Acreditar::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
+        // enviar los estados de los archivos
+        // Pero revertir empresar por Persona -> Asignacion Persona -> Acreditacion
+        $acreditar = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
             $query->where('id_semestre', $id_semestre);
             $query->where('id_rol', 4); // Rol de Supervisor
         })->with([
-            'asignacion_persona.persona', 
+            'asignacion_persona', 
             'asignacion_persona.semestre', 
-            'asignacion_persona.seccion_academica.escuela'
+            'asignacion_persona.seccion_academica.escuela',
+            'asignacion_persona.acreditacion.archivos' => function($query) {
+                $query->select('id', 'archivo_id', 'tipo', 'estado_archivo', 'created_at')
+                      ->orderBy('created_at', 'desc');
+            }
         ])->get();
 
         $option = 2;
 
         if (!$acreditar) {
-            $acreditar = new Acreditar(['id_ap' => $ap->id, 'estado_acreditacion' => 'Pendiente']);
+            $acreditar = collect();
         }
 
-        $msj = 'Dupervisor';
+        $msj = 'Supervisor';
     
         return view('ValidacionAcreditacion.ValidacionDocente', compact('msj', 'facultades', 'acreditar', 'option'));
+    }
+
+    public function acreditar() {
+        $id_semestre = session('semestre_actual_id');
+        $authUser = auth()->user();
+        $ap = $authUser->persona->asignacion_persona;
+
+        $acreditacion = Acreditar::where('id_ap', $ap->id)
+            ->with(['archivos' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }])
+            ->first();
+        
+        if(!$acreditacion) {
+            $acreditacion = new Acreditar(['id_ap' => $ap->id, 'estado_acreditacion' => 'Pendiente']);
+        }
+
+        return view('acreditacion.acreditacionDocente', compact('ap', 'acreditacion'));
     }
 
     public function acreditarDTitular()
@@ -131,13 +160,52 @@ class AcreditarController extends Controller
         return view('acreditacion.acreditacionDocente', compact('ap', 'acreditacion'));
     }
 
-    public function actualizarEstadoArchivo(Request $request, $id_archivo) {
-        $rol = auth()->user()->getRolId();
+    public function getArchivosPorTipo($id, $tipo) {
+        try {
+            $archivos = Archivo::where('archivo_type', Acreditar::class)
+                ->where('archivo_id', $id)
+                ->where('tipo', $tipo)
+                ->latest()
+                ->get();
+            return response()->json($archivos);
+        } catch (\Exception $e) {
+            Log::error('Error obteniendo documentos de acreditación: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno al obtener documentos'], 500);
+        }
+    }
+
+    public function actualizarEstadoArchivo(Request $request) {
+        $id_semestre = session('semestre_actual_id');
+        $authUser = auth()->user();
+
+        $ap_now = $authUser->persona->asignacion_persona;
+
+        $archivo = Archivo::findOrFail($request->id);
+        $archivo->estado_archivo = $request->estado;
+        $archivo->comentario = $request->comentario;
+        $archivo->revisado_por_user_id = $ap_now->id;
+        $archivo->save();
+
+        $acreditacion = Acreditar::findOrFail($request->acreditacion);
+        
+        $ap = asignacion_persona::findOrFail($acreditacion->id_ap);
+        
+        // Verificar si cumple con todos los requisitos para aprobar la acreditación
+        $this->verificarEstadoAcreditacion($acreditacion->id, $ap->id_rol);
+        
+        return back()->with('success', 'Estado de acreditación actualizado correctamente');
+    }
+
+    public function actualizarEstadoArchivoMat(Request $request, $id_archivo) {
+        $id_semestre = session('semestre_actual_id');
+        $authUser = auth()->user();
+
+        $ap_now = $authUser->persona->asignacion_persona;
 
         $archivo = Archivo::findOrFail($id_archivo);
         $archivo->estado_archivo = $request->estado;
         $archivo->comentario = $request->comentario;
-        $archivo->revisado_por_user_id = $rol;
+        $archivo->revisado_por_user_id = $ap_now->id;
         $archivo->save();
         
         $id_file = $archivo->archivo_id;
@@ -147,7 +215,11 @@ class AcreditarController extends Controller
         if($ap->id_rol == 3 || $ap->id_rol == 4) {
             $this->verificarEstadoAcreditacion($archivo->archivo_id, $ap->id_rol);
         } else if($ap->id_rol == 5) {
-            $this->verificarEstadoMatricula($archivo->archivo_id);
+            // la funciona debe retornar true o false para actualizar el state de ap a 1
+            if($this->verificarEstadoMatricula($archivo->archivo_id)) {
+                $ap->state = 1;
+                $ap->save();
+            }
         }
 
         return back()->with('success', 'Estado del archivo actualizado correctamente');
@@ -185,7 +257,10 @@ class AcreditarController extends Controller
         if($archivo_aprob && $matricula->estado_archivo != 'Completo') {
             $matricula->estado_matricula = 'Completo';
             $matricula->save();
+            return true;
         }
+
+        return false;
     }
 
     public function verificarEstadoAcreditacion($id_acreditacion, $rol) {

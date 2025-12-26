@@ -15,10 +15,6 @@
             <h6 class="m-0 font-weight-bold text-primary text-uppercase">Gestión de Semestres</h6>
         </div>
         <div class="card-body">
-            {{-- Botón NUEVO SEMESTRE --}}
-            <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalNuevoSemestre">
-                <i class="bi bi-plus-circle"></i> Nuevo Semestre
-            </button>
 
             <div class="table-responsive">
                 <table id="tablaSemestres" class="table table-bordered table-hover">
@@ -40,34 +36,44 @@
                             <td>{{ $semestre->codigo }}</td>
                             <td>{{ $semestre->ciclo }}</td>
                             <td>
-                                @if($semestre->es_actual == 1)
+                                @if($semestre->state == 1)
                                     <span class="badge bg-success">Activo</span>
-                                    <button class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#modalFinalizar-{{ $semestre->id }}">
-                                        Finalizar
-                                    </button>
+                                @elseif($semestre->state == 2)
+                                    <span class="badge bg-secondary">Registrado</span>
                                 @else
                                     <span class="badge bg-secondary">Finalizado</span>
                                 @endif
                             </td>
                             <td>
-                                @if ($semestre->es_actual == 1)
+                                @if($semestre->state == 1)
+                                    {{-- Acciones para Semestre ACTIVO --}}
+                                    
+                                    {{-- Botón Finalizar --}}
+                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalFinalizar-{{ $semestre->id }}" title="Finalizar Semestre">
+                                        Finalizar
+                                    </button>
+
                                     {{-- Botón Editar --}}
-                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar-{{ $semestre->id }}">
+                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditar-{{ $semestre->id }}" title="Editar Ciclo">
                                         <i class="bi bi-pencil-square"></i> 
                                     </button>
 
-                                    {{-- Botón Eliminar --}}
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar-{{ $semestre->id }}">
-                                        <i class="bi bi-trash"></i> 
+                                    {{-- Botón Retroceder --}}
+                                    <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#modalRetroceder-{{ $semestre->id }}" title="Retroceder al anterior">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                
+                                @elseif($semestre->state == 0)
+                                    {{-- Acciones para Semestre FINALIZADO --}}
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVisualizar-{{ $semestre->id }}" title="Ver Detalle">
+                                        <i class="bi bi-eye"></i> Detalle
                                     </button>
                                 @else
-                                    {{-- Agregar boton que diga visualizar o revisar --}}
-                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVisualizar-{{ $semestre->id }}">
-                                        <i class="bi bi-eye"></i> 
-                                    </button>
+                                    {{-- Estado 2 u otros --}}
+                                    <span class="text-muted">-</span>
                                 @endif
-                                
                             </td>
+                            {{-- Columna Acciones extra borrada, se unificó en la anterior o se usa esta estructura --}}
                         </tr>
                         @endforeach
                     </tbody>
@@ -89,11 +95,11 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>Código</label>
-                    <input type="text" name="codigo" class="form-control" required>
+                    <input type="text" name="codigo" class="form-control" required placeholder="Ej: 2024-1">
                 </div>
                 <div class="form-group mt-2">
                     <label>Ciclo</label>
-                    <input type="text" name="ciclo" class="form-control" required>
+                    <input type="text" name="ciclo" class="form-control" required placeholder="Ej: IX Ciclo">
                 </div>
             </div>
             <div class="modal-footer">
@@ -104,11 +110,34 @@
     </div>
 </div>
 
-{{-- Modales Editar y Eliminar --}}
+{{-- Modales por Semestre --}}
 @foreach($semestres as $semestre)
+
+{{-- Modal Visualizar (Detalle) --}}
+<div class="modal fade" id="modalVisualizar-{{ $semestre->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalle Semestre {{ $semestre->codigo }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Código:</strong> {{ $semestre->codigo }}</p>
+                <p><strong>Ciclo:</strong> {{ $semestre->ciclo }}</p>
+                <p><strong>Estado:</strong> {{ $semestre->state == 0 ? 'Finalizado' : 'Activo' }}</p>
+                <p><strong>Fecha Creación:</strong> {{ $semestre->date_create }}</p>
+                <p><strong>Fecha Actualización:</strong> {{ $semestre->date_update }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Modal Editar --}}
 <div class="modal fade" id="modalEditar-{{ $semestre->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered">
         <form method="POST" action="{{ route('semestre.update', $semestre->id) }}" class="modal-content">
             @csrf
             @method('PUT')
@@ -119,7 +148,10 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>Código</label>
-                    <input type="text" name="codigo" class="form-control" value="{{ $semestre->codigo }}" required>
+                    <input type="text" name="codigo" class="form-control" value="{{ $semestre->codigo }}" {{ $semestre->state == 1 ? 'readonly' : '' }} required>
+                    @if($semestre->state == 1)
+                        <small class="text-muted">El código no se puede editar en un semestre activo.</small>
+                    @endif
                 </div>
                 <div class="form-group mt-2">
                     <label>Ciclo</label>
@@ -134,29 +166,66 @@
     </div>
 </div>
 
-{{-- Modal Eliminar --}}
-<div class="modal fade" id="modalEliminar-{{ $semestre->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <form method="POST" action="{{ route('semestre.destroy', $semestre->id) }}" class="modal-content">
+{{-- Modal Finalizar --}}
+@if($semestre->state == 1)
+<div class="modal fade" id="modalFinalizar-{{ $semestre->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{{ route('semestre.finalizar', $semestre->id) }}" class="modal-content">
             @csrf
-            @method('DELETE')
-            <div class="modal-header">
-                <h5 class="modal-title">Eliminar Semestre</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            @method('PUT')
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Finalizar Semestre</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                ¿Estás seguro de eliminar el semestre <strong>{{ $semestre->codigo }}</strong>?
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Al finalizar este semestre, <strong>se creará automáticamente el siguiente</strong> y este pasará a estado inactivo.
+                </div>
+                <p>¿Confirma finalizar el semestre <strong>{{ $semestre->codigo }}</strong>?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-danger">Confirmar</button>
+                <button type="submit" class="btn btn-danger">Confirmar Finalización</button>
             </div>
         </form>
     </div>
 </div>
+
+{{-- Modal Retroceder --}}
+<div class="modal fade" id="modalRetroceder-{{ $semestre->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{{ route('semestre.retroceder', $semestre->id) }}" class="modal-content">
+            @csrf
+            @method('PUT')
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Retroceder Semestre</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-octagon-fill"></i> <strong>¡Acción Destructiva!</strong>
+                </div>
+                <p>Esta acción eliminará el semestre actual (<strong>{{ $semestre->codigo }}</strong>) y reactivará el semestre anterior finalizado.</p>
+                <p><strong>Requisitos:</strong></p>
+                <ul>
+                    <li>No deben existir asignaciones ni registros vinculados a este semestre.</li>
+                </ul>
+                <p>¿Está seguro de proceder?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-dark">Confirmar Retroceso</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 @endforeach
 
 @endsection
+
+
 
 {{-- JS DataTables --}}
 @push('js')
@@ -168,6 +237,19 @@ Swal.fire({
     position: 'top-end',
     icon: 'success',
     title: '{{ session('success') }}',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+});
+</script>
+@endif
+@if(session('error'))
+<script>
+Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'error',
+    title: '{{ session('error') }}',
     showConfirmButton: false,
     timer: 2000,
     timerProgressBar: true,

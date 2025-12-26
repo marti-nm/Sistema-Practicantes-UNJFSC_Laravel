@@ -1,5 +1,5 @@
 @extends('template')
-@section('title', 'Revisión de Evaluaciones')
+@section('title', 'Revisión de Supervisión de Prácticas')
 @section('subtitle', 'Panel de supervisión y seguimiento de estudiantes')
 
 @push('css')
@@ -715,23 +715,35 @@
                 <h1 class="app-card-title">Panel de Revisión de Evaluaciones</h1>
             </div>
             <div class="app-card-body">
+                @if(Auth::user()->hasAnyRoles([1, 2]))
+                    <x-data-filter
+                        route="revisar.index"
+                        :facultades="$facultades"
+                    />
+                @endif
                 <div class="row g-3">
                     <form method="GET" action="{{ route('revisar.index') }}">
-                        <div class="row g-3">
+                        <div class="row g-3 d-flex justify-content-between">
                             <div class="col-md-4">
                                 <label for="grupo">Seleccionar Grupo:</label>
                                 <select class="form-control" id="grupo" name="grupo" onchange="this.form.submit()">
                                     <option value="">-- Seleccione un grupo --</option>
                                     @foreach ($grupos_practica as $gp)
-                                        <option value="{{ $gp->id }}">{{ $gp->name }}</option>
+                                        <option value="{{ $gp->id }}">{{ $gp->seccion_academica->escuela->name }} - {{ $gp->seccion_academica->seccion }} : {{ $gp->name }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="descripcion">Descripción:</label>
+                                <div class="form-control bg-primary text-white" id="descripcion">
+                                    {{ $name_escuela }} - {{ $name_seccion }} : {{ $name_grupo }}
+                                </div>
                             </div>
                         </div>
                     </form>
                     <form id="form-modulo" method="GET" action="{{ route('revisar.index') }}" class="mt-4">
                         <input type="hidden" name="grupo" value="{{ $selected_grupo_id }}">
-                        <input type="hidden" name="modulo" id="selected_modulo" value="{{ request('modulo', 1) }}">
+                        <input type="hidden" name="modulo" id="selected_modulo" value="{{ $id_modulo ?? 1 }}">
                         
                         <div class="form-group">
                             <label class="font-weight-bold mb-2"><i class="bi bi-journal-bookmark-fill"></i> Seleccionar el Módulo:</label>
@@ -739,7 +751,7 @@
                                 @php
                                     $modules = [1 => 'Módulo I', 2 => 'Módulo II', 3 => 'Módulo III', 4 => 'Módulo IV'];
                                     $currentModulo = isset($id_modulo_now) ? (int)$id_modulo_now : null;
-                                    $selectedModuloRequest = (int) request('modulo', 1);
+                                    $selectedModuloRequest = (int) ($id_modulo ?? 1);
                                 @endphp
                                 @foreach($modules as $m => $label)
                                     @php
@@ -767,53 +779,70 @@
                         </div>
                     </form>
                 </div>
-            </div>
-                
                 <!-- Espacio -->
                 <br>
                 <div class="table-container">
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
                                     <th>ID</th>
+                                    <th>Facultad</th>
+                                    <th>Escuela</th>
                                     <th>Estudiante</th>
                                     <th>Anexo 7</th>
                                     <th>Anexo 8</th>
-                                    <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($grupo_estudiante as $index => $item)
                                     @php
-                                        $getBgColor = function ($estado) {
-                                            switch ($estado) {
-                                                case 'Aprobado':
-                                                    return 'primary';
-                                                case 'Enviado':
-                                                    return 'warning';
-                                                case 'Corregir':
-                                                    return 'danger';
-                                                default:
-                                                    return 'secondary';
+                                        $getStatusInfo = function ($state) {
+                                            if (is_null($state)) return ['color' => 'secondary', 'label' => 'Sin envío'];
+                                            
+                                            // state 1: Enviado, 5: Aprobado, 2,3,4: Corregir
+                                            switch ($state) {
+                                                case 5: return ['color' => 'success', 'label' => 'Aprobado'];
+                                                case 1: return ['color' => 'warning', 'label' => 'Revisar'];
+                                                case 2:
+                                                case 3:
+                                                case 4: return ['color' => 'danger', 'label' => 'Por Corregir'];
+                                                default: return ['color' => 'secondary', 'label' => 'Pendiente'];
                                             }
                                         };
+
+                                        $status7 = $getStatusInfo($item->status_anexo_7);
+                                        $status8 = $getStatusInfo($item->status_anexo_8);
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td><strong>{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</strong></td>
+                                        <td><strong>{{ $item->asignacion_persona->seccion_academica->facultad->name }}</strong></td>
+                                        <td><strong>{{ $item->asignacion_persona->seccion_academica->escuela->name }}</strong></td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary btn-review-anexo" 
-                                                data-id-estudiante="{{ $item->id_ap }}" 
-                                                data-anexo-numero="7">Revisar Anexo 7</button>
+                                            <div class="d-flex flex-column">
+                                                <strong>{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</strong>
+                                                <small class="text-muted">Estado Gral: 
+                                                    @if($item->state == 2)
+                                                        <span class="badge bg-success">Aprobado</span>
+                                                    @else
+                                                        <span class="badge bg-info">En Proceso</span>
+                                                    @endif
+                                                </small>
+                                            </div>
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary btn-review-anexo" 
+                                            <button class="btn btn-sm btn-{{ $status7['color'] }} btn-review-anexo w-100" 
                                                 data-id-estudiante="{{ $item->id_ap }}" 
-                                                data-anexo-numero="8">Revisar Anexo 8</button>
+                                                data-anexo-numero="7">
+                                                <i class="bi bi-file-earmark-check"></i> Anexo 7 ({{ $status7['label'] }})
+                                            </button>
                                         </td>
-                                        <td class="status-cell">
-                                            <span class="badge bg-{{ $getBgColor($item->estado_evaluacion) }} status-badge"><i class="bi bi-hourglass-split"></i>{{ $item->estado_evaluacion }}</span>
+                                        <td>
+                                            <button class="btn btn-sm btn-{{ $status8['color'] }} btn-review-anexo w-100" 
+                                                data-id-estudiante="{{ $item->id_ap }}" 
+                                                data-anexo-numero="8">
+                                                <i class="bi bi-file-earmark-check"></i> Anexo 8 ({{ $status8['label'] }})
+                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -829,8 +858,8 @@
                         </table>
                     </div>
                 </div>
+            </div>
             <div class="app-card-footer">
-                <p>Panel de revisión para supervisores.</p>
             </div>
         </div>
     </div>
@@ -921,7 +950,7 @@
                                 <i class="bi bi-gear"></i> Estado del Documento
                             </label>
                             <select name="estado" id="estado-anexo7-1" class="form-control" onchange="toggleCorreccion(this)">
-                                <option value="Enviado" selected>Enviado (Pendiente de Revisión)</option>
+                                <option value="Enviado" selected disabled>Enviado (Pendiente de Revisión)</option>
                                 <option value="Aprobado">Aprobar</option>
                                 <option value="Corregir">Marcar para Corregir</option>
                             </select>
@@ -962,11 +991,23 @@
                     </form>
                     <hr class="my-4">
                     <div class="history-container mb-3">
-                        <h6 class="mt-4">Documentos enviados (Historial)</h6>
-                        <ul class="list-group history-list" id="archivosEnviadosList">
-                            <!-- Los elementos de la lista se agregarán dinámicamente aquí -->
-                        </ul>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mt-4">Documentos enviados (Historial)</h6>
+                            <!-- agregar un collapse -->
+                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                                Ver historial
+                            </button>
+                        </div>
+                        <div class="collapse" id="collapseExample">
+                            <div class="card card-body">
+                                <ul class="list-group history-list" id="archivosEnviadosList">
+                                    <!-- Los elementos de la lista se agregarán dinámicamente aquí -->
+                                </ul>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                <div class="modal-footer">
                 </div>
             </div>
         </div>
@@ -1053,9 +1094,48 @@
         });
     });
 
+    // Función para mostrar/ocultar opciones de corrección
+    function toggleCorreccion(select) {
+        const optionsContainer = document.getElementById('correccion-options-anexo7-1');
+        if (select.value === 'Corregir') {
+            optionsContainer.style.display = 'block';
+            // Seleccionar por defecto el primero
+            selectCorreccion('archivo', 'anexo7-1');
+        } else {
+            optionsContainer.style.display = 'none';
+        }
+    }
+
+    // Función para seleccionar el tipo de corrección
+    function selectCorreccion(tipo, suffix) {
+        // Resetear estilos
+        const cells = ['cellArchivo-', 'cellNota-', 'cellAmbos-'].map(c => document.getElementById(c + suffix));
+        cells.forEach(cell => {
+            if (cell) {
+                cell.style.borderColor = '#ddd';
+                cell.style.backgroundColor = 'transparent';
+                cell.style.color = 'inherit';
+            }
+        });
+
+        // Aplicar estilo al seleccionado
+        const selectedId = 'cell' + tipo.charAt(0).toUpperCase() + tipo.slice(1) + '-' + suffix;
+        const selectedCard = document.getElementById(selectedId);
+        if (selectedCard) {
+            selectedCard.style.borderColor = 'var(--primary-color)';
+            selectedCard.style.backgroundColor = 'rgba(30, 58, 138, 0.05)';
+            selectedCard.style.color = 'var(--primary-color)';
+        }
+
+        // Marcar el radio button
+        const radioId = 'correccion' + tipo.charAt(0).toUpperCase() + tipo.slice(1) + '-' + suffix;
+        const radio = document.getElementById(radioId);
+        if (radio) radio.checked = true;
+    }
+
     // Logica del modal de revisión
     document.addEventListener('DOMContentLoaded', function () {
-        const ID_MODULO = parseInt(document.getElementById('selected_modulo').value) || 1;// Cambiar por el valor dinámico si es necesario
+        const ID_MODULO = parseInt(document.getElementById('selected_modulo').value) || 1;
         const MODAL_SELECTOR = '#reviewModal';
         const modalElement = document.querySelector(MODAL_SELECTOR);
         const myModal = new bootstrap.Modal(modalElement);
@@ -1066,6 +1146,14 @@
                 const ID_EST = this.getAttribute('data-id-estudiante');
                 const anexoNumero = this.getAttribute('data-anexo-numero');
                 const ANEXO = 'anexo_' + anexoNumero;
+
+                // Resetear estado del select en el modal
+                const selectEstado = document.getElementById('estado-anexo7-1');
+                if(selectEstado) {
+                    selectEstado.value = 'Enviado';
+                    toggleCorreccion(selectEstado);
+                }
+                document.getElementById('comentario-anexo7-1').value = '';
 
                 try {
                     const response = await fetch(`/api/evaluacion_practica/${ID_EST}/${ID_MODULO}/${ANEXO}`);
@@ -1089,6 +1177,7 @@
                     // Asegurarse de que el formulario siempre sea visible al abrir el modal
                     formContainer.style.display = 'block';
                     pendingReviewContainer.style.display = 'none';
+                    noFileContainer.style.display = 'none';
 
                     if(data && data.evaluacion_archivo && data.evaluacion_archivo.length > 0) {
                         console.log('Datos recibidos:', data);
@@ -1099,24 +1188,29 @@
                         if (ultimoEnvio && ultimoEnvio.state === 1) {
                             document.getElementById('pending-nota').textContent = ultimoEnvio.nota;
                             const rutaArchivoPendiente = document.getElementById('pending-ruta');
-                            rutaArchivoPendiente.href = `/${ultimoEnvio.archivos[0].ruta}`;
+                            if(ultimoEnvio.archivos && ultimoEnvio.archivos.length > 0) {
+                                rutaArchivoPendiente.href = `/${ultimoEnvio.archivos[0].ruta}`;
+                                document.getElementById('archivo').value = ultimoEnvio.archivos[0].id;
+                            }
 
                             document.getElementById('ap_id').value = data.id_ap;
                             document.getElementById('eval_archivo').value = ultimoEnvio.id;
-                            document.getElementById('archivo').value = ultimoEnvio.archivos[0].id;
                             document.getElementById('anexo').value = ANEXO;
                         } else if (ultimoEnvio && ultimoEnvio.state !== 1) {
                             formContainer.style.display = 'none';
                             pendingReviewContainer.style.display = 'block';
                         }
 
-                        // Llenar el historial de envíos
+                        // Llenar el historial de envíos, a partir del segundo envío
                         data.evaluacion_archivo.forEach((ear, index) => {
                             let archivo = null;
+
                             if(ear.archivos && ear.archivos.length > 0) {
-                                archivo = ear.archivos[0]; // Suponiendo que solo hay un archivo por evaluación
+                                archivo = ear.archivos[0];
                             }
 
+                            if(index === 0 && archivo.state === 1) return;
+                            
                             let li = document.createElement('li');
                             li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
                             li.innerHTML = `
@@ -1125,18 +1219,18 @@
                                     <strong>Nota:</strong> ${ear.nota} <br>
                                     <strong>Fecha de Envío:</strong> ${new Date(archivo.created_at).toLocaleString()}
                                 </div>
-                                <a href="${archivo.ruta}" target="_blank" class="btn btn-sm btn-outline-success" target="_blank">
+                                <a href="/${archivo.ruta}" target="_blank" class="btn btn-sm btn-outline-success">
                                     <i class="bi bi-file-earmark-pdf"></i> Ver
                                 </a>
                             `;
-                            historyList.appendChild(li);
+                            historyList.appendChild(li);                    
                         });
                     } else {
                         // No hay datos de evaluación para este anexo/módulo
                         document.getElementById('modalTitle').textContent = `Revisar Anexo ${anexoNumero}`;
-                        formContainer.style.display = 'none'; // Ocultar formulario
-                        pendingReviewContainer.style.display = 'none'; // Mostrar mensaje
-                        noFileContainer.style.display = 'block'; // Mostrar mensaje
+                        formContainer.style.display = 'none';
+                        pendingReviewContainer.style.display = 'none';
+                        noFileContainer.style.display = 'block';
                     }
                 } catch (error) {
                     console.error('Falló la petición fetch:', error);
@@ -1145,39 +1239,5 @@
             });
         });
     });
-
-    // Lógica para el modal - Corrección
-    (function() {
-            const modalIdSuffix = 'anexo7-1'; // ID único para este modal
-
-            function toggleCorreccion(selectElement) {
-                const correccionOptions = document.getElementById(`correccion-options-${modalIdSuffix}`);
-                correccionOptions.style.display = (selectElement.value === 'Corregir') ? 'block' : 'none';
-            }
-
-            function selectCorreccion(tipo) {
-                const cells = ['Archivo', 'Nota', 'Ambos'];
-                cells.forEach(cellType => {
-                    const cell = document.getElementById(`cell${cellType}-${modalIdSuffix}`);
-                    cell.style.backgroundColor = '#fff'; // Reset all
-                });
-
-                const selectedCell = document.getElementById(`cell${tipo.charAt(0).toUpperCase() + tipo.slice(1)}-${modalIdSuffix}`);
-                const radio = document.getElementById(`correccion${tipo.charAt(0).toUpperCase() + tipo.slice(1)}-${modalIdSuffix}`);
-                
-                selectedCell.style.backgroundColor = '#e0e0e0'; // Highlight selected
-                radio.checked = true;
-            }
-
-            // Asignar funciones al ámbito global para que los `onclick` y `onchange` del HTML puedan encontrarlas
-            window.toggleCorreccion = toggleCorreccion;
-            window.selectCorreccion = (tipo) => selectCorreccion(tipo); // Adaptador para no pasar el segundo argumento desde el HTML
-
-            // Inicialización cuando el DOM esté listo
-            document.addEventListener('DOMContentLoaded', function() {
-                selectCorreccion('archivo'); // Seleccionar 'archivo' por defecto
-                $('[data-toggle="tooltip"]').tooltip(); // Inicializar tooltips de Bootstrap
-            });
-        })();
 </script>
 @endpush

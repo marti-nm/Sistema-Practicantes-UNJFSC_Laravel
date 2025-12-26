@@ -729,60 +729,84 @@
                 :facultades="$facultades"
             />
             <div class="table-container">
-                <table class="table" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Email</th>
-                            <th>Apellidos y Nombres</th>
-                            <th>Facultad</th>
-                            <th>Escuela</th>
-                            <th>Sección</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($personas as $index => $persona)
-                        <tr data-docente-id="{{ $persona->id }}">
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <span class="badge badge-light" style="background: var(--background-color); color: var(--text-primary); font-weight: 500;">
-                                    {{ $persona->correo_inst }}
-                                </span>
-                            </td>
-                            <td>{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) }}</td>
-                            <td>{{ $persona->asignacion_persona->seccion_academica->facultad->name }}</td>
-                            <td>{{ $persona->asignacion_persona->seccion_academica->escuela->name }}</td>
-                            <td>{{ $persona->asignacion_persona->seccion_academica->seccion}}</td>
-                            <td>
-                                <button type="button" class="btn btn-info" 
-                                data-toggle="modal" data-target="#modalEditar{{ $persona->id }}" 
-                                data-d="{{ $persona->distrito }}" data-p="{{ $persona->provincia }}"
-                                data-f="{{ $persona->escuela->facultad_id ?? '' }}" data-e="{{ $persona->id_escuela ?? '' }}">
-                                    <i class="bi bi-eye"></i>
-                                    
-                                </button>
-                                <form action="{{ route('personas.destroy', $persona->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Está seguro de eliminar este docente?')">
-                                        <i class="bi bi-trash"></i>
+                <div class="table-responsive">
+                    <table class="table" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Email</th>
+                                <th>Apellidos y Nombres</th>
+                                <th>Facultad</th>
+                                <th>Escuela</th>
+                                <th>Sección</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($personas as $index => $persona)
+                            <tr data-docente-id="{{ $persona->id }}">
+                                <td>{{ $index + 1 }}</td>
+                                <td>
+                                    <span class="badge badge-light" style="background: var(--background-color); color: var(--text-primary); font-weight: 500;">
+                                        {{ $persona->correo_inst }}
+                                    </span>
+                                </td>
+                                <td>{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) . ' - ' . $persona->asignacion_persona->id }}</td>
+                                <td>{{ $persona->asignacion_persona->seccion_academica->facultad->name }}</td>
+                                <td>{{ $persona->asignacion_persona->seccion_academica->escuela->name }}</td>
+                                <td>{{ $persona->asignacion_persona->seccion_academica->seccion}}</td>
+                                <td>
+                                    @if($persona->asignacion_persona->state == 1 || $persona->asignacion_persona->state == 2)
+                                    <button type="button" class="btn btn-info" 
+                                    data-toggle="modal" data-target="#modalEditar{{ $persona->id }}" 
+                                    data-d="{{ $persona->distrito }}" data-p="{{ $persona->provincia }}"
+                                    data-f="{{ $persona->escuela->facultad_id ?? '' }}" data-e="{{ $persona->id_escuela ?? '' }}">
+                                        <i class="bi bi-eye"></i>
                                         
                                     </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                        @if($personas->isEmpty())
-                        <tr>
-                            <td colspan="7" class="empty-state">
-                                <i class="bi bi-person-x"></i>
-                                <p class="mb-0">No se encontraron docentes registrados.</p>
-                            </td>
-                        </tr>
-                        @endif
-                    </tbody>
-                </table>
+                                    <button type="button" class="btn btn-danger btn-disabled-ap" 
+                                        data-id-ap="{{ $persona->asignacion_persona->id }}"
+                                        data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
+                                        data-state-ap="{{ $persona->asignacion_persona->state }}"
+                                        data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
+                                        data-email-ap="{{ $persona->correo_inst }}">
+                                    <i class="bi bi-person-x-fill"></i>
+                                    </button>
+                                    @elseif($persona->asignacion_persona->state == 3 && Auth::user()->hasAnyRoles([1,2]))
+                                    <button type="button" class="btn btn-secondary btn-management-ap" 
+                                        data-id-ap="{{ $persona->asignacion_persona->id }}"
+                                        data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
+                                        data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
+                                        data-email-ap="{{ $persona->correo_inst }}">
+                                        <i class="bi bi-hourglass-bottom"></i>
+                                    </button>
+                                    @elseif($persona->asignacion_persona->state == 3)
+                                        <label class="badge badge-warning text-black">Pendiente</label>
+                                    @elseif($persona->asignacion_persona->state == 4)
+                                        <!-- button para habilitar -->
+                                        <button type="button" class="btn btn-warning btn-disabled-ap" 
+                                            data-id-ap="{{ $persona->asignacion_persona->id }}"
+                                            data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
+                                            data-state-ap="{{ $persona->asignacion_persona->state }}"
+                                            data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
+                                            data-email-ap="{{ $persona->correo_inst }}">
+                                            <i class="bi bi-person-check-fill"></i>
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                            @if($personas->isEmpty())
+                            <tr>
+                                <td colspan="7" class="empty-state">
+                                    <i class="bi bi-person-x"></i>
+                                    <p class="mb-0">No se encontraron docentes registrados.</p>
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -972,9 +996,43 @@
     </div>
 </div>
 @endforeach
+
+@include('list_users.partials.modales_gestion_estado')
+
 @endsection
 @push('js')
 <script src="{{ asset('js/persona_edit.js') }}"></script>
+<script src="{{ asset('js/gestion_estado_usuario.js') }}"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(session('success'))
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '{{ session('success') }}',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    </script>
+@endif
+
+@if(session('error'))
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: '{{ session('error') }}',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    </script>
+@endif
 @endpush
 
 @push('js')

@@ -32,6 +32,7 @@ use App\Http\Controllers\RevisarController;
 use App\Http\Controllers\estudianteDashboardController;
 use App\Http\Controllers\JefeInmediatoController;
 use App\Http\Controllers\panelPrincipal;
+use App\Http\Controllers\SolicitudController;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -46,7 +47,7 @@ use Illuminate\Support\Facades\DB;
 */  
 
 
-Route::get('/', [loginController::class, 'index']);
+Route::get('/', [loginController::class, 'landing'])->name('home');
 
 Route::middleware('active')-> group(function () {
     Route::get('/panel', [panelPrincipal::class, 'dashboard'])->middleware('auth')->name('panel');
@@ -55,7 +56,7 @@ Route::middleware('active')-> group(function () {
 Route::get('/login', [loginController::class, 'index'])->name('login');
 Route::post('/login', [loginController::class, 'login']);
 Route::get('/cerrarSecion', [cerrarSesionController::class, 'cerrarSecion'])->name('cerrarSecion');
-Route::get('/estudiantes', [homeController::class, 'index_estudiante'])->middleware('auth')->name('panel.estudiantes');
+Route::get('/estudiantes', [homeController::class, 'index_estudiante'])->middleware('auth')->middleware('active')->name('dashboard.dashboardEstudiante');
 
 // ... otras rutas ...
 
@@ -73,7 +74,7 @@ Route::post('/segmento/usuarios-masivos', [PersonaController::class, 'store_masi
 
 Route::get('/segmento/registrar', [PersonaController::class, 'registro'])->middleware('auth')->middleware('active')->name('registrar');
 
-Route::post('/segmento/registrar', [PersonaController::class, 'store'])->name('personas.store');
+Route::post('/segmento/registrar', [PersonaController::class, 'store'])->middleware(['auth', 'active'])->name('personas.store');
 
 Route::get('/escuelas/{facultad_id}', [PersonaController::class, 'getEscuelas']);
 
@@ -81,10 +82,10 @@ Route::get('/list_users/modal-editar', function () {
     return view('list_users.edit_persona');
 })->middleware('auth')->name('modal.editar');
 
-Route::post('/personas/verificar', [PersonaController::class, 'verificar'])->middleware('auth')->name('personas.verificar');
-Route::post('/personas/asignar', [PersonaController::class, 'asignar'])->middleware('auth')->name('personas.asignar');
+Route::post('/personas/verificar', [PersonaController::class, 'verificar'])->middleware(['auth', 'active'])->name('personas.verificar');
+Route::post('/personas/asignar', [PersonaController::class, 'asignar'])->middleware(['auth', 'active'])->name('personas.asignar');
 
-Route::post('/persona/editar', [PersonaController::class, 'update'])->middleware('auth')->name('persona.editar');
+Route::post('/persona/editar', [PersonaController::class, 'update'])->middleware(['auth', 'active'])->name('persona.editar');
 
 // Ruta para actualizar contraseña
 Route::post('/persona/update-password', [PersonaController::class, 'updatePassword'])->middleware('auth')->name('persona.update.password');
@@ -101,8 +102,10 @@ Route::get('/list_users/supervisor', [PersonaController::class, 'lista_superviso
 
 Route::get('/list_users/grupo_estudiante', [PersonaController::class, 'lista_grupos_estudiantes'])->middleware('auth')->middleware('active')->name('grupo_estudiante');
 
-Route::delete('/personas/{id}', [PersonaController::class, 'destroy'])->middleware('auth')->name('personas.destroy');
+Route::delete('/personas/{id}', [PersonaController::class, 'destroy'])->middleware(['auth', 'active'])->name('personas.destroy');
 
+Route::post('/personas/solicitud_baja', [PersonaController::class, 'solicitudBaja'])->middleware(['auth', 'active'])->name('personas.solicitud_baja');
+//Route::post('/personas/disable', [PersonaController::class, 'disabledAsignacion'])->middleware('auth')->name('personas.disable');
 // Ruta para obtener los datos de un docente
 Route::get('/personas/{id}', [PersonaController::class, 'edit'])->middleware('auth')->name('personas.edit');
 
@@ -115,11 +118,16 @@ Route::resource('escuela',escuelaController::class);
 
 Route::resource('seccion', SeccionController::class);
 
-Route::resource('evaluacionPractica', EvaluacionPracticaController::class);
+//Route::resource('evaluacionPractica', EvaluacionPracticaController::class);
 
-Route::resource('revisar', RevisarController::class);
+//Route::resource('revisar', RevisarController::class)->name('revisar');
+
+Route::get('/evaluacionPractica', [EvaluacionPracticaController::class, 'index'])->name('evaluacionPractica.index');
+Route::get('/revisar', [RevisarController::class, 'index'])->name('revisar.index');
 
 Route::get('/semestre/{semestre}/edit', [SemestreController::class, 'edit'])->name('semestre.edit');
+Route::put('/semestre/{semestre}/finalizar', [SemestreController::class, 'finalizar'])->name('semestre.finalizar');
+Route::put('/semestre/{semestre}/retroceder', [SemestreController::class, 'retroceder'])->name('semestre.retroceder');
 
 // Evaluación
 Route::resource('evaluacion', EvaluacionController::class);
@@ -138,23 +146,31 @@ Route::post('/respuestas', [respuestaController::class, 'store'])->name('respues
 
 Route::get("/matricula", [matriculaController::class, "index" ])->middleware('auth')->name("matricula_index");
 Route::get("/matricula/estudiante", [matriculaController::class, "modal" ])->middleware('auth')->name("matricula_modal");
-Route::post('/subir/ficha', [ArchivoController::class, 'subirFicha'])->middleware('auth')->name('subir.ficha');
-Route::post('/subir/record', [ArchivoController::class, 'subirRecord'])->middleware('auth')->name('subir.record');
-Route::post('/subir/clectiva', [ArchivoController::class, 'subirCLectiva'])->middleware('auth')->name('subir.clectiva');
-Route::post('/subir/horario', [ArchivoController::class, 'subirHorario'])->middleware('auth')->name('subir.horario');
-Route::post('/subir/resolucion', [ArchivoController::class, 'subirResolucion'])->middleware('auth')->name('subir.resolucion');
-Route::post('/subir/anexo', [ArchivoController::class, 'subirAnexo'])->middleware('auth')->name('subir.anexo');
-Route::post('/subir/documento', [ArchivoController::class, 'subirDocumentoPractica'])->middleware('auth')->name('subir.documento');
-Route::post('/actualizar/archivo', [ArchivoController::class, 'actualizarEstadoArchivo'])->middleware('auth')->name('actualizar.archivo');
-Route::post('/actualizar/anexo', [ArchivoController::class, 'actualizarEstadoAnexo'])->middleware('auth')->name('actualizar.anexo');
+Route::post('/subir/ficha', [ArchivoController::class, 'subirFicha'])->middleware(['auth', 'active'])->name('subir.ficha');
+Route::post('/subir/record', [ArchivoController::class, 'subirRecord'])->middleware(['auth', 'active'])->name('subir.record');
+Route::post('/subir/clectiva', [ArchivoController::class, 'subirCLectiva'])->middleware(['auth', 'active'])->name('subir.clectiva');
+Route::post('/subir/horario', [ArchivoController::class, 'subirHorario'])->middleware(['auth', 'active'])->name('subir.horario');
+Route::post('/subir/resolucion', [ArchivoController::class, 'subirResolucion'])->middleware(['auth', 'active'])->name('subir.resolucion');
+Route::post('/subir/anexo', [ArchivoController::class, 'subirAnexo'])->middleware(['auth', 'active'])->name('subir.anexo');
+Route::post('/subir/documento', [ArchivoController::class, 'subirDocumentoPractica'])->middleware(['auth', 'active'])->name('subir.documento');
+Route::post('/actualizar/archivo', [ArchivoController::class, 'actualizarEstadoArchivo'])->middleware(['auth', 'active'])->name('actualizar.archivo');
+Route::post('/actualizar/anexo', [ArchivoController::class, 'actualizarEstadoAnexo'])->middleware(['auth', 'active'])->name('actualizar.anexo');
 
-Route::get('/documentos', [ArchivoController::class, 'showPDF'])->middleware('auth')->name('documentos.show');
+Route::get('/documento/{path}', [ArchivoController::class, 'showPDF'])->where('path', '.*')->middleware('auth')->name('documentos.show');
 
-Route::get('/recursos', [ArchivoController::class, 'indexRecursos'])->middleware('auth')->name('recursos');
-Route::post('/recursos', [ArchivoController::class, 'storeRecurso'])->middleware('auth')->name('recursos.store');
-Route::delete('/recursos/{id}', [ArchivoController::class, 'destroyRecurso'])->middleware('auth')->name('recursos.destroy');
+Route::get('/recursos', [ArchivoController::class, 'indexRecursos'])->middleware(['auth', 'active'])->name('recursos');
+Route::post('/recursos', [ArchivoController::class, 'storeRecurso'])->middleware(['auth', 'active'])->name('recursos.store');
+Route::delete('/recursos/{id}', [ArchivoController::class, 'destroyRecurso'])->middleware(['auth', 'active'])->name('recursos.destroy');
 
 Route::get('/practicas/desarrollo', [PracticaController::class, 'desarrollo'])->middleware('auth')->name('desarrollo');
+
+Route::post('/empresa/actualizar-estado', [EmpresaController::class, 'actualizarEstadoEmpresa'])->name('empresa.actualizar.estado');
+Route::post('/jefe_inmediato/actualizar-estado', [JefeInmediatoController::class, 'actualizarEstadoJefeInmediato'])->name('jefe_inmediato.actualizar.estado');
+Route::post('/acreditar/actualizar-archivo', [AcreditarController::class, 'actualizarEstadoArchivo'])->name('actualizar.estado.archivo');
+Route::post('/matricula/actualizar-archivo-mat', [matriculaController::class, 'actualizarEstadoArchivo'])->name('actualizar.estado.archivo.mat');
+Route::post('/acreditar/actualizar-cl/{id}', [AcreditarController::class, 'actualizarEstadoCL'])->name('actualizar.estado.cl');
+Route::post('/acreditar/actualizar-horario/{id}', [AcreditarController::class, 'actualizarEstadoHorario'])->name('actualizar.estado.horario');
+Route::post('/acreditar/actualizar-resolucion/{id}', [AcreditarController::class, 'actualizarEstadoResolucion'])->name('actualizar.estado.resolucion');
 Route::post('/practicas', [PracticaController::class, 'storeDesarrollo'])->middleware('auth')->name('desarrollo.store');
 
 Route::get('/practicas/convalidacion', [PracticaController::class, 'convalidacion'])->middleware('auth')->name('convalidacion');
@@ -184,7 +200,7 @@ Route::get('/practica', function () {
     return view('practicas.practica', compact('persona', 'matriculas'));
 })->middleware('auth')->name('practica');
 
-Route::get('/practicas/estudiante', [homeController::class, 'practicasEstudiante'])->middleware('auth')->name('practicas.estudiante');
+Route::get('/practicas/estudiante', [homeController::class, 'practicasEstudiante'])->middleware('auth')->middleware('active')->name('practicas.estudiante');
 
 Route::get('/matricula/estudiante', [homeController::class, 'matriculaEstudiante'])->middleware('auth')->name('matricula.estudiante');
 
@@ -204,11 +220,12 @@ Route::POST('/grupos_delete/{id}', [AsignacionController::class, 'eliminar'])->n
 
 Route::get("/grupoEstudiante", [grupoEstudianteController::class, "index" ])->name("estudiante_index");
 
-Route::post('/asignarAlumnos', [grupoEstudianteController::class, 'asignarAlumnos'])->name('grupos.asignarAlumnos');
+Route::post('/asignarAlumnos', [grupoEstudianteController::class, 'asignarAlumnos'])->middleware('auth')->middleware('active')->name('grupos.asignarAlumnos');
 
-Route::DELETE('/grupos/eliminar-asignado/{id}', [GrupoEstudianteController::class, 'destroy'])->name('grupos.eliminarAsignado');
+Route::DELETE('/grupos/eliminar-asignado/{id}', [GrupoEstudianteController::class, 'destroy'])->middleware('auth')->middleware('active')->name('grupos.eliminarAsignado');
 
 // public function acreditarDocente()
+Route::get('/acreditar', [AcreditarController::class, 'acreditar'])->middleware('auth')->name('acreditar');
 Route::GET('/acreditarDTitular', [AcreditarController::class, 'acreditarDTitular'])->middleware('auth')->name('acreditar.dtitular');
 Route::GET('/acreditarDSupervisor', [AcreditarController::class, 'acreditarDSupervisor'])->middleware('auth')->name('acreditar.dsupervisor');
 
@@ -217,16 +234,15 @@ Route::get('/vMatricula', [ValidacionMatriculaController::class, 'Vmatricula'])-
 Route::get('/aDTitular', [AcreditarController::class, 'ADTitular'])->name('Acreditar.Docente');
 Route::get('/aDSupervisor', [AcreditarController::class, 'ADSupervisor'])->middleware('auth')->middleware('active')->name('Acreditar.Supervisor');
 
-Route::post('/acreditar/actualizar-archivo/{id}', [AcreditarController::class, 'actualizarEstadoArchivo'])->name('actualizar.estado.archivo');
-Route::post('/acreditar/actualizar-cl/{id}', [AcreditarController::class, 'actualizarEstadoCL'])->name('actualizar.estado.cl');
-Route::post('/acreditar/actualizar-horario/{id}', [AcreditarController::class, 'actualizarEstadoHorario'])->name('actualizar.estado.horario');
-Route::post('/acreditar/actualizar-resolucion/{id}', [AcreditarController::class, 'actualizarEstadoResolucion'])->name('actualizar.estado.resolucion');
+
+
+Route::get('/api/acreditacion/archivos/{id}/{tipo}', [AcreditarController::class, 'getArchivosPorTipo']);
 Route::post('/matricula/actualizar-ficha/{id}', [ValidacionMatriculaController::class, 'actualizarEstadoFicha'])->name('actualizar.estado.ficha');
 Route::post('/matricula/actualizar-record/{id}', [ValidacionMatriculaController::class, 'actualizarEstadoRecord'])->name('actualizar.estado.record');
 
 Route::post('/practicas/proceso', [PracticaController::class, 'proceso'])->middleware('auth')->name('proceso');
 
-Route::post('/store.foto', [PersonaController::class, 'storeFoto'])->name('store.foto');
+Route::post('/store.foto', [PersonaController::class, 'storeFoto'])->middleware(['auth', 'active'])->name('store.foto');
 
 
 Route::get('/practica/{id}', [PracticaController::class, 'show'])->name('practica.show');
@@ -238,6 +254,9 @@ Route::get('/dashboard-docente', [DashboardDocenteController::class, 'index'])->
 Route::get('/dashboardSupervisor', [supervisorDashboardController::class, 'indexsupervisor'])->middleware('active')->name('supervisor.Dashboard');
 
 Route::get('/dashboardAdmin', [adminDashboardController::class, 'indexAdmin'])->name('admin.Dashboard');
+
+Route::post('/solicitud/ap', [SolicitudController::class, 'setSolicitudAp'])->name('solicitud.ap');
+Route::post('/solicitud/nota', [SolicitudController::class, 'setSolicitudNota'])->name('solicitud.nota');
 
 Route::get('/api/escuelas/{facultadId}', function ($facultadId) {
     return DB::table('escuelas')->where('facultad_id', $facultadId)->get();
@@ -263,14 +282,8 @@ Route::get('/api/secciones/{id_escuela}/{id_semestre}', function ($id_escuela, $
     ->get();
 });
 
-Route::get('api/docentes/{rol}/{saId}', function ($rol, $saId) {
-    return DB::table('personas')
-        ->join('asignacion_persona as ap', 'personas.id', '=', 'ap.id_persona')
-        ->where('ap.id_rol', $rol)
-        ->where('ap.id_sa', $saId)
-        ->select('ap.id as people', 'personas.nombres', 'personas.apellidos')
-        ->get();
-})->middleware('auth')->name('api.docentes');
+Route::get('api/docentes-titulares/{saId}', [PersonaController::class, 'getDocentesTitulares'])->middleware('auth');
+Route::get('api/docentes-supervisores/{saId}', [PersonaController::class, 'getDocentesSupervisores'])->middleware('auth');
 
 Route::get('/api/semestres/{docenteId}', function ($docenteId) {
     return DB::table('grupos_practicas')
@@ -298,22 +311,33 @@ Route::get('/api/grupo_estudiantes/{grupoId}', function ($grupoId) {
     return DB::table('grupo_estudiante as ge')
         ->join('asignacion_persona as ap', 'ge.id_estudiante', '=', 'ap.id')
         ->join('personas as p', 'ap.id_persona', '=', 'p.id')
-        ->join('grupo_practica as gp', 'ge.id_grupo_practica', '=', 'gp.id')
-        ->where('ge.id_grupo_practica', $grupoId)
+        ->join('grupo_practica as gp', 'ge.id_gp', '=', 'gp.id')
+        ->where('ge.id_gp', $grupoId)
         ->select('ge.id', 'p.codigo', 'p.nombres', 'p.apellidos', 'gp.name as grupo_name')
         ->get();
 });
+
+Route::get('/api/practica/getCalificacion/{id}', [PracticaController::class, 'getCalificacion']);
+
+Route::get('/api/matricula/{id}/{tipo}', [matriculaController::class, 'getMatricula'])->middleware('auth');
 
 Route::get('/api/evaluacion_practica/{id_ap}/{id_modulo}/{anexo}', [EvaluacionPracticaController::class, 'getEvaluacionPractica']);
 
 Route::get('/api/empresa/{practica}', [EmpresaController::class, 'getEmpresa']);
 Route::get('/api/jefeinmediato/{practica}', [JefeInmediatoController::class, 'getJefeInmediato']);
 Route::get('/api/documento/{practica}/{type}', [ArchivoController::class, 'getDocumentoPractica']);
+Route::get('/api/verificar/{email}', [PersonaController::class, 'verificar']);
+
+Route::get('/api/solicitud_baja/{id_ap}/{id_sa}', [PersonaController::class, 'getSolicitudBaja']);
+Route::post('/api/solicitud_nota', [PracticaController::class, 'solicitud_nota'])->name('solicitud_nota');
+Route::post('/api/solicitud_ap', [SolicitudController::class, 'solicitud_ap'])->name('solicitud_ap');
+Route::get('/api/solicitud/getSolicitudNota/{id_practica}', [SolicitudController::class, 'getSolicitudNota']);
+Route::get('/api/solicitud/getSolicitudAp/{id_ap}', [SolicitudController::class, 'getSolicitudAp']);
 
 Route::get('/docente/semestres/{escuela}', [DashboardDocenteController::class, 'getSemestres']);
 Route::get('/docente/supervisores/{escuela}', [DashboardDocenteController::class, 'getSupervisores']);
 
-Route::get('/supervisor/semestres/{escuela}', [supervisorDashboard::class, 'obtenerSemestresPorEscuela']);
+Route::get('/supervisor/semestres/{escuela}', [supervisorDashboardController::class, 'obtenerSemestresPorEscuela']);
 
 
 Route::get('/EstudianteDashborad', [estudianteDashboardController::class, 'index'])->name('dashboard.estudiante');

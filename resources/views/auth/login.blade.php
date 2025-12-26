@@ -1,311 +1,196 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Sistema de Prácticas Pre-profesionales</title>
+    <title>Iniciar Sesión | Sistema de Prácticas UNJFSC</title>
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --secondary-color: #64748b;
-            --light-gray: #f8fafc;
-            --border-color: #e2e8f0;
-            --text-muted: #64748b;
-        }
-        
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            position: relative;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: #334155;
-        }
-
-        /* Contenedor para el fondo */
-        .bg-slideshow::before, .bg-slideshow::after {
-        content: "";
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        z-index: -1;
-        animation: fadeSlideshow 10s infinite ease-in-out;
-        opacity: 0;
-        }
-
-        /* Imagen 1 */
-        .bg-slideshow::before {
-            background-image: url('{{ asset('img/login-background.jpg') }}');
-            animation-delay: 0s;
-        }
-
-        /* Imagen 2 */
-        .bg-slideshow::after {
-            background-image: url('{{ asset('img/bg-UNJFSC-2.jpg') }}');
-            animation-delay: 5s;
-        }
-        
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
-        }
-        
-        .login-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            max-width: 420px;
-            width: 100%;
-        }
-        
-        .login-header {
-            text-align: center;
-            padding: 3rem 2rem 1rem;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        }
-        
-        .system-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.025em;
-        }
-        
-        .system-subtitle {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            font-weight: 400;
-            line-height: 1.5;
-            margin-bottom: 1.5rem;
-        }
-        
-        .welcome-message {
-            font-size: 0.9rem;
-            color: var(--secondary-color);
-            line-height: 1.6;
-            margin-bottom: 0;
-        }
-        
-        .login-form {
-            padding: 1rem 2rem 3rem;
-        }
-        
-        .form-label {
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .form-control {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-            background-color: #ffffff;
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            background-color: #ffffff;
-        }
-        
-        .input-group-text {
-            background-color: #f8fafc;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-            letter-spacing: 0.025em;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            border-color: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-        
-        .btn-primary:focus {
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-        }
-        
-        .form-links {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-        
-        .form-links a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-        
-        .form-links a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
-        
-        .divider {
-            margin: 0.75rem 0;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-        
-        @media (max-width: 576px) {
-            .login-header {
-                padding: 2rem 1.5rem 1rem;
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#2563eb',
+                            dark: '#1e40af',
+                            light: '#eff6ff',
+                        },
+                        secondary: '#0f172a',
+                    },
+                    fontFamily: {
+                        outfit: ['Outfit', 'sans-serif'],
+                        jakarta: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
             }
-            
-            .login-form {
-                padding: 1rem 1.5rem 2rem;
-            }
-            
-            .system-title {
-                font-size: 1.25rem;
+        }
+    </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply font-outfit text-slate-900 bg-slate-950 h-full overflow-hidden flex items-center justify-center;
             }
         }
 
-        @keyframes fadeSlideshow {
-            0% { opacity: 0; }
-            10% { opacity: 1; }
+        .slideshow-img {
+            @apply absolute inset-0 w-full h-full bg-cover bg-center opacity-0 scale-110 transition-all duration-[2000ms];
+            filter: brightness(0.5) blur(2px);
+            animation: slideAnimation 12s infinite;
+        }
+
+        @keyframes slideAnimation {
+            0% { opacity: 0; transform: scale(1.1); }
+            15% { opacity: 1; }
             45% { opacity: 1; }
-            55% { opacity: 0; }
+            60% { opacity: 0; transform: scale(1); }
             100% { opacity: 0; }
+        }
+
+        .login-card {
+            @apply relative z-10 w-full max-w-md p-8 sm:p-12 rounded-[2.5rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-slate-800/50 shadow-2xl;
         }
     </style>
 </head>
+<body x-data="{ showPass: false }">
 
-<body class="bg-slideshow">
+    <!-- Background Slideshow -->
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+        <div class="slideshow-img" style="background-image: url('{{ asset('img/login-background.jpg') }}'); animation-delay: 0s;"></div>
+        <div class="slideshow-img" style="background-image: url('{{ asset('img/bg-UNJFSC-2.jpg') }}'); animation-delay: 6s;"></div>
+    </div>
 
-    <div class="login-container">
-        <div class="login-card">
-            <!-- Header -->
-            <div class="login-header">
-                <h1 class="system-title">
-                    <i class="bi bi-mortarboard-fill me-2"></i>
-                    Sistema de Prácticas
-                </h1>
-                <img src="{{ asset('img/ins-UNJFSC.png') }}" alt="Logo" class="img-fluid" style="max-width: 120px;">
+    <!-- Login Container -->
+    <div class="login-card mx-4" x-data="{ loading: false }">
+        <div class="text-center mb-10">
+            <img src="{{ asset('img/ins-UNJFSC.png') }}" alt="UNJFSC" class="h-16 mx-auto mb-6 drop-shadow-lg">
+            <h1 class="text-3xl font-extrabold text-secondary dark:text-white tracking-tight mb-1">Sistema de Prácticas</h1>
+            <p class="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">U.N. José Faustino Sánchez Carrión</p>
+        </div>
+
+        @if ($errors->any())
+            <div class="mb-6 space-y-2">
+                @foreach ($errors->all() as $item)
+                    <div class="flex items-center gap-3 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/30">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        <span>{{ $item }}</span>
+                    </div>
+                @endforeach
             </div>
+        @endif
 
-            <!-- Login Form -->
-            <div class="login-form">
-                @if ($errors->any())
-                    @foreach ($errors->all() as $item)
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ $item }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        <form method="POST" action="{{ route('login') }}" @submit="loading = true">
+            @csrf
+            <div class="space-y-5">
+                <!-- User Input -->
+                <div>
+                    <label for="email" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Correo Institucional</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                            <i class="bi bi-person text-lg"></i>
                         </div>
-                    @endforeach
-                @endif
-
-                <form method="POST" action="{{ route('login') }}">
-                    @csrf
-
-                    <!-- Email -->
-                    <div class="mb-3">
-                        <label for="email" class="form-label">
-                            <i class="bi bi-envelope me-1"></i>
-                            Correo Institucional / Usuario
-                        </label>
-                        <input type="email" class="form-control" id="email" name="email"
-                            value="{{ old('email') }}" required autocomplete="username" autofocus>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            value="{{ old('email') }}" 
+                            required 
+                            autofocus
+                            placeholder="ejemplo@unjfsc.edu.pe"
+                            class="block w-full pl-11 pr-4 py-3.5 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all dark:text-white placeholder:text-slate-400"
+                        >
                     </div>
+                </div>
 
-                    <!-- Password -->
-                    <div class="mb-4">
-                        <label for="password" class="form-label">
-                            <i class="bi bi-lock me-1"></i>
-                            Contraseña
-                        </label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="password" name="password"
-                                required autocomplete="current-password">
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                <i class="bi bi-eye" id="toggleIcon"></i>
-                            </button>
+                <!-- Password Input -->
+                <div>
+                    <label for="password" class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Contraseña</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                            <i class="bi bi-lock text-lg"></i>
                         </div>
-                    </div>
-
-                    <!-- Submit -->
-                    <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>
-                            Iniciar Sesión
+                        <input 
+                            :type="showPass ? 'text' : 'password'" 
+                            id="password" 
+                            name="password" 
+                            required
+                            placeholder="••••••••"
+                            class="block w-full pl-11 pr-12 py-3.5 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all dark:text-white placeholder:text-slate-400"
+                        >
+                        <button 
+                            type="button" 
+                            @click="showPass = !showPass"
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors"
+                        >
+                            <i class="bi" :class="showPass ? 'bi-eye-slash' : 'bi-eye'"></i>
                         </button>
                     </div>
-                </form>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    class="relative w-full py-4 bg-secondary dark:bg-primary text-white font-bold rounded-2xl hover:bg-primary dark:hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 transform hover:-translate-y-0.5 mt-2 flex items-center justify-center gap-2 group overflow-hidden"
+                    :disabled="loading"
+                >
+                    <span x-show="!loading" class="flex items-center gap-2">
+                        INGRESAR AL SISTEMA
+                        <i class="bi bi-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </span>
+                    <span x-show="loading" class="flex items-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        AUTENTICANDO...
+                    </span>
+                </button>
             </div>
+        </form>
+
+        <div class="mt-10 text-center">
+            <a href="/" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors group">
+                <i class="bi bi-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                Volver a la página principal
+            </a>
         </div>
     </div>
 
-<!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <!-- Theme Loader -->
     <script>
-        // Toggle password visibility
-        document.getElementById('togglePassword').addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('toggleIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.className = 'bi bi-eye-slash';
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.className = 'bi bi-eye';
-            }
-        });
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
     </script>
 
-@if(session('error'))
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        Swal.fire({
-            icon: 'warning',
-            title: 'Acceso denegado',
-            text: "{{ session('error') }}",
-            confirmButtonText: 'OK'
-        });
-    </script>
-@endif
-
+    @if(session('error'))
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            Swal.fire({
+                icon: 'warning',
+                title: 'Acceso denegado',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#2563eb',
+                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a'
+            });
+        </script>
+    @endif
 </body>
-
 </html>

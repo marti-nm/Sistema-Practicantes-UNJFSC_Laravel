@@ -12,7 +12,7 @@ class grupo_estudiante extends Model
 
     protected $fillable = [
     'id_estudiante',
-    'id_grupo_practica',
+    'id_gp',
     'state'
     ];
     public function estudiante()
@@ -21,7 +21,7 @@ class grupo_estudiante extends Model
     }
     public function grupo_practica()
     {
-        return $this->belongsTo(grupo_practica::class, 'id_grupo_practica');
+        return $this->belongsTo(grupo_practica::class, 'id_gp');
     }
 
 

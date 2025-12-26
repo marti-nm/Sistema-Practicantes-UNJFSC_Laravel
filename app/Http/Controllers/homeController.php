@@ -99,7 +99,7 @@ class homeController extends Controller
             return redirect()->route('login')->with('error', 'Aún no tienes acceso al sistema. Contacta al administrador.');
         }*/
         
-        return view('panel.index_estudiante', compact('ap', 'practicas', 'escuela', 'semestre', 'docente', 'supervisor', 'matricula')); 
+        return view('dashboard.estudianteDashboard', compact('ap', 'practicas', 'escuela', 'semestre', 'docente', 'supervisor', 'matricula')); 
     }
 
     public function matriculaEstudiante(){
@@ -179,10 +179,6 @@ class homeController extends Controller
                 'jefeInmediato'
             ])
             ->first();
-
-        if(!$practicas) {
-            $practicas = new Practica(['estado_practica' => 'No hay prácticas registradas']);
-        }
 
 
         /*

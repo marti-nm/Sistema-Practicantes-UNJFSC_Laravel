@@ -796,6 +796,72 @@
         color: #0d6efd;
         transform: translateY(-3px);
     }
+
+    /* bg Header*/
+    .btn-ver-pdf.fut, .btn-ver-pdf.plan-actividades, .bg-header.fut, .bg-header.plan_actividades_ppp {
+        background: linear-gradient(135deg, var(--info-color), #0e7490);
+        color: white;
+    }
+
+    .btn-ver-pdf.fut:hover, .btn-ver-pdf.plan-actividades:hover {
+        background: linear-gradient(135deg, #0e7490, #0c4a6e);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-ver-pdf.carta-presentacion, .bg-header.carta_presentacion {
+        background: linear-gradient(135deg, var(--warning-color), #b45309);
+        color: white;
+    }
+
+    .btn-ver-pdf.carta-presentacion:hover {
+        background: linear-gradient(135deg, #b45309, #92400e);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-ver-pdf.carta-aceptacion, .bg-header.carta_aceptacion {
+        background: linear-gradient(135deg, var(--success-color), #047857);
+        color: white;
+    }
+
+    .btn-ver-pdf.carta-aceptacion:hover {
+        background: linear-gradient(135deg, #047857, #065f46);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-ver-pdf.constancia, .bg-header.constancia_cumplimiento {
+        background: linear-gradient(135deg, var(--rose-color), #be123c);
+        color: white;
+    }
+
+    .btn-ver-pdf.constancia:hover {
+        background: linear-gradient(135deg, #be123c, #9f1239);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-ver-pdf.informe-final, .bg-header.informe_final_ppp {
+        background: linear-gradient(135deg, var(--indigo-color), #3730a3);
+        color: white;
+    }
+
+    .btn-ver-pdf.informe-final:hover {
+        background: linear-gradient(135deg, #3730a3, #312e81);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        color: white;
+        text-decoration: none;
+    }
   </style>  
 @endpush
 
@@ -809,11 +875,19 @@
             </h5>
         </div>
         <div class="supervision-card-body">
+            @if(Auth::user()->hasAnyRoles([1, 2]))
+                <x-data-filter
+                    route="supervision"
+                    :facultades="$facultades"
+                />
+            @endif
             <div class="table-container">
                 <table class="table" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr>
                             <th class="align-middle text-center">#</th>
+                            <th class="align-middle text-center">Escuela</th>
+                            <th class="align-middle text-center">Sección</th>
                             <th class="align-middle text-center">Tipo de Práctica</th>
                             <th class="align-middle text-center">Apellidos y Nombres</th>
                             <th class="align-middle text-center">Área</th>
@@ -829,6 +903,8 @@
                             @endphp
                         <tr data-estudiante-id="{{ $persona->id }}">
                             <td class="align-middle text-center">{{ $index + 1 }}</td>
+                            <td class="align-middle text-center">{{ $persona->asignacion_persona->seccion_academica->escuela->name }}</td>
+                            <td class="align-middle text-center">{{ $persona->asignacion_persona->seccion_academica->seccion }}</td>
                             <td class="align-middle text-center">
                                 @if($practica)
                                     <span class="practice-badge">{{ $practica->tipo_practica }}</span>
@@ -840,8 +916,8 @@
                                 <strong>{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) }}</strong>
                             </td>
                             <td class="align-middle text-center">
-                                @if($persona->practica && $persona->practica->area)
-                                    <span class="area-badge">{{ $persona->practica->area }}</span>
+                                @if($practica && $practica->jefeInmediato)
+                                    <span class="area-badge">{{ $practica->jefeInmediato->area ?: 'Área no reg.' }}</span>
                                 @else
                                     <span class="no-registered">Sin asignar</span>
                                 @endif
@@ -853,7 +929,7 @@
                                     class="btn btn-info" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#modalProceso"
-                                    data-id_practica="{{ $practica->id }}">
+                                    data-id-practica="{{ $practica->id }}">
                                     <i class="bi bi-list-check"></i>
                                     Ver
                                 </button>
@@ -921,16 +997,7 @@
                 <div class="tab-content" id="supervisionTabContent">
                     <!-- Stage 1: Inicio -->
                     <div class="tab-pane fade show active" id="content-stage-1" role="tabpanel">
-                        <div id="etapa1-content">
-                            @include('practicas.admin.supervision.supe_E1', ['etapa' => 1])
-                        </div>
-                        <!-- Containers for E1 internal navigation (Company/Boss details) -->
-                        <div id="etapa1-empresa" style="display: none;">
-                            @include('practicas.admin.supervision.supe_E1', ['etapa' => 2])
-                        </div>
-                        <div id="etapa1-jefe" style="display: none;">
-                            @include('practicas.admin.supervision.supe_E1', ['etapa' => 3])
-                        </div>
+                        @include('practicas.admin.supervision.supe_E1')
                     </div>
 
                     <!-- Stage 2: Desarrollo -->
@@ -978,4 +1045,32 @@
 @push('js')
 
 <script src="{{ asset('js/supervision_practica.js') }}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if(session('success'))
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '{{ session('success') }}',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    </script>
+    @endif
+    @if(session('error'))
+    <script>
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: '{{ session('error') }}',
+            showConfirmButton: false,
+            timer: 4000, // Un poco más de tiempo para errores
+            timerProgressBar: true,
+        });
+    </script>
+    @endif
 @endpush

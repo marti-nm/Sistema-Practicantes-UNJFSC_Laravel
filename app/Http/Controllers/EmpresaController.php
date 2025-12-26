@@ -8,6 +8,7 @@ use App\Models\Empresa;
 use App\Models\Practica;
 use App\Models\grupos_practica;
 use App\Models\grupo_estudiante;
+use App\Models\JefeInmediato;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -136,9 +137,9 @@ class EmpresaController extends Controller
             'state' => 1,
         ]);
 
-        $practica->update([
+        /*$practica->update([
             'estado_practica' => 'en proceso',
-        ]);
+        ]);*/
         
         return redirect()->back()->with('success', 'Empresa actualizada exitosamente');
     }
@@ -150,8 +151,32 @@ class EmpresaController extends Controller
 
     public function getEmpresa($practica) {
         $empresa = Empresa::where('id_practica', $practica)
-            ->select('id', 'state')
+            //->select('id', 'state')
             ->first();
         return response()->json($empresa);
+    }
+
+    public function actualizarEstadoEmpresa(Request $request) {
+        Log::info('Empresa: '.json_encode($request->all()));
+        try {
+            $empresa = Empresa::findOrFail($request->id);
+            $empresa->comentario = $request->comentario;
+            $empresa->state = ($request->estado == 'Aprobado') ? 2 : 3;
+            $empresa->save();
+
+            if($request->estado == 'Aprobado') {
+                $jefe = JefeInmediato::where('id_practica', $empresa->id_practica)->first();
+                
+                if($jefe && $jefe->state == 2) {
+                    $practica = Practica::findOrFail($empresa->id_practica);
+                    $practica->state++;
+                    $practica->save();
+                }
+            }
+        } catch (\Throwable $th) {
+            Log::error('Error al actualizar estado de empresa: '.$th->getMessage());
+            return back()->with('error', 'Error al actualizar estado de empresa');
+        }
+        return back()->with('success', 'Empresa actualizada exitosamente');
     }
 }

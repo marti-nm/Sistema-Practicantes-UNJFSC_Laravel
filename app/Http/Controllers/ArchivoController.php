@@ -20,6 +20,9 @@ class ArchivoController extends Controller
 {
     public function subirFicha(Request $request)
     {   
+        Log::info('=== INICIO subirFicha ===');
+        Log::info('Request data: ' . json_encode($request->all()));
+        
         $request->validate([
             'ap_id' => 'required|exists:asignacion_persona,id',
             'ficha' => 'required|file|mimes:pdf|max:20480',
@@ -31,7 +34,7 @@ class ArchivoController extends Controller
             ['id_ap' => $id_ap],
             [
                 'estado_matricula' => 'Pendiente',
-                'state' => 1
+                'state' => 0
             ]
         );
 
@@ -52,12 +55,16 @@ class ArchivoController extends Controller
         ]);
 
         $matricula->ruta_ficha = $rutaCompleta;
-
+        
+        Log::info('Ficha subida exitosamente');
         return back()->with('success', 'Ficha subida correctamente.');
     }
 
     public function subirRecord(Request $request)
     {
+        Log::info('=== INICIO subirRecord ===');
+        Log::info('Request data: ' . json_encode($request->all()));
+        
         $request->validate([
             'ap_id' => 'required|exists:asignacion_persona,id',
             'record' => 'required|file|mimes:pdf|max:20480',
@@ -69,7 +76,7 @@ class ArchivoController extends Controller
             ['id_ap' => $id_ap],
             [
                 'estado_matricula' => 'Pendiente',
-                'state' => 1
+                'state' => 0
             ]
         );
 
@@ -90,7 +97,8 @@ class ArchivoController extends Controller
         ]);
 
         $matricula->save();
-
+        
+        Log::info('Record subido exitosamente');
         return back()->with('success', 'Record subida correctamente.');
     }
 
@@ -277,6 +285,8 @@ class ArchivoController extends Controller
             'carta_presentacion' => 'cartas_presentacion',
             'carta_aceptacion' => 'cartas_aceptacion',
             'plan_actividades_ppp' => 'plan_actividades_ppp',
+            'registro_actividades' => 'registro_actividades',
+            'control_actividades' => 'control_actividades',
             'constancia_cumplimiento' => 'constancias_cumplimiento',
             'informe_final_ppp' => 'informes_final_ppp'
         ];
@@ -334,13 +344,13 @@ class ArchivoController extends Controller
                     if ($tipoPractica == 'desarrollo') {
                         $requiredDocs = ['fut', 'carta_presentacion'];
                     } elseif ($tipoPractica == 'convalidacion') {
-                        $requiredDocs = ['fut', 'carta_aceptacion'];
+                        $requiredDocs = ['fut', 'carta_aceptacion', 'carta_aceptacion'];
                     }
                 } elseif ($currentState == 3) {
                     if ($tipoPractica == 'desarrollo') {
                         $requiredDocs = ['carta_aceptacion', 'plan_actividades_ppp'];
                     } elseif ($tipoPractica == 'convalidacion') {
-                        $requiredDocs = ['registro_actividades', 'control_actividades'];
+                        $requiredDocs = ['plan_actividades_ppp', 'registro_actividades', 'control_actividades'];
                     }
                 } elseif ($currentState == 4) {
                     $requiredDocs = ['constancia_cumplimiento', 'informe_final_ppp'];
@@ -428,20 +438,20 @@ class ArchivoController extends Controller
                     // Buscar el grupo al que pertenece este asignacion_persona
                     $ge = grupo_estudiante::where('id_estudiante', $ep->id_ap)->first();
                     if ($ge) {
-                        $group = grupo_practica::find($ge->id_grupo_practica);
+                        $group = grupo_practica::find($ge->id_gp);
                         if ($group) {
                             $currentGroupModule = intval($group->id_modulo ?? 0);
 
                             // Solo considerar progreso si la evaluación pertenece al módulo actual del grupo
                             if ($ep->id_modulo == $currentGroupModule) {
                                 // total estudiantes asignados actualmente al grupo
-                                $totalStudents = grupo_estudiante::where('id_grupo_practica', $group->id)->count();
+                                $totalStudents = grupo_estudiante::where('id_gp', $group->id)->count();
 
                                 // contar evaluaciones aprobadas para este módulo entre los estudiantes del grupo
                                 $approvedCount = EvaluacionPractica::where('id_modulo', $currentGroupModule)
                                     ->where('estado_evaluacion', 'Aprobado')
                                     ->whereHas('asignacion_persona.grupo_estudiante', function ($q) use ($group) {
-                                        $q->where('id_grupo_practica', $group->id);
+                                        $q->where('id_gp', $group->id);
                                     })
                                     ->count();
 
@@ -483,28 +493,31 @@ class ArchivoController extends Controller
         }
     }
 
-    public function showPDF(Request $request)
+    public function showPDF($path)
     {
-        $documento = $request->query('documento');
-
         if (!auth()->check()) {
             abort(403, 'No autorizado');
         }
 
-        if (!$documento) {
+        if (!$path) {
             abort(404, 'Documento no especificado');
         }
+
+        // Limpiar el prefijo 'storage/' si viene en la ruta de la DB
+        $documento = str_replace('storage/', '', $path);
 
         // Prevenir directory traversal básico
         if (str_contains($documento, '..')) {
             abort(403, 'Acceso inválido');
         }
 
-        $path = storage_path('app/public/' . $documento);
-        if (!file_exists($path)) {
+        $filePath = storage_path('app/public/' . $documento);
+        
+        if (!file_exists($filePath)) {
             abort(404, 'Archivo no encontrado');
         }
-        return response()->file($path, [
+
+        return response()->file($filePath, [
             'Content-Type' => 'application/pdf',
         ]);
     }

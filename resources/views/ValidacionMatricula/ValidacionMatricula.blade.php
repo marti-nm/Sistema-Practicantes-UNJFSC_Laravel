@@ -590,33 +590,39 @@
       </h5>
     </div>
     <div class="validacion-card-body">
+        @if(auth()->user()->getRolId() == 1)
+            <x-data-filter
+            route="Validacion.Matricula"
+            :facultades="$facultades"
+            />
+        @endif
       <div class="table-container">
         <div class="table-responsive">
           <table class="table" id="dataTable" width="100%" cellspacing="0">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Estudiante</th>
-                <th>Semestre</th>
                 <th>Escuela</th>
+                <th>Estudiante</th>
                 <th>F Matrícula</th>
                 <th>R Académico</th>
               </tr>
             </thead>
             <tbody>
-              @foreach ($estudiantes as $item)
+              @foreach ($estudiantes as $index => $item)
                 @php
-                  $archivosPorTipo = $item->archivos->groupBy('tipo');
+                  $matricula = $item->asignacion_persona->matricula->first();
+                  $archivosPorTipo = $matricula ? $matricula->archivos->groupBy('tipo') : collect();
 
                   $getLatest = function ($tipo) use ($archivosPorTipo) {
                       $history = $archivosPorTipo->get($tipo);
-                      return $history ? $history->sortByDesc('created_at')->first() : null;
+                      return $history ? $history->first() : null;
                   };
 
                   $getBgColor = function ($estado) {
                       switch ($estado) {
                           case 'Aprobado':
-                              return 'primary';
+                              return 'success';
                           case 'Enviado':
                               return 'warning';
                           case 'Corregir':
@@ -627,70 +633,42 @@
                   };
 
                   $latestFicha = $getLatest('ficha');
-                  $historialFicha = $archivosPorTipo->get('ficha');
                   $estadoFicha = $latestFicha ? $latestFicha->estado_archivo : 'Falta';
                   $bg_ficha = $getBgColor($estadoFicha);
 
                   $latestRecord = $getLatest('record');
-                  $historialRecord = $archivosPorTipo->get('record');
                   $estadoRecord = $latestRecord ? $latestRecord->estado_archivo : 'Falta';
                   $bg_record = $getBgColor($estadoRecord);
                 @endphp
                 <tr>
                   <td>
                     <span class="badge badge-light" style="background: var(--background-color); color: var(--text-primary); font-weight: 500;">
-                      {{ $item->id }}
+                      {{ $index + 1 }}
                     </span>
-                  </td>
-                  <td class="student-name">{{ $item->asignacion_persona->persona->nombres ?? 'Sin estudiante' }} {{ $asignacion->persona->apellidos ?? '' }}</td>
-                  <td>
-                    <span class="student-name">{{ $item->asignacion_persona->semestre->codigo ?? 'Sin semestre' }}</span>
                   </td>
                   <td>
                     <span class="student-name">{{ $item->asignacion_persona->seccion_academica->escuela->name ?? 'Sin escuela' }}</span>
                   </td>
+                  <td class="student-name">{{ $item->apellidos ?? 'Sin estudiante' }} {{ $item->nombres ?? '' }}</td>
                   <td>
-                    <button type="button" class="btn btn-{{$bg_ficha}}" data-toggle="modal" data-target="#modalFicha{{ $item->id }}">
+                    <button type="button" class="btn btn-{{ $bg_ficha }} btn-vmatricula" 
+                    data-id-ap={{ $item->asignacion_persona->id }}
+                    data-type="ficha">
                       <i class="bi bi-file-earmark-text"></i>
                       Ficha Matrícula
                     </button>
                   </td>
                   <td>
-                    <button type="button" class="btn btn-{{$bg_record}}" data-toggle="modal" data-target="#modalRecord{{ $item->id }}">
+                    <button type="button" class="btn btn-{{ $bg_record }} btn-vmatricula" 
+                    data-id-ap={{ $item->asignacion_persona->id }}
+                    data-type="record"
+                    data-toggle="modal" data-target="#modalRecord{{ $item->id }}">
                       <i class="bi bi-journal-text"></i>
                       Récord Académico
                     </button>
                   </td>
                 </tr>
-
-                <x-document-modal
-                  :item="$item"
-                  modalId="modalFicha"
-                  title="Ficha"
-                  icon="file-earmark-text"
-                  :bgClass="$bg_ficha"
-                  estadoKey="estado_archivo"
-                  rutaKey="ruta"
-                  updateRoute="actualizar.estado.archivo"
-                  :latestArchivo="$latestFicha"
-                  :historialArchivos="$historialFicha"
-                  isArchivoModel="true"
-                />
-                
-                <x-document-modal
-                  :item="$item"
-                  modalId="modalRecord"
-                  title="Récord"
-                  icon="journal-text"
-                  :bgClass="$bg_record"
-                  estadoKey="estado_record"
-                  rutaKey="ruta"
-                  updateRoute="actualizar.estado.archivo"
-                  :latestArchivo="$latestRecord"
-                  :historialArchivos="$historialRecord"
-                  isArchivoModel="true"
-                />
-@endforeach
+            @endforeach
               @if($estudiantes->isEmpty())
               <tr>
                 <td colspan="6" class="empty-state">
@@ -707,9 +685,130 @@
   </div>
 </div>
 
-
+<div class="modal fade" id="modalVMatricula">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Validar Matrícula</h5>
+        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="approved-file-container" class="">
+            <div class="alert alert-success d-flex justify-content-between align-items-center" style="display: none;">
+                <div>
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <strong>Estado:</strong> Completo
+                </div>
+                <a id="approved-file-link" href="#" class="btn btn-outline-success file-link" target="_blank">
+                    <i class="bi bi-file-earmark-pdf"></i> Ver PDF
+                </a>
+            </div>
+        </div>
+        <div id="not-file-container" class="alert alert-warning text-center">
+            <i class="bi bi-file-earmark-x" style="font-size: 2rem;"></i>
+            <p class="mb-0 mt-2"><strong>Documento no disponible para revisión</strong></p>
+            <small>El docente debe enviar o corregir el archivo.</small>
+        </div>
+        <form id="form-file-container" action="{{ route('actualizar.estado.archivo.mat') }}" method="POST">
+            @csrf
+            <input type="hidden" name="id" id="id">
+            <div class="col-md-12 d-flex flex-column">
+                <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
+                <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
+                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
+                    <a id="file-send-link" href="#" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2 file-link" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="estado"><i class="bi bi-gear"></i> Estado del Documento</label>
+                <select class="form-control" id="estado" name="estado">
+                    <option value="">Seleccione un estado</option>
+                    <option value="Aprobado">Aprobado</option>
+                    <option value="Corregir">Corregir</option>
+                </select>
+            </div>
+            <div class="form-group mt-3">
+                <label for="comentario"><i class="bi bi-chat-dots"></i> Comentario (Requerido si se marca para corregir)</label>
+                <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
+            </div>
+        </form>       
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary" form="form-file-container">Validar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 @endsection
 
 @push('js')
+<script>
+  const MODAL_SELECTOR = '#modalVMatricula';
+    const modalElement = document.querySelector(MODAL_SELECTOR);
+    const myModal = new bootstrap.Modal(modalElement);
+    const fileButtons = document.querySelectorAll('.btn-vmatricula');
+    fileButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+        const id = this.getAttribute('data-id-ap');
+        const tipo = this.getAttribute('data-type');
+        document.getElementById('id').value = id;
+        try {
+            const response = await fetch(`/api/matricula/${id}/${tipo}`);
+            if (!response.ok) {
+                console.log(response);
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            console.log(data);
+
+            const apprapprovedFileContainer = document.getElementById('approved-file-container');
+            const notFileContainer = document.getElementById('not-file-container');
+            const formFileContainer = document.getElementById('form-file-container');
+
+            apprapprovedFileContainer.style.display = 'none';
+            notFileContainer.style.display = 'none';
+            formFileContainer.style.display = 'none';
+            
+            if (data && data.length > 0) {
+                const ldata = data[0];
+                console.log(ldata);
+
+                // Update file links
+                const fileSendLink = document.getElementById('file-send-link');
+                const approvedFileLink = document.getElementById('approved-file-link');
+                
+                if(fileSendLink) fileSendLink.href = ldata.ruta;
+                if(approvedFileLink) approvedFileLink.href = ldata.ruta;
+
+                if (ldata.estado_archivo === 'Aprobado') {
+                    apprapprovedFileContainer.style.display = 'block';
+                    notFileContainer.style.display = 'none';
+                    formFileContainer.style.display = 'none';
+                } else if (ldata.estado_archivo === 'Corregir') {
+                    apprapprovedFileContainer.style.display = 'none';
+                    notFileContainer.style.display = 'block';
+                    formFileContainer.style.display = 'none';
+                } else {
+                    apprapprovedFileContainer.style.display = 'none';
+                    notFileContainer.style.display = 'none';
+                    formFileContainer.style.display = 'block';
+
+                    document.getElementById('id').value = ldata.id;
+                }
+            } else {
+                apprapprovedFileContainer.style.display = 'none';
+                notFileContainer.style.display = 'block';
+                formFileContainer.style.display = 'none';
+            }
+
+            myModal.show();
+
+      } catch (error) {
+        console.error('Error fetching matricula:', error);
+      }
+    });
+  });
+</script>
 @endpush

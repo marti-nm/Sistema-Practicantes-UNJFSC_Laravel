@@ -459,67 +459,12 @@
         transform: translateX(2px);
     }
 
-    /* Form controls con estados */
-    .form-control:valid {
-        border-color: var(--success-color);
-        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-    }
-
-    .form-control:invalid {
-        border-color: var(--danger-color);
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-    }
-
-    /* Selects con estilos mejorados */
-    select.form-control {
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.5rem center;
-        background-repeat: no-repeat;
-        background-size: 1.5em 1.5em;
-        padding-right: 2.5rem;
-    }
-
-    /* Modal de eliminación especial */
-    .modal-content form[action*="destroy"] .modal-header {
-        background: linear-gradient(135deg, var(--danger-color), #991b1b);
-    }
-
-    /* Loading states */
-    .form-control.loading {
-        background-image: url("data:image/svg+xml,%3csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill='%236b7280' d='M10 3.5a6.5 6.5 0 1 0 6.5 6.5h-1.5a5 5 0 1 1-5-5V3.5z'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        background-size: 1rem 1rem;
-        animation: icon-spin 1s linear infinite;
-    }
-
-    /* Alert icons mejorados */
-    .alert i {
-        margin-right: 0.5rem;
-        font-size: 1.1rem;
-    }
-
-    .alert-success i {
-        color: var(--success-color);
-    }
-
-    .alert-danger i {
-        color: var(--danger-color);
-    }
-
-    /* Placeholder mejorado */
-    .form-control::placeholder {
-        color: var(--text-secondary);
-        opacity: 0.7;
-        font-style: italic;
-    }
-
-    /* Estados de focus mejorados */
-    .btn:focus,
+    /* Form controls estándar */
     .form-control:focus {
-        outline: 0;
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.25);
+        border-color: #8db5ff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
+
 
     /* Mejoras en el modal de crear */
     .modal-dialog {
@@ -651,9 +596,9 @@
         </div>
         
         <div class="asignatura-card-body">
-            @if($ap->id_rol != 3)
+            @if(Auth::user()->hasAnyRoles([1, 2]))
             <x-data-filter
-                route="docente"
+                route="asignacion_index"
                 :facultades="$facultades"
             />
             @endif
@@ -842,7 +787,6 @@
           </h5>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
-
         <div class="modal-body">
             <!-- Facultad -->
           <div class="form-group">
@@ -879,7 +823,7 @@
                 <!-- Seccion -->
                 <div class="col-md-4">
                     <label for="crear-seccion" class="form-label"><i class="bi bi-person-badge"></i> Sección</label>
-                    @if ($ap->id_rol == 3)
+                    @if (Auth::user()->getRolId() == 3)
                         <select class="form-control" id="crear-seccion" name="seccion" required>
                             <option value="{{ $ap->id_sa }}" selected>{{ $ap->seccion_academica->seccion ?? 'N/A' }}</option>
                         </select>
@@ -900,7 +844,7 @@
                     <i class="bi bi-person-badge"></i>
                     Docente
                     </label>
-                    @if ($ap->id_rol == 3)
+                    @if (Auth::user()->getRolId() == 3)
                         <select class="form-control" id="dtitular" name="dtitular" required>
                             <option value="{{ $ap->id }}" selected>{{ $ap->persona->nombres }} {{ $ap->persona->apellidos }}</option>
                         </select>
@@ -913,7 +857,7 @@
                 <div class="col-md-6">
                     <label for="dsupervisor">
                     <i class="bi bi-person-badge"></i>
-                    Supervisor
+                    Supervisor (Solo docentes acreditados)
                     </label>
                     <select name="dsupervisor" id="dsupervisor" class="form-control" required disabled>
                         <option value="">Seleccione un supervisor disponible</option>
@@ -965,6 +909,20 @@ Swal.fire({
 </script>
 @endif
 
+@if(session('error'))
+<script>
+Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'error',
+    title: '{{ session('error') }}',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+});
+</script>
+@endif
+
 <script>
     // Filtro Facultad - Escuela - Seccion
     document.addEventListener("DOMContentLoaded", function () {
@@ -976,7 +934,7 @@ Swal.fire({
         const currentUserRolId = {{ $ap->id_rol ?? 'null' }}; // Obtener el ID del rol del usuario actual
         const semestreActivoId = {{ session('semestre_actual_id') ?? 'null' }};
 
-        facultadSelect.addEventListener('change', function () {
+        facultadSelect.addEventListener('change', async function () {
             const facultadId = this.value;
             // Reset dependants
             escuelaSelect.innerHTML = '<option value="">Seleccione una escuela</option>';
@@ -993,22 +951,21 @@ Swal.fire({
             }
 
             escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
-            fetch(`/api/escuelas/${facultadId}`)
-                .then(res => res.json())
-                .then(data => {
-                    let options = '<option value="">Seleccione una escuela</option>';
-                    data.forEach(e => {
-                        options += `<option value="${e.id}">${e.name}</option>`;
-                    });
-                    escuelaSelect.innerHTML = options;
-                    escuelaSelect.disabled = false;
-                })
-                .catch(() => {
-                    escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
+            const response = await fetch(`/api/escuelas/${facultadId}`);
+            const data = await response.json();
+            if (response.ok) {
+                let options = '<option value="">Seleccione una escuela</option>';
+                data.forEach(e => {
+                    options += `<option value="${e.id}">${e.name}</option>`;
                 });
+                escuelaSelect.innerHTML = options;
+                escuelaSelect.disabled = false;
+            } else {
+                escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
+            }
         });
 
-        escuelaSelect.addEventListener('change', function () {
+        escuelaSelect.addEventListener('change', async function () {
             const escuelaId = this.value;
             seccionSelect.innerHTML = '<option value="">Seleccione una sección</option>';
             seccionSelect.disabled = true;
@@ -1023,61 +980,56 @@ Swal.fire({
             }
 
             seccionSelect.innerHTML = '<option value="">Cargando...</option>';
-            fetch(`/api/secciones/${escuelaId}/${semestreActivoId}`) // <-- Usar semestre activo
-                .then(res => res.json())
-                .then(data => {
-                    let options = '<option value="">Seleccione una sección</option>';
-                    data.forEach(d => {
-                        options += `<option value="${d.id}">${d.name}</option>`;
-                    });
-                    seccionSelect.innerHTML = options;
-                    seccionSelect.disabled = false;
-                    console.log('Secciones cargadas ', data)
-                })
-                .catch(() => {
-                    seccionSelect.innerHTML = '<option value="">Error al cargar</option>';
+            const response = await fetch(`/api/secciones/${escuelaId}/${semestreActivoId}`) // <-- Usar semestre activo
+            const data = await response.json();
+            if (response.ok) {
+                let options = '<option value="">Seleccione una sección</option>';
+                data.forEach(d => {
+                    options += `<option value="${d.id}">${d.name}</option>`;
                 });
+                seccionSelect.innerHTML = options;
+                seccionSelect.disabled = false;
+                console.log('Secciones cargadas ', data)
+            } else {
+                seccionSelect.innerHTML = '<option value="">Error al cargar</option>';
+            }
         });
 
         // Función para cargar Docentes y Supervisores basada en la sección
-        function loadDocentesAndSupervisoresForSection(seccionId) {
+        async function loadDocentesAndSupervisoresForSection(seccionId) {
             // Cargar Supervisores
             dsupervisorSelect.innerHTML = '<option value="">Cargando...</option>';
             dsupervisorSelect.disabled = true;
-            const rol_dsupervisor = 4;
-            fetch(`/api/docentes/${rol_dsupervisor}/${seccionId}`)
-                .then(res => res.json())
-                .then(data => {
-                    let options = '<option value="">Seleccione un supervisor</option>';
-                    data.forEach(d => {
-                        options += `<option value="${d.people}">${d.nombres} ${d.apellidos}</option>`;
-                    });
-                    dsupervisorSelect.innerHTML = options;
-                    dsupervisorSelect.disabled = false;
-                })
-                .catch(() => {
-                    dsupervisorSelect.innerHTML = '<option value="">Error al cargar</option>';
+            const response = await fetch(`/api/docentes-supervisores/${seccionId}`)
+            const data = await response.json();
+            if (response.ok) {
+                let options = '<option value="">Seleccione un supervisor</option>';
+                data.forEach(d => {
+                    options += `<option value="${d.people}">${d.nombres} ${d.apellidos}</option>`;
                 });
+                dsupervisorSelect.innerHTML = options;
+                dsupervisorSelect.disabled = false;
+            } else {
+                dsupervisorSelect.innerHTML = '<option value="">Error al cargar</option>';
+            }
 
-            // Cargar Docentes (solo si el usuario actual NO es rol 3, ya que está pre-llenado en Blade)
             if (currentUserRolId !== 3) {
                 dtitularSelect.innerHTML = '<option value="">Cargando...</option>';
                 dtitularSelect.disabled = true;
-                const rol_dtitular = 3;
-                fetch(`/api/docentes/${rol_dtitular}/${seccionId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        let options = '<option value="">Seleccione un docente</option>';
-                        data.forEach(d => {
-                            options += `<option value="${d.people}">${d.nombres} ${d.apellidos}</option>`;
-                        });
-                        dtitularSelect.innerHTML = options;
-                        dtitularSelect.disabled = false;
-                    })
-                    .catch((error) => {
-                        console.error('Error al cargar docentes ', error);
-                        dtitularSelect.innerHTML = '<option value="">Error al cargar</option>';
+                console.log('Sección seleccionada ', seccionId)
+                const response = await fetch(`/api/docentes-titulares/${seccionId}`)
+                const data = await response.json();
+                console.log('Data ', data);
+                if(response.ok) {
+                    let options = '<option value="">Seleccione un docente</option>';
+                    data.forEach(d => {
+                        options += `<option value="${d.people}">${d.nombres} ${d.apellidos}</option>`;
                     });
+                    dtitularSelect.innerHTML = options;
+                    dtitularSelect.disabled = false;
+                } else {
+                    dtitularSelect.innerHTML = '<option value="">Error al cargar</option>';
+                }
             } else {
                 // Si el usuario actual es rol 3, el docente titular ya está pre-seleccionado en Blade, solo aseguramos que esté habilitado.
                 dtitularSelect.disabled = false;
@@ -1099,115 +1051,10 @@ Swal.fire({
             }
         });
     });
-    document.addEventListener('DOMContentLoaded', function () {
-        const facultadSelect = document.getElementById('facultad_id');
-        const escuelaSelect = document.getElementById('id_escuela');
-
-        // Función para manejar el cambio de facultad
-        facultadSelect.addEventListener('change', function () {
-            const selectedFacultad = this.value;
-
-            if (!selectedFacultad) {
-                escuelaSelect.disabled = true;
-                escuelaSelect.value = "";
-                escuelaSelect.classList.add('loading');
-                Array.from(escuelaSelect.options).forEach(option => option.hidden = true);
-                setTimeout(() => {
-                    escuelaSelect.classList.remove('loading');
-                }, 300);
-                return;
-            }
-
-            escuelaSelect.classList.add('loading');
-            
-            setTimeout(() => {
-                escuelaSelect.disabled = false;
-                escuelaSelect.classList.remove('loading');
-
-                Array.from(escuelaSelect.options).forEach(option => {
-                    if (option.value === "") {
-                        option.hidden = false;
-                        return;
-                    }
-
-                    const facultadId = option.getAttribute('data-facultad');
-                    option.hidden = facultadId !== selectedFacultad;
-                });
-
-                escuelaSelect.value = "";
-                
-                // Agregar clase de validación
-                escuelaSelect.classList.add('is-valid');
-            }, 300);
-        });
-
-        // Validación en tiempo real para selects
-        const selects = document.querySelectorAll('select.form-control');
-        selects.forEach(select => {
-            select.addEventListener('change', function() {
-                if (this.value && !this.disabled) {
-                    this.classList.add('is-valid');
-                    this.classList.remove('is-invalid');
-                } else if (!this.disabled) {
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-
-                }
-            });
-        });
-
-        // Validación para inputs de texto
-        const textInputs = document.querySelectorAll('input[type="text"].form-control');
-        textInputs.forEach(input => {
-            input.addEventListener('input', function() {
-                if (this.value.trim().length >= 3) {
-                    this.classList.add('is-valid');
-                    this.classList.remove('is-invalid');
-                } else {
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                }
-            });
-        });
-
-        // Animación para modales
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
-            modal.addEventListener('show.bs.modal', function() {
-                this.querySelector('.modal-dialog').style.transform = 'translateY(-50px)';
-                setTimeout(() => {
-                    this.querySelector('.modal-dialog').style.transform = 'translateY(0)';
-                }, 150);
-            });
-        });
-
-        // Efecto hover para las filas de la tabla
-        const tableRows = document.querySelectorAll('.table tbody tr');
-        tableRows.forEach(row => {
-            row.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-1px)';
-            });
-            
-            row.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-
-        // Auto-dismiss para alertas después de 5 segundos
-        const alerts = document.querySelectorAll('.alert-dismissible');
-        alerts.forEach(alert => {
-            setTimeout(() => {
-                const closeButton = alert.querySelector('.close');
-                if (closeButton) {
-                    closeButton.click();
-                }
-            }, 5000);
-        });
-    });
 
     // Carga dinámica de supervisores en el modal de edición
     document.addEventListener('DOMContentLoaded', function() {
-        $('.modal[id^="modalEditar"]').on('show.bs.modal', function (event) {
+        $('.modal[id^="modalEditar"]').on('show.bs.modal', async function (event) {
             const modal = $(this);
             const supervisorSelect = modal.find('select[name="dsupervisor"]');
             const saId = supervisorSelect.data('sa-id');
@@ -1221,24 +1068,18 @@ Swal.fire({
                 return;
             }
 
-            fetch(`/api/docentes/${rolSupervisor}/${saId}`)
-                .then(res => res.json())
-                .then(data => {
-                    let options = '<option value="">Seleccione un supervisor</option>';
-                    if (data.length === 0) {
-                        options = '<option value="">No hay supervisores disponibles</option>';
-                    } else {
-                        data.forEach(d => {
-                            const isSelected = d.people == currentSupervisorId ? 'selected' : '';
-                            options += `<option value="${d.people}" ${isSelected}>${d.nombres} ${d.apellidos}</option>`;
-                        });
-                    }
-                    supervisorSelect.html(options).prop('disabled', false);
-                })
-                .catch(error => {
-                    console.error('Error al cargar supervisores:', error);
-                    supervisorSelect.html('<option value="">Error al cargar</option>');
+            const response = await fetch(`/api/docentes-supervisores/${saId}`)
+            const data = await response.json();
+            if(response.ok) {
+                let options = '<option value="">Seleccione un supervisor</option>';
+                data.forEach(d => {
+                    const isSelected = d.people == currentSupervisorId ? 'selected' : '';
+                    options += `<option value="${d.people}" ${isSelected}>${d.nombres} ${d.apellidos}</option>`;
                 });
+                supervisorSelect.html(options).prop('disabled', false);
+            } else {
+                supervisorSelect.html('<option value="">Error al cargar supervisores</option>');
+            }
         });
     });
 </script>

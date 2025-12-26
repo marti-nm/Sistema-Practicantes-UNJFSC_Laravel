@@ -8,7 +8,9 @@ use App\Models\JefeInmediato;
 use App\Models\Practica;
 use App\Models\grupos_practica;
 use App\Models\grupo_estudiante;
+use App\Models\Empresa;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class JefeInmediatoController extends Controller
 {
@@ -132,10 +134,10 @@ class JefeInmediatoController extends Controller
             'state' => 1,
         ]);
 
-        $practica->update([
+        /*$practica->update([
             'estado_practica' => 'en proceso',
             'state' => 1,
-        ]);
+        ]);*/
 
         return redirect()->back()->with('success', 'Jefe Inmediato actualizado exitosamente');
     }
@@ -150,5 +152,30 @@ class JefeInmediatoController extends Controller
     {
         $jefe = JefeInmediato::where('id_practica', $practica)->first();
         return response()->json($jefe);
+    }
+
+    public function actualizarEstadoJefeInmediato(Request $request) {
+        Log::emergency('ENTRANDO A actualizarEstadoJefeInmediato - Request: '.json_encode($request->all()));
+        try {
+            $jefe = JefeInmediato::findOrFail($request->id);
+            $jefe->comentario = $request->comentario;
+            $jefe->state = ($request->estado == 'Aprobado') ? 2 : 3;
+            $jefe->save();
+
+            if($request->estado == 'Aprobado') {
+                $empresa = Empresa::where('id_practica', $jefe->id_practica)->first();
+                
+                if($empresa && $empresa->state == 2) {
+                    $practica = Practica::findOrFail($jefe->id_practica);
+                    $practica->state++;
+                    $practica->save();
+                    Log::info('Practica actualizada al siguiente estado: '.$practica->id);
+                }
+            }
+        } catch (\Throwable $th) {
+            Log::error('Error al actualizar estado de jefe inmediato: '.$th->getMessage());
+            return back()->with('error', 'Error al actualizar estado de jefe inmediato');
+        }
+        return back()->with('success', 'Jefe Inmediato actualizado exitosamente');
     }
 }

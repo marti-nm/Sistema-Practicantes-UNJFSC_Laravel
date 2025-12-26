@@ -198,7 +198,7 @@
                                     <i class="bi bi-file-earmark-check"></i>
                                     <span>Supervisión - Matrícula</span>
                                 </a>
-                                <a href="{{ route('evaluacion.index') }}" class="nav-link {{ request()->routeIs('evaluacion.index.*') ? 'active' : '' }}">
+                                <a href="{{ route('revisar.index') }}" class="nav-link {{ request()->routeIs('evaluacion.index.*') ? 'active' : '' }}">
                                     <i class="bi bi-bar-chart"></i>
                                     <span>Supervisión - Evaluación</span>
                                 </a>
@@ -210,32 +210,16 @@
                 @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 3 || Auth::user()->getRolId() == 4)
                     <div class="nav-section">
                         <div class="nav-section-title">Evaluación</div>
-                        @if (Auth::user()->getRolId() != 4)
-                            <a href="{{ route('revisar.index') }}" class="nav-link {{ request()->routeIs('revisar.*') ? 'active' : '' }}">
-                                <i class="bi bi-eye"></i>
-                                <span>Revisión</span>
-                            </a>
-                        @endif
                         @if (Auth::user()->getRolId() != 3)
                         <a href="{{ route('evaluacionPractica.index') }}" class="nav-link {{ request()->routeIs('evaluacionPractica.*') ? 'active' : '' }}">
                             <i class="bi bi-file-earmark-check"></i>
                             <span>Practicas</span>
                         </a>
                         @endif
-                        <a href="{{ route('pregunta.index') }}" class="nav-link {{ request()->routeIs('pregunta.*') ? 'active' : '' }}">
-                            <i class="bi bi-question-circle"></i>
-                            <span>Preguntas</span>
-                        </a>
-                        @if (Auth::user()->getRolId() != 4)
-                            <a href="{{ route('evaluacion.index') }}" class="nav-link {{ request()->routeIs('evaluacion.index.*') ? 'active' : '' }}">
-                                <i class="bi bi-bar-chart-line"></i>
-                                <span>Evaluación</span>
-                            </a>
-                        @endif
                         
                     </div>
                 @endif
-                @if(Auth::user()->hasAnyRoles([1, 2, 5]))
+                @if(Auth::user()->hasAnyRoles([5]))
                     <div class="nav-section">
                         <div class="nav-section-title">Matricula</div>
                         <a href="{{ route('matricula.estudiante') }}" class="nav-link {{ request()->routeIs('matricula.estudiante.*') ? 'active' : '' }}">
@@ -253,16 +237,6 @@
                 @endif
                 <div class="nav-section">
                     <div class="nav-section-title">Otros</div>
-                    @if (Auth::user()->getRolId() == 1 || Auth::user()->getRolId() == 2 || Auth::user()->getRolId() == 3 || Auth::user()->getRolId() == 4)
-                        <a href="{{ route('empresa') }}" class="nav-link {{ request()->routeIs('empresa.*') ? 'active' : '' }}">
-                            <i class="bi bi-building"></i>
-                            <span>Empresas</span>
-                        </a>
-                        <a href="{{ route('jefes') }}" class="nav-link {{ request()->routeIs('jefes.*') ? 'active' : '' }}">
-                            <i class="bi bi-person-badge"></i>
-                            <span>Jefes Inmediato</span>
-                        </a>
-                    @endif
                     <!-- Recursos -->
                     <a href="{{ route('recursos') }}" class="nav-link {{ request()->routeIs('recursos.*') ? 'active' : '' }}">
                         <i class="bi bi-file-earmark-check"></i>

@@ -19,7 +19,6 @@ return new class extends Migration
             $table->foreignId('id_docente')->constrained('asignacion_persona')->onDelete('restrict');
             $table->foreignId('id_supervisor')->constrained('asignacion_persona')->onDelete('restrict');
             $table->foreignId('id_sa')->constrained('seccion_academica')->onDelete('restrict');
-            $table->foreignId('id_modulo')->constrained('modulos')->default(1)->onDelete('restrict');
             $table->timestamps();
             $table->boolean('state')->default(true);
         });

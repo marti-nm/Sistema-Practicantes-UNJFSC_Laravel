@@ -1,4 +1,3 @@
-@if($etapa == 1)
 <style>
     :root {
         --primary-color: #1e3a8a;
@@ -263,7 +262,7 @@
     }
 </style>
 
-<div class="supervision-container fade-in">
+<div id="supervision-container" class="supervision-container fade-in">
     <div class="supervision-card">
         <div class="supervision-header">
             <h6 class="supervision-title">Primera Etapa - Información General</h6>
@@ -277,7 +276,7 @@
                             <i class="bi bi-building info-icon"></i>
                             <div class="info-details">
                                 <h5>Empresa</h5>
-                                <a href="#" class="btn-visualizar empresa" id="btnEtapa2">
+                                <a href="#" class="btn-visualizar empresa" id="btnEtapaEmpresa">
                                     Visualizar
                                 </a>
                             </div>
@@ -291,7 +290,7 @@
                             <i class="bi bi-person-badge info-icon"></i>
                             <div class="info-details">
                                 <h5>Jefe Inmediato</h5>
-                                <a href="#" class="btn-visualizar jefe" id="btnEtapa3">
+                                <a href="#" class="btn-visualizar jefe" id="btnEtapaJefe">
                                     Visualizar
                                 </a>
                             </div>
@@ -302,35 +301,10 @@
         </div>
         
         <div class="supervision-footer">
-            <form id="formProcesoE1" class="form-etapa" action="{{ route('proceso') }}" method="POST" data-estado="1">
-                @csrf
-                <input type="hidden" name="id" id="idE1">
-                <input type="hidden" name="test" id="test" value="1">
-                <div class="row align-items-end">
-                    <div class="col-md-8">
-                        <div class="mb-3">
-                            <label for="estado" class="form-label">Estado de Aprobación</label>
-                            <select class="form-select" id="estadoE1" name="estado" required>
-                                <option value="" selected disabled>Seleccione un estado</option>
-                                <option value="rechazado">Rechazado</option>
-                                <option value="aprobado">Aprobado</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <button type="submit" form="formProcesoE1" class="btn-guardar w-100">
-                                <i class="bi bi-check-circle me-2"></i>
-                                Guardar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
         </div>
     </div>
 </div>
-@elseif($etapa == 2)
+
 <style>
     .etapa-container {
         background: var(--background-color);
@@ -449,13 +423,16 @@
     }
 </style>
 
-<div class="etapa-container fade-in">
+<div id="empresa-container" class="fade-in" style="display: none;">
     <div class="etapa-card">
-        <div class="etapa-header">
+        <div class="etapa-header d-flex justify-content-between">
             <h5 class="etapa-title">
                 <i class="bi bi-building"></i>
                 Datos de la Empresa
             </h5>
+            <button type="button" class="btn-regresar btn-regresar-etapa1">
+                <i class="bi bi-arrow-left me-2"></i>
+            </button>
         </div>
         
         <div class="etapa-body">
@@ -517,6 +494,46 @@
                     <span id="modal-sitio_web-empresa"></span>
                 </div>
             </div>
+
+            <div id="correction-data-empresa" class="col-md-12" style="display: none;">
+                <div class="alert alert-warning">
+                    Enviado a Corregir
+                </div>
+            </div>
+            <form id="formProcesoEmpresa" class="form-etapa" action="{{ route('empresa.actualizar.estado') }}" method="POST">
+                @csrf
+                <div class="col-md-12">
+                    <hr>
+                </div>
+                <input type="hidden" name="id" id="idEmpresa">
+                <div class="form-group">
+                    <label for="comentarioEmpresa" class="form-weight-bold mt-2">Comentario</label>
+                    <textarea class="form-control" id="comentarioEmpresa" name="comentario" rows="2"></textarea>
+                </div>
+                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                    <div class="col-md-4 form-group mt-3">
+                        <label for="estadoEmpresa" class="font-weight-bold mt-2">
+                            <i class="bi bi-gear"></i> Estado del Documento
+                        </label>
+                        <select class="form-select" id="estadoEmpresa" name="estado">
+                            <option value="" selected disabled>Seleccione un estado</option>
+                            <option value="Aprobado">Aprobado</option>
+                            <option value="Corregir">Corregir</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="font-weight-bold mt-2">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </label>
+                            <button type="submit" form="formProcesoEmpresa" class="btn-guardar-e2 w-100">
+                                <i class="bi bi-check-circle"></i>
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
         
         <div class="etapa-footer">
@@ -529,7 +546,8 @@
         </div>
     </div>
 </div>
-@elseif($etapa == 3)
+
+
 <style>
     .jefe-container {
         background: var(--background-color);
@@ -634,7 +652,7 @@
     }
 </style>
 
-<div class="jefe-container fade-in">
+<div id="jefe-container" class="jefe-container fade-in" style="display: none;">
     <div class="jefe-card">
         <div class="jefe-header">
             <h5 class="jefe-title">
@@ -707,11 +725,51 @@
                     </div>
                 </div>
             </div>
+            <div id="correction-data-jefe" class="col-md-12" style="display: none;">
+                <div class="alert alert-secondary">
+                    Enviado a Corregir
+                </div>
+            </div>
+
+            <form id="formProcesoJefe" class="form-etapa" action="{{ route('jefe_inmediato.actualizar.estado') }}" method="POST">
+                @csrf
+                <div class="col-md-12">
+                    <hr>
+                </div>
+                <input type="hidden" name="id" id="idJefe">
+                <div class="form-group">
+                    <label for="comentarioJefe" class="form-weight-bold mt-2">Comentario</label>
+                    <textarea class="form-control" id="comentarioJefe" name="comentario" rows="2"></textarea>
+                </div>
+                <div class="col-md-12 d-flex justify-content-between align-items-center">
+                    <div class="col-md-4 form-group mt-3">
+                        <label for="estadoJefe" class="font-weight-bold mt-2">
+                            <i class="bi bi-gear"></i> Estado del Documento
+                        </label>
+                        <select class="form-select" id="estadoJefe" name="estado" required>
+                            <option value="" selected disabled>Seleccione un estado</option>
+                            <option value="Aprobado">Aprobado</option>
+                            <option value="Corregir">Corregir</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="font-weight-bold mt-2">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </label>
+                            <button type="submit" form="formProcesoJefe" class="btn-guardar-e2 w-100">
+                                <i class="bi bi-check-circle"></i>
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
         
         <div class="jefe-footer">
             <div class="text-end">
-                <button type="button" class="btn-regresar-jefe btn-regresar-etapa2">
+                <button type="button" class="btn-regresar-jefe btn-regresar-etapa1">
                     <i class="bi bi-arrow-left me-2"></i>
                     Regresar
                 </button>
@@ -719,35 +777,3 @@
         </div>
     </div>
 </div>
-@endif
-
-@push('js')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@if(session('success'))
-<script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: '{{ session('success') }}',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-    });
-</script>
-@endif
-@if(session('error'))
-<script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'error',
-        title: '{{ session('error') }}',
-        showConfirmButton: false,
-        timer: 4000, // Un poco más de tiempo para errores
-        timerProgressBar: true,
-    });
-</script>
-@endif
-@endpush
-

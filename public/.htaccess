@@ -19,3 +19,9 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Aumentar límites de subida de archivos (solo para este proyecto)
+php_value upload_max_filesize 25M
+php_value post_max_size 30M
+php_value max_execution_time 300
+php_value max_input_time 300

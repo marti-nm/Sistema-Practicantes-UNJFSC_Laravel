@@ -413,7 +413,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="rol">Tipo de Usuario</label>
-                                <select class="form-control" id="rolMasivo" name="rol" required onchange="toggleFacultadEscuela('facultadEscuelaContainerMasivo')">
+                                <select class="form-control" id="rolMasivo" name="rol" required>
                                     <option value="">Seleccione un tipo de usuario</option>
                                     @foreach($roles as $rol)
                                         <option value="{{ $rol->id }}">{{ $rol->name }}</option>
@@ -434,11 +434,18 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Poner la imagen de model-registro del csv -->
+                    <div id="model-img-registro" class="" style="display: none;">
+                        <!-- info de formato de modelo de registro -->
+                        <label for="model-img-registro" class="d-block mb-2 text-secondary">Formato de Modelo de Registro</label>
+                        <img src="{{ asset('img/model-registro.png') }}" alt="Modelo de Registro" class="img-fluid">
+                    </div>
                     
                     <!-- Sección de ASIGNACIÓN (Habilitada en ambos casos, pero con lógica) -->
-                    <div id="assignmentContainer" class="section-box mt-4">
+                    <div id="assignmentContainer" class="section-box mt-4" style="display: none;">
                         <h6 class="mb-3 text-secondary"><i class="bi bi-clipboard-check-fill me-1"></i> 3. Asignación y Rol</h6>
-                        @if($ap->id_rol == 3)
+                        @if(Auth::user()->hasAnyRoles([3]))
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label for="facultad" class="form-label">Facultad</label>
@@ -492,7 +499,7 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer d-flex justify-content-between">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>
                     Cerrar
@@ -522,7 +529,7 @@
             </div>
             <div class="modal-body">
                 <!-- Sección de BÚSQUEDA (Siempre Visible) -->
-                    <div id="search-input-container">
+                <div id="search-input-container">
                         <h6 class="mb-3 text-primary"><i class="bi bi-search me-1"></i> 1. Verificar Usuario Existente</h6>
                         <div class="row g-2 align-items-end">
                             <!-- Rol -->
@@ -552,10 +559,9 @@
                                 </button>
                             </div>
                         </div>
-                        
                         <!-- Mensaje de Resultado de Búsqueda -->
                         <div id="searchResult" class="mt-3"></div>
-                    </div>
+                </div>
                 <form id="formRegistro" action="{{ route('personas.store') }}" method="POST" class="mt-4">
                     @csrf
                     <!-- Campo Oculto para el ID del Semestre -->
@@ -598,8 +604,15 @@
                                     <option value="F">Femenino</option>
                                 </select>
                             </div>
-                        <h6 class="mb-3 text-secondary">Datos Adicionales (Opcional)</h6>
-                        <div class="col-md-6">
+                        </div>
+                        <div class="mb-3 text-secondary d-flex align-items-center justify-content-between">
+                            <h6>Datos Adicionales (Opcional)</h6>
+                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#miContenido" aria-expanded="false" aria-controls="miContenido">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="collapse row g-3" id="miContenido">
+                            <div class="col-md-6">
                                 <label for="dni" class="form-label">DNI</label>
                                 <input type="tel" class="form-control" id="dni" name="dni" maxlength="8" disabled>
                             </div> 
@@ -629,23 +642,23 @@
                     <!-- Sección de ASIGNACIÓN (Habilitada en ambos casos, pero con lógica) -->
                     <div id="assignmentContainer" class="section-box mt-4">
                         <h6 class="mb-3 text-secondary"><i class="bi bi-clipboard-check-fill me-1"></i> 3. Asignación y Rol</h6>
-                        @if($ap->id_rol == 3)
+                        @if(Auth::user()->hasAnyRoles([3]))
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label for="facultad" class="form-label">Facultad</label>
-                                    <select class="form-control" id="facultad" name="facultad" required>
+                                    <label for="facultad_registro_fixed" class="form-label">Facultad</label>
+                                    <select class="form-control" id="facultad_registro_fixed" name="facultad" required>
                                         <option value="{{ $ap->seccion_academica->facultad->id }}">{{ $ap->seccion_academica->facultad->name }}</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="escuela" class="form-label">Escuela</label>
-                                    <select class="form-control" id="escuela" name="escuela" required>
+                                    <label for="escuela_registro_fixed" class="form-label">Escuela</label>
+                                    <select class="form-control" id="escuela_registro_fixed" name="escuela" required>
                                         <option value="{{ $ap->seccion_academica->escuela->id }}">{{ $ap->seccion_academica->escuela->name }}</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="seccion" class="form-label">Sección</label>
-                                    <select class="form-control" id="seccion" name="seccion" required>
+                                    <label for="seccion_registro_fixed" class="form-label">Sección</label>
+                                    <select class="form-control" id="seccion_registro_fixed" name="seccion" required>
                                         <option value="{{ $ap->seccion_academica->id }}">{{ $ap->seccion_academica->seccion }}</option>
                                     </select>
                                 </div>
@@ -683,7 +696,7 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer d-flex justify-content-between">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     <i class="bi bi-x-circle me-2"></i>
                     Cerrar
@@ -807,8 +820,9 @@
         inputApellidos: document.getElementById('apellidos'),
         
         // Campos de Asignación
-        //facultadRegistro: document.getElementById('facultad'),
-        //escuelaRegistro: document.getElementById('escuela'),
+        facultadRegistro: document.getElementById('facultad_registro') || document.getElementById('facultad_registro_fixed'),
+        escuelaRegistro: document.getElementById('escuela_registro') || document.getElementById('escuela_registro_fixed'),
+        seccionRegistro: document.getElementById('seccion_registro') || document.getElementById('seccion_registro_fixed'),
         
         // Lista de todos los campos de datos personales (excepto los de búsqueda)
         personalInputs: [
@@ -850,7 +864,7 @@
         ELEMENTS.inputNombres.focus();
     }
 
-    function showExistingUserForm(persona, isAssigned) {
+    function showExistingUserForm(persona, isAssigned, ap) {
         const message = isAssigned 
             ? `<div class="alert alert-danger"><i class="bi bi-x-circle-fill me-2"></i>Usuario encontrado, pero <strong>YA ESTÁ ASIGNADO</strong> a este semestre.</div>`
             : `<div class="alert alert-info"><i class="bi bi-info-circle-fill me-2"></i>Usuario encontrado: <strong>${persona.nombres} ${persona.apellidos}</strong>. Proceda a la Asignación.</div>`;
@@ -866,9 +880,11 @@
         });
 
         ELEMENTS.inputPersonaId.value = persona.id;
-        ELEMENTS.facultadRegistro.disabled = isAssigned;
-        ELEMENTS.escuelaRegistro.disabled = true;
         ELEMENTS.btnSubmit.disabled = isAssigned;
+
+        ELEMENTS.facultadRegistro.innerHTML = `<option value="">${ap.seccion_academica.facultad.name}</option>`;
+        ELEMENTS.escuelaRegistro.innerHTML = `<option value="">${ap.seccion_academica.escuela.name}</option>`;
+        ELEMENTS.seccionRegistro.innerHTML = `<option value="">${ap.seccion_academica.seccion}</option>`;
     }
 
     function resetForm() {
@@ -878,14 +894,15 @@
         ELEMENTS.personalDataContainer.style.display = 'none';
         ELEMENTS.btnSubmit.disabled = true;
         ELEMENTS.rolRegistro.disabled = false;
-        ELEMENTS.facultad.disabled = false;
-        ELEMENTS.escuela.disabled = false;
+        ELEMENTS.facultadRegistro.disabled = false;
+        ELEMENTS.escuelaRegistro.disabled = false;
+        ELEMENTS.seccionRegistro.disabled = false;
         ELEMENTS.inputPersonaId.value = '';
         ELEMENTS.searchValue.disabled = false;
     }
 
     // Verificar usuario existente btnVerify
-    function verifyUser() {
+    async function verifyUser() {
         const searchValue = ELEMENTS.searchValue.value.trim().toLowerCase();
         const rolId = ELEMENTS.rolRegistro.value;
         
@@ -905,36 +922,34 @@
 
         const fullEmail = `${searchValue}@unjfsc.edu.pe`;
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        console.log(fullEmail);
 
-        fetch('{{ route('personas.verificar') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({ correo_inst: fullEmail, semestre_id: '{{ $id_semestre }}' })
-        }).then(response => {
-            if (!response.ok) throw new Error('Error de red o servidor.');
-            return response.json();
-        })
-        .then(data => {
-            if (data.found) {
-                resetForm(); // Limpiamos el formulario antes de mostrar los datos existentes.
-                showExistingUserForm(data.persona, data.already_assigned);
-            } else {
-                //resetForm(); // Limpiamos el formulario antes de mostrar los campos para un nuevo usuario.
-                
-                showNewUserForm(fullEmail);
-            }
-        })
-        .catch(error => {
+        const response = await fetch(`/api/verificar/${fullEmail}`);
+
+        if(!response.ok) {
             alert('Error al verificar usuario:' + error);
             console.error('Error al verificar usuario:', error);
             ELEMENTS.searchResult.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Ocurrió un error al verificar.</div>`;
-        }).finally(() => {
-            ELEMENTS.btnVerify.disabled = false;
-            ELEMENTS.btnVerify.classList.remove('loading');
-        });
+            return;
+        }
+
+        ELEMENTS.btnVerify.disabled = false;
+        ELEMENTS.btnVerify.classList.remove('loading');
+
+        const result = await response.json();
+        const data = result;
+
+        //resetForm();
+        console.log(data.persona);
+        console.log(data);
+
+        resetForm();
+
+        if(data.persona) {
+            showExistingUserForm(data.persona, data.asignacionExistente, data.ap);
+        } else {
+            showNewUserForm(fullEmail);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -990,5 +1005,26 @@
 
         updateSearchInputRestrictions();
     });
+
+    // rolMasivo
+    document.getElementById('rolMasivo').addEventListener('change', function() {
+        console.log(this.value);
+        //puede ver 2, 3, 4
+        if (this.value === '2' || this.value === '3' || this.value === '4') {
+            document.getElementById('model-img-registro').style.display = 'block';
+            console.log('block');
+        } else {
+            document.getElementById('model-img-registro').style.display = 'none';
+            console.log('none');
+        }
+
+        // si value es vacio o nullo
+        if(this.value == '' || this.value == null) {
+            document.getElementById('assignmentContainer').style.display = 'none';
+        } else {
+            document.getElementById('assignmentContainer').style.display = 'block';
+        }
+    });
+        
 </script>
 @endpush

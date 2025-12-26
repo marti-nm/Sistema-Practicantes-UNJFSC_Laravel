@@ -8,27 +8,56 @@ use App\Models\grupos_practica;
 use App\Models\JefeInmediato;
 use App\Models\Practica;
 use App\Models\Persona;
+use App\Models\Facultad;
 use App\Models\Semestre;
 use App\Models\Archivo;
+use App\Models\Solicitud;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class PracticaController extends Controller
 {
-    public function lst_supervision(){
-        $user = Auth::user();
-        $ap = $user->persona->asignacion_persona;
-        $personas = Persona::with([
-                'asignacion_persona.practicas'
+    public function lst_supervision(Request $request){
+        $user = auth()->user();
+        $userRolId = $user->getRolId();
+        $id_semestre = session('semestre_actual_id');
+        $ap = $user->persona->asignacion_persona()->where('id_semestre', $id_semestre)->first();
+
+        $facQuery = Facultad::query();
+        if ($userRolId == 2) {
+            $facQuery->where('id', $ap->seccion_academica->id_facultad);
+        }
+
+        $facultades = $facQuery->get();
+
+        $pQuery = Persona::whereHas('asignacion_persona.seccion_academica', function ($query) use ($request, $ap, $id_semestre) {
+            $query->where('id_semestre', $id_semestre);
+            if($request->filled('facultad')){
+                $query->where('id_facultad', ($ap->id_rol == 2) ? $ap->seccion_academica->id_facultad : $request->facultad);
+            }
+            if($request->filled('escuela')){
+                $query->where('id_escuela', $request->escuela);
+            }
+            if($request->filled('seccion')){
+                $query->where('id', $request->seccion);
+            }
+        });
+        
+        $personas = $pQuery->with([
+                'asignacion_persona' => function($query) use ($id_semestre) {
+                    $query->where('id_semestre', $id_semestre)
+                          ->with(['seccion_academica.escuela', 'practicas.jefeInmediato']);
+                }
             ])
-            ->whereHas('asignacion_persona', function ($query) use ($ap) {
-                $query->where('id_rol', 5);
-                $query->where('id_sa', $ap->id_sa);
+            ->whereHas('asignacion_persona', function ($query) use ($ap, $id_semestre) {
+                $query->where('id_rol', 5)
+                      ->where('id_semestre', $id_semestre);
+                if($ap->id_rol == 3) $query->where('id_sa', $ap->id_sa);
             })
             ->get();
-            
-        return view('practicas.admin.supervision', compact('personas'));
+
+        return view('practicas.admin.supervision', compact('personas', 'facultades'));
     }
 
     public function show($id){
@@ -59,11 +88,52 @@ class PracticaController extends Controller
         
         $practica->update([
             'calificacion' => $request->calificacion,
-            'state' => 5,
+            'state' => 6,
             'estado_practica' => 'completo' 
         ]);
 
         return back()->with('success', 'Calificación registrada correctamente.');
+    }
+
+    public function getCalificacion($id) {
+        $practica = Practica::findOrFail($id); // <-- Solo calificacion
+        return response()->json($practica);
+    }
+
+    public function solicitud_nota(Request $request) {
+        $request->validate([
+            'id' => 'required|exists:practicas,id',
+            'motivo' => 'required|string',
+        ]);
+
+        $id_semestre = session('semestre_actual_id');
+        $authUser = auth()->user();
+
+        $ap_now = $authUser->persona->asignacion_persona;
+
+        $practica = Practica::findOrFail($request->id);
+        
+        $practica->update([
+            'state' => 7,
+            'estado_practica' => 'pendiente' 
+        ]);
+
+        $solicitud = Solicitud::create([
+            'id_ap_solicitante' => $ap_now->id,
+            'solicitudable_id' => $practica->id,
+            'solicitudable_type' => Practica::class,
+            'tipo' => 'rectificacion_nota',
+            'motivo' => $request->motivo,
+            'justificacion' => '',
+            'state' => 0,
+        ]);
+
+        return back()->with('success', 'Solicitud de nota registrada correctamente.');
+    }
+
+    public function getSolicitudNota($id_ap) {
+        $practica = Practica::findOrFail($id);
+        return response()->json($practica);
     }
 
     public function proceso(Request $request) {
@@ -157,7 +227,7 @@ class PracticaController extends Controller
         
         // Validación rápida
         if (!$user || !$user->persona) {
-            return response()->json(['error' => 'Usuario no válido'], 400);
+            return redirect()->back()->with('error', 'Usuario no válido');
         }
 
         if ($ed == 1) {
@@ -175,7 +245,7 @@ class PracticaController extends Controller
                 'state' => 1
             ]);
         }
-        return response()->json(['success' => true]);
+        return redirect()->back()->with('success', 'Tipo de práctica seleccionado correctamente.');
     }
 
     public function desarrollo(){

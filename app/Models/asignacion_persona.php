@@ -39,6 +39,10 @@ class asignacion_persona extends Model
     {
         return $this->belongsTo(seccion_academica::class, 'id_sa');
     }
+    public function acreditacion()
+    {
+        return $this->hasMany(Acreditar::class, 'id_ap');
+    }
     public function grupo_estudiante()
     {
         return $this->hasMany(grupo_estudiante::class, 'id_estudiante');
