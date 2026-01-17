@@ -17,7 +17,7 @@ class EvaluacionPracticaController extends Controller
     {
         $user = auth()->user();
         $id_semestre = session('semestre_actual_id');
-        $ap_now = $user->persona->asignacion_persona()->where('id_semestre', $id_semestre)->first();
+        $ap_now = $user->persona->asignacion_persona()->first();
 
         $request->validate([
             'grupo' => 'nullable|exists:grupo_practica,id',

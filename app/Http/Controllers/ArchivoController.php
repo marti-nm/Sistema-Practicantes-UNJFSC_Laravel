@@ -8,6 +8,8 @@ use App\Models\EvaluacionPractica;
 use App\Models\evaluacion_archivo;
 use App\Models\Archivo;
 use App\Models\Practica;
+use App\Models\type_users;
+use App\Models\Facultad;
 use App\Models\grupo_estudiante;
 use App\Models\grupo_practica;
 use App\Models\Recurso;
@@ -15,9 +17,13 @@ use App\Models\asignacion_persona;
 use Illuminate\Http\Request;
 // Log
 use Illuminate\Support\Facades\Log;
+use App\Traits\SincronizaGrupoTrait;
+
 
 class ArchivoController extends Controller
 {
+    use SincronizaGrupoTrait;
+
     public function subirFicha(Request $request)
     {   
         Log::info('=== INICIO subirFicha ===');
@@ -236,15 +242,6 @@ class ArchivoController extends Controller
             return back()->with('error', 'No se encontró la evaluación práctica para el AP ID: ' . $id_ap . ' y el módulo: ' . $request->modulo);
         }
 
-        /*$evaluacionPractica = EvaluacionPractica::firstOrCreate(
-            ['id_ap' => $id_ap],
-            [
-                'id_modulo' => $request->modulo,
-                'estado_evaluacion' => 'Pendiente',
-                'state' => 1
-            ]
-        );*/
-
         $evaluacion_archivo = evaluacion_archivo::create([
             'id_evaluacion' => $evaluacionPractica->id,
             'nota' => $request->nota,
@@ -325,6 +322,7 @@ class ArchivoController extends Controller
 
         $archivo = Archivo::findOrFail($request->id);
         $archivo->estado_archivo = $request->estado;
+        $archivo->state = ($request->estado === 'Aprobado') ? 2 : 0;
         $archivo->save();
         //Log::info('Archivo encontrado: ' . json_encode($archivo));
 
@@ -400,7 +398,7 @@ class ArchivoController extends Controller
         //
         $validated = $request->validate([
             // ... campos anteriores ...
-            'estado' => 'required|in:Enviado,Aprobado,Corregir',
+            'estado' => 'required|in:Enviado,Aprobado,Corregir',@
             'evaluacion' => 'required|exists:evaluacion_archivo,id',
             'archivo' => 'required|exists:archivos,id',
             'correccionTipo' => 'nullable|in:2,3,4', // Los valores son 2, 3, 4 según tu HTML
@@ -440,29 +438,10 @@ class ArchivoController extends Controller
                     if ($ge) {
                         $group = grupo_practica::find($ge->id_gp);
                         if ($group) {
-                            $currentGroupModule = intval($group->id_modulo ?? 0);
-
-                            // Solo considerar progreso si la evaluación pertenece al módulo actual del grupo
-                            if ($ep->id_modulo == $currentGroupModule) {
-                                // total estudiantes asignados actualmente al grupo
-                                $totalStudents = grupo_estudiante::where('id_gp', $group->id)->count();
-
-                                // contar evaluaciones aprobadas para este módulo entre los estudiantes del grupo
-                                $approvedCount = EvaluacionPractica::where('id_modulo', $currentGroupModule)
-                                    ->where('estado_evaluacion', 'Aprobado')
-                                    ->whereHas('asignacion_persona.grupo_estudiante', function ($q) use ($group) {
-                                        $q->where('id_gp', $group->id);
-                                    })
-                                    ->count();
-
-                                // Si todos los estudiantes actuales del grupo tienen la evaluación aprobada, avanzar módulo
-                                if ($totalStudents > 0 && $approvedCount >= $totalStudents) {
-                                    // Avanzar módulo en 1, sin pasar de 4
-                                    $group->id_modulo = min(4, ($group->id_modulo ?? 0) + 1);
-                                    $group->save();
-                                }
-                            }
+                            // Sincronizar el módulo del grupo basándose en el progreso real de todos los sus estudiantes
+                            $this->sincronizarModuloGrupo($group->id);
                         }
+
                     }
                 } catch (\Exception $e) {
                     Log::error('Error comprobando progreso de grupo después de aprobar evaluación práctica: ' . $e->getMessage());
@@ -482,7 +461,7 @@ class ArchivoController extends Controller
             $archivos = Archivo::where('archivo_type', Practica::class)
                 ->where('archivo_id', $practica)
                 ->where('tipo', $type)
-                ->select('id', 'estado_archivo', 'ruta', 'created_at')
+                ->select('id', 'estado_archivo', 'ruta', 'created_at', 'state')
                 ->latest() // <-- Alternativa para ordenar por created_at DESC
                 ->get();
 
@@ -524,10 +503,13 @@ class ArchivoController extends Controller
     /**
      * Definir tipos de recursos permitidos por rol
      */
-    private function getTiposPorRol($rolId)
+    /**
+     * Definir tipos de recursos permitidos por rol (Mapa completo)
+     */
+    private function getAllTiposMap()
     {
-        $tipos = [
-            // Admin y SubAdmin pueden subir todo
+        return [
+            // Admin y SubAdmin 
             1 => [
                 'otros', 'carga_lectiva', 'horario', 'resolucion', 
                 'ficha', 'record', 'fut', 'carta_presentacion', 'carta_aceptacion', 
@@ -540,19 +522,52 @@ class ArchivoController extends Controller
                 'plan_actividades_ppp', 'constancia_cumplimiento', 'informe_final_ppp',
                 'anexo_7', 'anexo_8'
             ],
-            // Docente - Para supervisor y estudiante
+            // Docente
             3 => [
                 'otros', 'carga_lectiva', 'horario', 'resolucion',
                 'ficha', 'record', 'fut', 'carta_presentacion', 'carta_aceptacion',
                 'plan_actividades_ppp', 'constancia_cumplimiento', 'informe_final_ppp'
             ],
-            // Supervisor - Para estudiante
+            // Supervisor
             4 => ['otros', 'anexo_7', 'anexo_8'],
-            // Estudiante - No puede subir recursos
+            // Estudiante
             5 => []
         ];
+    }
 
+    /**
+     * Definir tipos de recursos permitidos por rol
+     */
+    private function getTiposPorRol($rolId)
+    {
+        $tipos = $this->getAllTiposMap();
         return $tipos[$rolId] ?? [];
+    }
+
+    /**
+     * Definir qué tipos de recursos se le pueden asignar a cada rol (Destinatario)
+     */
+    private function getMapTiposPorDestinatario()
+    {
+        return [
+            // Admin y SubAdmin: Gestión interna
+            1 => ['otros', 'resolucion', 'memrandum', 'oficio'], 
+            2 => ['otros', 'resolucion', 'memorandum', 'oficio'],
+
+            // Docente: Académico
+            3 => [
+                'otros', 'carga_lectiva', 'horario', 'resolucion', 'constancia_cumplimiento'
+            ],
+
+            // Supervisor: Seguimiento
+            4 => ['otros', 'anexo_7', 'anexo_8'],
+
+            // Estudiante: Trámites y Prácticas
+            5 => [
+                'otros', 'ficha', 'record', 'fut', 'carta_presentacion', 'carta_aceptacion', 
+                'plan_actividades_ppp', 'informe_final_ppp'
+            ]
+        ];
     }
 
     /**
@@ -560,24 +575,153 @@ class ArchivoController extends Controller
      */
     public function indexRecursos()
     {
-        $user = auth()->user();
-        $rolId = $user->getRolId();
+        $id_semestre = session('semestre_actual_id');
+        $authUser = auth()->user();
+
+        $ap = $authUser->persona->asignacion_persona;
         
-        // Obtener asignacion_persona del usuario actual
-        $ap = asignacion_persona::where('id_persona', $user->persona->id)
-            ->where('id_semestre', session('semestre_actual_id'))
-            ->first();
+        // Obtener datos académicos del usuario actual
+        $mySa = $ap->seccion_academica;
+        $myFacultadId = $mySa ? $mySa->id_facultad : null;
+        $myEscuelaId = $mySa ? $mySa->id_escuela : null;
+        $mySeccionId = $mySa ? $mySa->id : null;
+        $myRolId = $authUser->getRolId();
 
-        // Obtener recursos activos
-        $recursos = Recurso::activo()
+        $rolesQuery = type_users::where('state', 1)
+            ->where('name', '!=', 'admin');
+        
+        if ($authUser->getRolId() == 2) { 
+            $rolesQuery->where('name', '!=', 'sub admin');
+        }
+
+        if ($authUser->getRolId() == 3) { 
+            $rolesQuery->where('name', '!=', 'docente titular');
+            $rolesQuery->where('name', '!=', 'sub admin');
+        }
+
+        $roles = $rolesQuery->get();
+
+        // Tipos permitidos para este rol (el que sube)
+        // Esto define SI PUEDO SUBIR ALGO en general
+        $tiposPermitidos = $this->getTiposPorRol($authUser->getRolId());
+        
+        // Mapa de tipos por DESTINATARIO (para el select dinámico)
+        $mapaTiposDestinatario = $this->getMapTiposPorDestinatario();
+
+        // Query Principal
+        $query = Recurso::activo()
             ->with(['uploader.persona', 'seccionAcademica.escuela'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->where('id_semestre', $id_semestre);
+            
+        // 1. Filtrar por Rol Dirigido
+        if (!in_array($myRolId, [1, 2])) {
+            $query->where(function($q) use ($myRolId) {
+                $q->whereNull('id_rol')
+                  ->orWhere('id_rol', $myRolId);
+            });
+        }
 
-        // Tipos permitidos para este rol
-        $tiposPermitidos = $this->getTiposPorRol($rolId);
+        // 2. Filtrar por Nivel Jerárquico
+        if ($myRolId == 1) {
+            // Admin Global: Ve todo
+        } elseif ($myRolId == 2) {
+            // Sub Admin
+            if ($myFacultadId) {
+                 $query->where(function($q) use ($myFacultadId) {
+                    $q->where('nivel', 1) // Global
+                      ->orWhere(function($subQ) use ($myFacultadId) {
+                          $subQ->where('nivel', 2)
+                               ->whereHas('seccionAcademica', function($f) use ($myFacultadId) {
+                                   $f->where('id_facultad', $myFacultadId);
+                               });
+                      })
+                      ->orWhere(function($subQ) use ($myFacultadId) {
+                          $subQ->whereIn('nivel', [3, 4])
+                               ->whereHas('seccionAcademica', function($f) use ($myFacultadId) {
+                                   $f->where('id_facultad', $myFacultadId);
+                               });
+                      });
+                });
+            }
+        } else {
+            // Otros roles
+            $query->where(function($q) use ($myFacultadId, $myEscuelaId, $mySeccionId) {
+                $q->where('nivel', 1); // Global
+                
+                if ($myFacultadId) {
+                    $q->orWhere(function($sub) use ($myFacultadId) {
+                        $sub->where('nivel', 2)
+                            ->whereHas('seccionAcademica', function($f) use ($myFacultadId) {
+                                $f->where('id_facultad', $myFacultadId);
+                            });
+                    });
+                }
+                
+                if ($myEscuelaId) {
+                    $q->orWhere(function($sub) use ($myEscuelaId) {
+                        $sub->where('nivel', 3)
+                            ->whereHas('seccionAcademica', function($e) use ($myEscuelaId) {
+                                $e->where('id_escuela', $myEscuelaId);
+                            });
+                    });
+                }
+                
+                if ($mySeccionId) {
+                    $q->orWhere(function($sub) use ($mySeccionId) {
+                        $sub->where('nivel', 4)
+                            ->where('id_sa', $mySeccionId);
+                    });
+                }
+            });
+        }
 
-        return view('recursos.index', compact('recursos', 'tiposPermitidos', 'ap'));
+        $recursos = $query->orderBy('created_at', 'desc')->get();
+
+        $queryFac = Facultad::where('state', 1);
+        if($authUser->getRolId() == 2 || $authUser->getRolId() == 3){ 
+            if ($myFacultadId) {
+                $queryFac->where('id', $myFacultadId);
+            }
+        }
+        $facultades = $queryFac->get();
+
+        $tipoLabels = [
+            'otros' => 'Otros',
+            'carga_lectiva' => 'Carga Lectiva',
+            'horario' => 'Horario',
+            'resolucion' => 'Resolución',
+            'ficha' => 'Ficha',
+            'record' => 'Record',
+            'fut' => 'FUT',
+            'carta_presentacion' => 'Carta de Presentación',
+            'carta_aceptacion' => 'Carta de Aceptación',
+            'plan_actividades_ppp' => 'Plan de Actividades PPP',
+            'constancia_cumplimiento' => 'Constancia de Cumplimiento',
+            'informe_final_ppp' => 'Informe Final PPP',
+            'anexo_7' => 'Anexo 7',
+            'anexo_8' => 'Anexo 8',
+            'memrandum' => 'Memorándum',
+            'oficio' => 'Oficio',
+            'memorandum' => 'Memorándum',
+        ];
+
+        $nivelLabels = [
+             1 => 'Global',
+             2 => 'Facultad',
+             3 => 'Escuela',
+             4 => 'Sección'
+        ];
+
+        return view('recursos.index', compact(
+            'recursos', 
+            'tiposPermitidos', 
+            'ap', 
+            'facultades', 
+            'roles',
+            'mapaTiposDestinatario',
+            'tipoLabels',
+            'nivelLabels'
+        ));
     }
 
     /**
@@ -588,8 +732,8 @@ class ArchivoController extends Controller
         $user = auth()->user();
         $rolId = $user->getRolId();
         $tiposPermitidos = $this->getTiposPorRol($rolId);
+        $id_semestre = session('semestre_actual_id');
 
-        // Validar que el rol puede subir recursos
         if (empty($tiposPermitidos)) {
             return back()->with('error', 'No tienes permisos para subir recursos.');
         }
@@ -599,14 +743,61 @@ class ArchivoController extends Controller
             'tipo' => 'required|string|in:' . implode(',', $tiposPermitidos),
             'archivo' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:20480',
             'descripcion' => 'nullable|string',
+            'id_rol' => 'nullable|exists:type_users,id',
+            'facultad' => 'nullable', // ID Facultad
+            'escuela' => 'nullable',  // ID Escuela
+            'seccion' => 'nullable',  // ID Seccion Academica
         ]);
+
+        // Determinar Nivel y ID_SA
+        $nivel = 1; // Default Global
+        $id_sa_referencial = null;
+        
+        // Lógica de jerarquía
+        if ($request->filled('seccion')) {
+            $nivel = 4; // Sección
+            $id_sa_referencial = $request->seccion;
+        } elseif ($request->filled('escuela')) {
+            $nivel = 3; // Escuela
+            // Buscar un sa cualquiera de esta escuela y semestre para referencia
+            $sa = seccion_academica::where('id_escuela', $request->escuela)
+                ->where('id_semestre', $id_semestre)
+                ->first();
+            $id_sa_referencial = $sa ? $sa->id : null;
+        } elseif ($request->filled('facultad')) {
+            $nivel = 2; // Facultad
+            // Buscar un sa cualquiera de esta facultad y semestre
+            $sa = seccion_academica::where('id_facultad', $request->facultad)
+                ->where('id_semestre', $id_semestre)
+                ->first();
+            $id_sa_referencial = $sa ? $sa->id : null;
+        } else {
+            $nivel = 1; // Global
+            // Opcional: poner un sa cualquiera del semestre si se requiere constraint, pero es nullable
+            // Dejamos null
+        }
+        
+        // Validación extra: Si es nivel 2 o 3 y no se encontró id_sa (ej. escuela sin secciones aun), 
+        // podríamos tener problemas si 'id_sa' fuera estrictamente requerido para filtrar.
+        // Pero en indexRecursos usamos whereHas('seccionAcademica'), así que necesitamos que id_sa EXISTA y apunte a algo correcto.
+        // Si no existe ninguna sección creada para esa escuela/facultad en este semestre, no podremos enlazarla.
+        // En ese caso, creamos una falla o advertencia? 
+        // Asumiremos que existen secciones. Si no, $id_sa_referencial será null y el recurso podría no aparecer en filtros que dependen de id_sa.
+        
+        if (($nivel == 2 || $nivel == 3) && !$id_sa_referencial) {
+             return back()->with('error', 'No se encontraron secciones académicas activas para la facultad/escuela seleccionada en este semestre. No se puede vincular el recurso.');
+        }
+
 
         // Obtener asignacion_persona del usuario
         $ap = asignacion_persona::where('id_persona', $user->persona->id)
-            ->where('id_semestre', session('semestre_actual_id'))
+            ->where('id_semestre', $id_semestre)
             ->first();
 
         if (!$ap) {
+            // Fallback si el usuario (ej admin) no tiene asignacion en este semestre especifico
+            // Ojo: Admin suele tener asignación? Si no, 'subido_por_ap' fallará por FK.
+            // Asumimos que quien sube TIENE asignación.
             return back()->with('error', 'No se encontró tu asignación para este semestre.');
         }
 
@@ -624,7 +815,10 @@ class ArchivoController extends Controller
             'ruta' => $rutaCompleta,
             'descripcion' => $request->descripcion,
             'subido_por_ap' => $ap->id,
-            'id_sa' => $ap->id_sa,
+            'id_sa' => $id_sa_referencial,
+            'nivel' => $nivel,
+            'id_semestre' => $id_semestre,
+            'id_rol' => $request->id_rol, // Puede ser null (Todos)
             'state' => 1
         ]);
 

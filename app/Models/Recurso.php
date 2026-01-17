@@ -18,7 +18,10 @@ class Recurso extends Model
         'descripcion',
         'subido_por_ap',
         'id_sa',
-        'state'
+        'state',
+        'nivel',
+        'id_semestre',
+        'id_rol'
     ];
 
     /**

@@ -20,7 +20,7 @@ class validacionMatriculaController extends Controller
     public function Vmatricula(Request $request){
         $user = auth()->user();
         $id_semestre = session('semestre_actual_id');
-        $ap_now = $user->persona->asignacion_persona()->where('id_semestre', $id_semestre)->first();
+        $ap_now = $user->persona->asignacion_persona()->latest()->first();
 
         $estQuery = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre, $ap_now, $request) {
             $query->where('id_semestre', $id_semestre);

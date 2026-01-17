@@ -1,191 +1,262 @@
-@extends('estudiante')
-@section('title', 'Matricula')
-@section('subtitle', 'Matricula')
+@extends('template')
+@section('title', 'Matrícula')
+@section('subtitle', 'Requisitos para Prácticas Pre-Profesionales')
+
 @section('content')
-    <div class="container">
-        <div class="">
-            <div class="p-3">
-                <h1 class="fs-3 fw-bolder text-dark mb-2 d-flex align-items-center">
-                    <svg class="bi me-3 text-primary" width="32" height="32" fill="currentColor" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
-                        <path d="M4 8a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 4 8m5.5 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m-5.5 4a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5.5 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
-                    </svg>
-                    Requisitos para llevar las prácticas
-                </h1>
-                <p class="text-secondary">
-                    Debe subir la documentación obligatoria correspondiente a su rol para habilitar la navegación completa del sistema.
-                </p>
-            </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+     x-data="{
+         loading: false
+     }">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <i class="bi bi-mortarboard-fill text-xl"></i>
         </div>
-
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        @endif
-
-        @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        @endif
-
-        @if($matricula && $matricula->estado_matricula == 'Completo')
-        <div class="alert alert-info text-center">
-            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
-            <h5 class="alert-heading mt-2">Matrícula Completada</h5>
-            <p>La matrícula ha sido completada correctamente. El docente ya la revisó.</p>
-        </div>
-        @endif
-
-        <div class="row g-4">   
-            {{-- BLOQUE 1: FICHA DE MATRÍCULA --}}
-            <div class="col-lg-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                        <div class="d-flex align-items-center">
-                            <div class="text-primary bg-primary bg-opacity-10 p-3 rounded-circle me-4">
-                                <i class="bi bi-file-text-fill" style="font-size: 1.5rem;"></i>
-                            </div>
-                            <h2 class="h4 fw-bold text-dark mb-0">Ficha de matrícula</h2>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        @if($ficha)
-                            {{-- ESTADO: APROBADO --}}
-                            @if($ficha->estado_archivo == 'Aprobado')
-                                <div class="bg-success bg-opacity-10 border border-success rounded p-3 text-center mb-3">
-                                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                                    <h5 class="mt-2 text-success fw-bold">Aprobado</h5>
-                                    <p class="mb-0 text-muted small">El documento ha sido revisado y aprobado.</p>
-                                </div>
-                                <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
-                                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Ficha Enviada</span>
-                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $ficha->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                </div>
-
-                            {{-- ESTADO: ENVIADO (PENDIENTE) --}}
-                            @elseif($ficha->estado_archivo == 'Enviado')
-                                <div class="bg-info bg-opacity-10 border border-info rounded p-3 text-center mb-3">
-                                    <i class="bi bi-clock-history text-info fs-1"></i>
-                                    <h5 class="mt-2 text-info fw-bold">Enviado</h5>
-                                    <p class="mb-0 text-muted small">Archivo enviado correctamente. Esperando revisión del docente.</p>
-                                </div>
-                                <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
-                                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Ficha Enviada</span>
-                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $ficha->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                </div>
-
-                            {{-- ESTADO: CORREGIR --}}
-                            @elseif($ficha->estado_archivo == 'Corregir')
-                                <div class="bg-warning bg-opacity-10 border border-warning rounded p-3 text-center mb-3">
-                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
-                                    <h5 class="mt-2 text-warning fw-bold">Requiere Corrección</h5>
-                                    <p class="mb-0 text-muted small">{{ $ficha->comentario ?? 'El docente ha solicitado corregir este archivo.' }}</p>
-                                </div>
-                            @endif
-                        @else
-                            {{-- SI NO EXISTE ARCHIVO: Mostrar mensaje default --}}
-                            <p class="text-muted mb-4">Sube tu ficha de matrícula para iniciar el proceso.</p>
-                        @endif
-
-                        {{-- FORMULARIO (Se muestra si no existe o si se debe corregir) --}}
-                        @if(!$ficha || $ficha->estado_archivo == 'Corregir')
-                        <form action="{{ route('subir.ficha') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <input type="hidden" name="ap_id" value="{{ auth()->user()->persona->asignacion_persona->id }}">
-                            <div class="mb-3">
-                                <label for="ficha" class="form-label fw-bold small text-uppercase text-secondary">Seleccionar Archivo (PDF Máx. 20MB)</label>
-                                <input class="form-control" type="file" id="ficha" name="ficha" accept=".pdf" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 shadow-sm">
-                                <i class="bi bi-cloud-arrow-up me-2"></i>
-                                {{ isset($ficha) ? 'Subir Corrección' : 'Subir Ficha' }}
-                            </button>
-                        </form>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            {{-- BLOQUE 2: RECORD DE NOTAS --}}
-            <div class="col-lg-6">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                        <div class="d-flex align-items-center">
-                            <div class="text-success bg-success bg-opacity-10 p-3 rounded-circle me-4">
-                                <i class="bi bi-journal-bookmark-fill" style="font-size: 1.5rem;"></i>
-                            </div>
-                            <h2 class="h4 fw-bold text-dark mb-0">Record de notas</h2>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        @if($record)
-                            {{-- ESTADO: APROBADO --}}
-                            @if($record->estado_archivo == 'Aprobado')
-                                <div class="bg-success bg-opacity-10 border border-success rounded p-3 text-center mb-3">
-                                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                                    <h5 class="mt-2 text-success fw-bold">Aprobado</h5>
-                                    <p class="mb-0 text-muted small">El documento ha sido revisado y aprobado.</p>
-                                </div>
-                                <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
-                                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Record Enviado</span>
-                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $record->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                </div>
-
-                            {{-- ESTADO: ENVIADO (PENDIENTE) --}}
-                            @elseif($record->estado_archivo == 'Enviado')
-                                <div class="bg-info bg-opacity-10 border border-info rounded p-3 text-center mb-3">
-                                    <i class="bi bi-clock-history text-info fs-1"></i>
-                                    <h5 class="mt-2 text-info fw-bold">Enviado</h5>
-                                    <p class="mb-0 text-muted small">Archivo enviado correctamente. Esperando revisión del docente.</p>
-                                </div>
-                                <div class="alert alert-light border d-flex justify-content-between align-items-center p-2">
-                                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Record Enviado</span>
-                                    <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $record->ruta)]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                </div>
-
-                            {{-- ESTADO: CORREGIR --}}
-                            @elseif($record->estado_archivo == 'Corregir')
-                                <div class="bg-warning bg-opacity-10 border border-warning rounded p-3 text-center mb-3">
-                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1"></i>
-                                    <h5 class="mt-2 text-warning fw-bold">Requiere Corrección</h5>
-                                    <p class="mb-0 text-muted small">{{ $record->comentario ?? 'El docente ha solicitado corregir este archivo.' }}</p>
-                                </div>
-                            @endif
-                        @else
-                            {{-- SI NO EXISTE ARCHIVO: Mostrar mensaje default --}}
-                            <p class="text-muted mb-4">Sube tu record de notas para continuar.</p>
-                        @endif
-
-                        {{-- FORMULARIO (Se muestra si no existe o si se debe corregir) --}}
-                        @if(!$record || $record->estado_archivo == 'Corregir')
-                        <form action="{{ route('subir.record') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <input type="hidden" name="ap_id" value="{{ auth()->user()->persona->asignacion_persona->id }}">
-                            <div class="mb-3">
-                                <label for="record" class="form-label fw-bold small text-uppercase text-secondary">Seleccionar Archivo (PDF Máx. 20MB)</label>
-                                <input class="form-control" type="file" id="record" name="record" accept=".pdf" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 shadow-sm">
-                                <i class="bi bi-cloud-arrow-up me-2"></i>
-                                {{ isset($record) ? 'Subir Corrección' : 'Subir Record' }}
-                            </button>
-                        </form>
-                        @endif
-                    </div>
-                </div>
-            </div>
+        <div>
+            <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">Requisitos para Prácticas</h2>
+            <p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Documentación obligatoria para habilitar el sistema</p>
         </div>
     </div>
+
+    <!-- Messages -->
+    @if(session('success'))
+    <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-3 rounded-lg flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400 text-sm"></i>
+            <p class="text-xs font-semibold text-green-800 dark:text-green-200">{{ session('success') }}</p>
+        </div>
+        <button @click="show = false" class="text-green-600 hover:text-green-800"><i class="bi bi-x-lg text-xs"></i></button>
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-3 rounded-lg flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-red-600 dark:text-red-400 text-sm"></i>
+            <p class="text-xs font-semibold text-red-800 dark:text-red-200">{{ session('error') }}</p>
+        </div>
+        <button @click="show = false" class="text-red-600 hover:text-red-800"><i class="bi bi-x-lg text-xs"></i></button>
+    </div>
+    @endif
+
+    <!-- Completion Banner -->
+    @if($matricula && $matricula->estado_matricula == 'Completo')
+    <div class="mb-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-center gap-3">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="bi bi-check-circle-fill text-blue-600 dark:text-blue-400 text-xl"></i>
+        </div>
+        <div>
+            <h3 class="text-sm font-black text-slate-800 dark:text-white">¡Matrícula Completada!</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400">La matrícula ha sido completada y revisada correctamente por el docente.</p>
+        </div>
+    </div>
+    @endif
+
+    <!-- Documents Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        
+        <!-- FICHA DE MATRÍCULA -->
+        <div class="group relative bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-sm border-2 border-slate-200 dark:border-slate-800 overflow-hidden hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300">
+            <!-- Accent Bar -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+            
+            <!-- Card Content -->
+            <div class="p-5">
+                <!-- Title Section -->
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                            <i class="bi bi-file-text-fill text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-800 dark:text-white">Ficha de Matrícula</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Documento obligatorio</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if($ficha)
+                    <!-- Status Badge -->
+                    <div class="mb-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold
+                            @if($ficha->estado_archivo == 'Aprobado') bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400
+                            @elseif($ficha->estado_archivo == 'Enviado') bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400
+                            @else bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 @endif">
+                            <i class="bi 
+                                @if($ficha->estado_archivo == 'Aprobado') bi-check-circle-fill
+                                @elseif($ficha->estado_archivo == 'Enviado') bi-clock-history
+                                @else bi-exclamation-triangle-fill @endif"></i>
+                            <span>
+                                @if($ficha->estado_archivo == 'Aprobado') Aprobado
+                                @elseif($ficha->estado_archivo == 'Enviado') En Revisión
+                                @else Requiere Corrección @endif
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- File Info -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-4 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <i class="bi bi-file-earmark-pdf text-red-500 text-xl flex-shrink-0"></i>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">Ficha Enviada</p>
+                                    @if($ficha->estado_archivo == 'Corregir' && $ficha->comentario)
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 italic truncate mt-0.5">{{ $ficha->comentario }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $ficha->ruta)]) }}" 
+                               target="_blank"
+                               class="ml-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all shadow-sm flex-shrink-0">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                @else
+                    <!-- Empty State -->
+                    <div class="text-center py-6 mb-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700">
+                        <i class="bi bi-cloud-upload text-slate-400 dark:text-slate-600 text-3xl mb-2 block"></i>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ningún archivo subido</p>
+                    </div>
+                @endif
+
+                <!-- Upload Form -->
+                @if(!$ficha || $ficha->estado_archivo == 'Corregir')
+                <form action="{{ route('subir.ficha') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                    @csrf
+                    <input type="hidden" name="ap_id" value="{{ auth()->user()->persona->asignacion_persona->id }}">
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
+                            <i class="bi bi-paperclip mr-1"></i> Seleccionar Archivo PDF (Máx. 20MB)
+                        </label>
+                        <input type="file" 
+                               name="ficha" 
+                               accept=".pdf" 
+                               required
+                               class="block w-full text-xs text-slate-600 dark:text-slate-400
+                                      file:mr-3 file:py-2 file:px-4
+                                      file:rounded-lg file:border-0
+                                      file:text-xs file:font-bold
+                                      file:bg-blue-50 file:text-blue-700
+                                      hover:file:bg-blue-100
+                                      dark:file:bg-blue-900/30 dark:file:text-blue-400
+                                      border border-slate-200 dark:border-slate-700 rounded-lg
+                                      transition-all cursor-pointer">
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs uppercase tracking-wide shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2">
+                        <i class="bi bi-cloud-arrow-up text-base"></i>
+                        {{ isset($ficha) ? 'Subir Corrección' : 'Subir Ficha' }}
+                    </button>
+                </form>
+                @endif
+            </div>
+        </div>
+
+        <!-- RECORD DE NOTAS -->
+        <div class="group relative bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-sm border-2 border-slate-200 dark:border-slate-800 overflow-hidden hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300">
+            <!-- Accent Bar -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-600"></div>
+            
+            <!-- Card Content -->
+            <div class="p-5">
+                <!-- Title Section -->
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                            <i class="bi bi-journal-bookmark-fill text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-800 dark:text-white">Record de Notas</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Documento obligatorio</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if($record)
+                    <!-- Status Badge -->
+                    <div class="mb-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold
+                            @if($record->estado_archivo == 'Aprobado') bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400
+                            @elseif($record->estado_archivo == 'Enviado') bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400
+                            @else bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 @endif">
+                            <i class="bi 
+                                @if($record->estado_archivo == 'Aprobado') bi-check-circle-fill
+                                @elseif($record->estado_archivo == 'Enviado') bi-clock-history
+                                @else bi-exclamation-triangle-fill @endif"></i>
+                            <span>
+                                @if($record->estado_archivo == 'Aprobado') Aprobado
+                                @elseif($record->estado_archivo == 'Enviado') En Revisión
+                                @else Requiere Corrección @endif
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- File Info -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-4 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <i class="bi bi-file-earmark-pdf text-red-500 text-xl flex-shrink-0"></i>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">Record Enviado</p>
+                                    @if($record->estado_archivo == 'Corregir' && $record->comentario)
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 italic truncate mt-0.5">{{ $record->comentario }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <a href="{{ route('documentos.show', ['path' => str_replace('storage/', '', $record->ruta)]) }}" 
+                               target="_blank"
+                               class="ml-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-all shadow-sm flex-shrink-0">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                @else
+                    <!-- Empty State -->
+                    <div class="text-center py-6 mb-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700">
+                        <i class="bi bi-cloud-upload text-slate-400 dark:text-slate-600 text-3xl mb-2 block"></i>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ningún archivo subido</p>
+                    </div>
+                @endif
+
+                <!-- Upload Form -->
+                @if(!$record || $record->estado_archivo == 'Corregir')
+                <form action="{{ route('subir.record') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                    @csrf
+                    <input type="hidden" name="ap_id" value="{{ auth()->user()->persona->asignacion_persona->id }}">
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
+                            <i class="bi bi-paperclip mr-1"></i> Seleccionar Archivo PDF (Máx. 20MB)
+                        </label>
+                        <input type="file" 
+                               name="record" 
+                               accept=".pdf" 
+                               required
+                               class="block w-full text-xs text-slate-600 dark:text-slate-400
+                                      file:mr-3 file:py-2 file:px-4
+                                      file:rounded-lg file:border-0
+                                      file:text-xs file:font-bold
+                                      file:bg-emerald-50 file:text-emerald-700
+                                      hover:file:bg-emerald-100
+                                      dark:file:bg-emerald-900/30 dark:file:text-emerald-400
+                                      border border-slate-200 dark:border-slate-700 rounded-lg
+                                      transition-all cursor-pointer">
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs uppercase tracking-wide shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-2">
+                        <i class="bi bi-cloud-arrow-up text-base"></i>
+                        {{ isset($record) ? 'Subir Corrección' : 'Subir Record' }}
+                    </button>
+                </form>
+                @endif
+            </div>
+        </div>
+
+    </div>
+</div>
 @endsection

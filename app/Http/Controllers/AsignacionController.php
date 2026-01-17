@@ -19,7 +19,7 @@ class AsignacionController extends Controller
         $user = auth()->user();
         $userRolId = $user->getRolId();
         $id_semestre = session('semestre_actual_id');
-        $ap = $user->persona->asignacion_persona()->where('id_semestre', $id_semestre)->first();
+        $ap = $user->persona->asignacion_persona()->first();
 
         $facQuery = Facultad::query();
         if ($userRolId == 2) {
@@ -70,6 +70,9 @@ class AsignacionController extends Controller
             'nombre_grupo' => 'required|string|max:50'
         ]);
 
+        Log::info('Request ALL: '.json_encode($request->all()));
+
+
         $existe = grupo_practica::where('id_docente', $request->dtitular)
             ->where('id_supervisor', $request->dsupervisor)
             ->where('id_sa', $request->seccion)
@@ -93,17 +96,19 @@ class AsignacionController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Validar solo los campos que se permiten editar.
+        // Validar solo los campos que se permiten editar. 'dsupervisor' => 'required|exists:asignacion_persona,id',
         $request->validate([
             'nombre_grupo' => 'required|string|max:50',
-            'dsupervisor' => 'required|exists:asignacion_persona,id',
+            
         ]);
 
-        // Actualizar solo el nombre y el supervisor.
-        grupo_practica::where('id', $id)->update([
-            'name' => $request->nombre_grupo,
-            'id_supervisor' => $request->dsupervisor
-        ]);
+        // Actualizar solo el nombre y el supervisor. Si dsupervisor no se envia, no se actualiza.
+        $grupo = grupo_practica::where('id', $id)->first();
+        $grupo->name = $request->nombre_grupo;
+        if ($request->filled('dsupervisor')) {
+            $grupo->id_supervisor = $request->dsupervisor;
+        }
+        $grupo->save();
 
         return redirect()->back()->with('success', 'Grupo actualizado correctamente.');
     }
@@ -117,5 +122,16 @@ class AsignacionController extends Controller
             return redirect()->back()->with('error', 'No se pudo eliminar el grupo. Puede que tenga estudiantes asignados.');
         }
         
+    }
+
+    public function getGrupo($id) {
+        $grupo = grupo_practica::with([
+            'seccion_academica.facultad',
+            'seccion_academica.escuela',
+            'seccion_academica.semestre',
+            'docente.persona',
+            'supervisor.persona'
+        ])->findOrFail($id);
+        return response()->json($grupo);
     }
 }

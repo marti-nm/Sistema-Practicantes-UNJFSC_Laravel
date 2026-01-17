@@ -2,886 +2,540 @@
 @section('title', 'Evaluación de Supervisión de Prácticas')
 @section('subtitle', 'Panel de supervisión y seguimiento de estudiantes')
 
-@push('css')
-<style>
-    :root {
-        --primary-color: #1e3a8a;
-        --primary-light: #3b82f6;
-        --secondary-color: #64748b;
-        --background-color: #f8fafc;
-        --surface-color: #ffffff;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --border-color: #e2e8f0;
-        --success-color: #059669;
-        --warning-color: #d97706;
-        --danger-color: #dc2626;
-        --info-color: #0891b2;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    .supervision-container {
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    /* Card Principal */
-    .supervision-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .supervision-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
-
-    .supervision-card-header {
-        background: linear-gradient(135deg, var(--surface-color) 0%, #f8fafc 100%);
-        border-bottom: 2px solid var(--border-color);
-        padding: 1.5rem 2rem;
-        position: relative;
-    }
-
-    .supervision-card-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    }
-
-    .supervision-card-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        text-transform: none;
-    }
-
-    .supervision-card-title i {
-        color: var(--primary-color);
-        font-size: 1.25rem;
-    }
-
-    .supervision-card-body {
-        padding: 1.5rem;
-    }
-
-    /* Tabla Moderna */
-    .table-container {
-        background: var(--surface-color);
-        border-radius: 0.75rem;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .table {
-        margin: 0;
-        border: none;
-        font-size: 0.9rem;
-    }
-
-    .table thead th {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border: none;
-        border-bottom: 2px solid var(--border-color);
-        font-weight: 600;
-        color: var(--text-primary);
-        padding: 1rem 0.75rem;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        white-space: nowrap;
-        text-align: center;
-    }
-
-    .table tbody td {
-        padding: 1rem 0.75rem;
-        border-bottom: 1px solid #f1f5f9;
-        color: var(--text-primary);
-        vertical-align: middle;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s ease;
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(30, 58, 138, 0.02);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* Badges para tipo de práctica y área */
-    .practice-badge {
-        background: linear-gradient(135deg, var(--info-color), #0e7490);
-        color: white;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-    }
-
-    .area-badge {
-        background: linear-gradient(135deg, var(--success-color), #047857);
-        color: white;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-    }
-
-    .no-registered {
-        color: var(--text-secondary);
-        font-style: italic;
-        font-size: 0.875rem;
-    }
-
-    /* Botones de Acción */
-    .btn {
-        font-family: 'Inter', sans-serif;
-        font-weight: 500;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-info {
-        background: var(--info-color);
-        color: white;
-    }
-
-    .btn-info:hover {
-        background: #0e7490;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    .btn-secondary {
-        background: var(--secondary-color);
-        color: white;
-    }
-
-    .btn-secondary:hover {
-        background: #475569;
-        color: white;
-    }
-
-    /* Modal Styles */
-    .modal-content {
-        border: none;
-        border-radius: 1rem;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .modal-header {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        color: white;
-        border-radius: 1rem 1rem 0 0;
-        padding: 1.5rem 2rem;
-        border-bottom: none;
-    }
-
-    .modal-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
-    }
-
-    .btn-close:hover {
-        opacity: 1;
-    }
-
-    .modal-body {
-        padding: 2rem;
-        background: var(--surface-color);
-    }
-
-    .modal-footer {
-        background: var(--background-color);
-        border-top: 1px solid var(--border-color);
-        border-radius: 0 0 1rem 1rem;
-        padding: 1.5rem 2rem;
-    }
-
-    /* Botones de Etapas */
-    .etapas-container {
-        margin-bottom: 2rem;
-    }
-
-    .btn-etapa {
-        background: var(--surface-color);
-        border: 2px solid var(--border-color);
-        color: var(--text-primary);
-        padding: 1rem;
-        border-radius: 0.75rem;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
-    }
-
-    .btn-etapa::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--secondary-color), var(--text-secondary));
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 0.3s ease;
-    }
-
-    .btn-etapa:hover {
-        border-color: var(--primary-color);
-        background: rgba(30, 58, 138, 0.02);
-        color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-etapa:hover::before {
-        transform: scaleX(1);
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    }
-
-    .btn-etapa.active {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-etapa.active::before {
-        transform: scaleX(1);
-        background: linear-gradient(90deg, var(--primary-light), white);
-    }
-
-    .btn-etapa.completed {
-        background: var(--success-color);
-        border-color: var(--success-color);
-        color: white;
-    }
-
-    .btn-etapa.completed::before {
-        transform: scaleX(1);
-        background: linear-gradient(90deg, #047857, white);
-    }
-
-    /* Contenedor de etapas */
-    .etapa-content {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-top: 1rem;
-        box-shadow: var(--shadow-sm);
-    }
-
-    /* Estados vacíos */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: var(--text-secondary);
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        color: var(--border-color);
-        margin-bottom: 1rem;
-    }
-
-    /* Progress indicator */
-    .progress-indicator {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        position: relative;
-    }
-
-    .progress-indicator::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--border-color);
-        z-index: 0;
-    }
-
-    .progress-indicator::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 0%;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-        border-radius: 2px;
-        transition: width 0.5s ease;
-        z-index: 0;
-    }
-
-    .progress-step {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background: var(--surface-color);
-        border: 2px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        color: var(--text-secondary);
-        position: relative;
-        z-index: 1;
-        transition: all 0.3s ease;
-    }
-
-    .progress-step.active {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-    }
-
-    .progress-step.completed {
-        background: var(--success-color);
-        border-color: var(--success-color);
-        color: white;
-    }
-
-    .progress-indicator.step-1::after {
-        width: 25%;
-    }
-
-    .progress-indicator.step-2::after {
-        width: 50%;
-    }
-
-    .progress-indicator.step-3::after {
-        width: 75%;
-    }
-
-    .progress-indicator.step-4::after {
-        width: 100%;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .supervision-card-header {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .supervision-card-body {
-            padding: 1rem;
-        }
-
-        .supervision-card-title {
-            font-size: 1.25rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .table {
-            min-width: 700px;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .btn-etapa {
-            padding: 0.75rem;
-            font-size: 0.875rem;
-        }
-
-        .progress-step {
-            width: 2rem;
-            height: 2rem;
-            font-size: 0.875rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .etapas-container .col-md-3 {
-            margin-bottom: 0.75rem;
-        }
-
-        .btn-etapa {
-            padding: 0.75rem 0.5rem;
-        }
-
-        .btn-etapa i {
-            font-size: 1rem;
-        }
-
-        .btn-etapa div {
-            font-size: 0.875rem;
-        }
-
-        .progress-indicator {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .progress-indicator::before,
-        .progress-indicator::after {
-            display: none;
-        }
-
-        .progress-step {
-            width: 2rem;
-            height: 2rem;
-            font-size: 0.875rem;
-        }
-    }
-
-    /* Animaciones */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.3s ease;
-    }
-
-    .etapa-content {
-        animation: fadeIn 0.3s ease;
-    }
-
-    /* Mejoras adicionales para integración completa */
-
-    /* Estados de badges mejorados */
-    .practice-badge,
-    .area-badge {
-        box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease;
-    }
-
-    .practice-badge:hover,
-    .area-badge:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-1px);
-    }
-
-    /* Texto de estudiante con estilo mejorado */
-    .table tbody td strong {
-        color: var(--text-primary);
-        font-weight: 600;
-        letter-spacing: -0.025em;
-    }
-
-    /* Warning state mejorado */
-    .text-warning {
-        color: var(--warning-color) !important;
-    }
-
-    /* Mejoras en los botones de etapa */
-    .btn-etapa i {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .btn-etapa div {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .btn-etapa small {
-        font-size: 0.75rem;
-        opacity: 0.8;
-        font-weight: 400;
-    }
-
-    /* Estados específicos para el progress indicator */
-    .progress-indicator::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 0%;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-        border-radius: 2px;
-        transition: width 0.5s ease;
-        z-index: 0;
-    }
-
-    .progress-indicator.step-1::after {
-        width: 25%;
-    }
-
-    .progress-indicator.step-2::after {
-        width: 50%;
-    }
-
-    .progress-indicator.step-3::after {
-        width: 75%;
-    }
-
-    .progress-indicator.step-4::after {
-        width: 100%;
-    }
-
-    /* Mejoras en el modal de proceso */
-    .modal-lg {
-        max-width: 900px;
-    }
-
-    /* Contenido de etapa con padding mejorado */
-    .etapa-content {
-        min-height: 300px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Estados de botón activo/completado mejorados */
-    .btn-etapa.active {
-        transform: scale(1.02);
-    }
-
-    .btn-etapa.completed {
-        transform: scale(1.02);
-    }
-
-    .btn-etapa.completed i::before {
-        content: '\f633';
-        /* Bootstrap icon check-circle */
-    }
-
-    /* Mejoras en hover effects */
-    .table tbody tr:hover td .practice-badge,
-    .table tbody tr:hover td .area-badge {
-        transform: scale(1.05);
-    }
-
-    /* Footer del modal mejorado */
-    .modal-footer .btn {
-        min-width: 120px;
-    }
-
-    /* Estados de carga */
-    .btn.loading {
-        position: relative;
-        color: transparent;
-    }
-
-    .btn.loading::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid transparent;
-        border-top: 2px solid currentColor;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        color: white;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: translate(-50%, -50%) rotate(0deg);
-        }
-
-        100% {
-            transform: translate(-50%, -50%) rotate(360deg);
-        }
-    }
-
-    /* Mejoras en responsive para etapas */
-    @media (max-width: 576px) {
-        .etapas-container .col-md-3 {
-            margin-bottom: 0.75rem;
-        }
-
-        .btn-etapa {
-            padding: 0.75rem 0.5rem;
-        }
-
-        .btn-etapa i {
-            font-size: 1rem;
-        }
-
-        .btn-etapa div {
-            font-size: 0.875rem;
-        }
-
-        .progress-indicator {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .progress-indicator::before,
-        .progress-indicator::after {
-            display: none;
-        }
-
-        .progress-step {
-            width: 2rem;
-            height: 2rem;
-            font-size: 0.875rem;
-        }
-    }
-
-    /* Mejoras en el estado vacío */
-    .empty-state {
-        animation: fadeIn 0.5s ease;
-    }
-
-    .empty-state p {
-        font-size: 1rem;
-        margin-top: 1rem;
-    }
-
-    /* Transiciones suaves para cambio de etapas */
-    .etapa-content>div {
-        transition: all 0.3s ease;
-    }
-
-    .etapa-content>div[style*="display: none"] {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    /* Focus states mejorados */
-    .btn-etapa:focus,
-    .btn:focus {
-        outline: 0;
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.25);
-    }
-
-    /* Estilos para módulos bloqueados/desbloqueados */
-    .module-selector-cell.locked {
-        opacity: 0.65;
-        cursor: not-allowed;
-        position: relative;
-        pointer-events: none;
-    }
-
-    .module-selector-cell.locked .lock-overlay {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(0, 0, 0, 0.06);
-        color: rgba(0, 0, 0, 0.6);
-        border-radius: 50%;
-        padding: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .module-selector-cell.unlocked {
-        cursor: pointer;
-    }
-
-    /* ...existing styles... */
-</style>
-@endpush
-
 @section('content')
-<div class="app-container">
-    <div class="app-card">
-        <div class="app-card-header">
-            <h1 class="app-card-title">
-                <i class="bi bi-clipboard-check"></i>
-                Evaluación: {{ optional($grupos_practica->firstWhere('id', $selected_grupo_id))->name }}
-            </h1>
-        </div>
-        <div class="app-card-body">
-            @if(Auth::user()->hasAnyRoles([1, 2]))
-                <x-data-filter
-                    route="evaluacionPractica.index"
-                    :facultades="$facultades"
-                />
-            @endif
-            <div class="etapas-container">
-                <form method="GET" action="{{ route('evaluacionPractica.index') }}">
-                    <div class="row g-3 d-flex justify-content-between">
-                        <div class="col-md-4">
-                            <label for="grupo">Seleccionar Grupo:</label>
-                            <select class="form-control" id="grupo" name="grupo" onchange="this.form.submit()">
-                                <option value="">-- Seleccione un grupo --</option>
-                                @foreach ($grupos_practica as $gp)
-                                    <option value="{{ $gp->id }}" {{ $selected_grupo_id == $gp->id ? 'selected' : '' }}>{{ $gp->seccion_academica->escuela->name }} - {{ $gp->seccion_academica->seccion }} : {{ $gp->name }}</option>
-                                @endforeach
-                            </select>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="{
+        superviseModalOpen: false,
+        showHistory: false,
+        loading: false,
+        requireData: { id: null, anexo: null, student: null },
+        ldata: null, // last data
+        hdata: null, // history data
+
+        selectModule(moduleId, locked) {
+            if (locked) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Módulo bloqueado',
+                        text: 'No puedes avanzar a este módulo hasta que se habilite según la etapa actual.',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 2500,
+                        showConfirmButton: false,
+                    });
+                } else {
+                    alert('Módulo bloqueado. No puedes seleccionar este módulo.');
+                }
+                return;
+            }
+            document.getElementById('selected_modulo').value = moduleId;
+            document.getElementById('form-modulo').submit();
+        },
+
+        async fetchSupervises(id, anexo) {
+            this.loading = true;
+            this.showHistory = false;
+            this.ldata = null;
+            this.hdata = null;
+            try {
+                const ANEXO = 'anexo_' + anexo;
+                const ID_MODULO = {{ $id_modulo }};
+                const r = await fetch(`/api/evaluacion_practica/${id}/${ID_MODULO}/${ANEXO}`); 
+                const result = await r.json();
+                const data = result.length > 0 ? result[0] : null;
+                
+                if (data) {
+                    this.hdata = data;
+                    if (data.evaluacion_archivo && data.evaluacion_archivo.length > 0) {
+                        this.ldata = data.evaluacion_archivo[0];
+                    }
+                }
+            } catch(e) { console.error(e); } 
+            finally { this.loading = false; }
+        },
+        
+        openSuperviseModal(id, anexo, student) {
+            this.requireData.id = id;
+            this.requireData.anexo = anexo;
+            this.requireData.student = student;
+            this.superviseModalOpen = true;
+            this.fetchSupervises(id, anexo);
+        },
+    }">
+    <x-header-content
+        title="Evaluación de Prácticas"
+        subtitle="Gestión académica oficial"
+        icon="bi-clipboard-data-fill"
+        :enableButton="false"
+    />
+    @if(Auth::user()->hasAnyRoles([1, 2]))
+        <x-data-filter
+            route="evaluacionPractica.index"
+            :facultades="$facultades"
+        />
+    @endif
+        
+        <form method="GET" action="{{ route('evaluacionPractica.index') }}" class="relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                <div class="md:col-span-5">
+                    <label for="grupo" class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">
+                        Seleccionar Grupo
+                    </label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="bi bi-collection-fill text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
                         </div>
-                        <div class="col-md-4">
-                            <label for="descripcion">Descripción:</label>
-                            <div class="form-control bg-primary text-white" id="descripcion">
-                                {{ $name_escuela }} - {{ $name_seccion }} : {{ $name_grupo }}
-                            </div>
+                        <select class="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm cursor-pointer appearance-none" 
+                            id="grupo" name="grupo" onchange="this.form.submit()">
+                            <option value="">-- Seleccione un grupo --</option>
+                            @foreach ($grupos_practica as $gp)
+                                <option value="{{ $gp->id }}" {{ $selected_grupo_id == $gp->id ? 'selected' : '' }}>
+                                    {{ $gp->seccion_academica->escuela->name }} - {{ $gp->seccion_academica->seccion }} : {{ $gp->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i class="bi bi-chevron-down text-xs text-slate-400"></i>
                         </div>
                     </div>
-                </form>
-                <form id="form-modulo" method="GET" action="{{ route('evaluacionPractica.index') }}" class="mt-4">
-                    <input type="hidden" name="grupo" value="{{ $selected_grupo_id }}">
-                    <input type="hidden" name="modulo" id="selected_modulo" value="{{ $id_modulo ?? 1 }}">
+                </div>
+                <div class="md:col-span-7">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">
+                        Descripción Actual
+                    </label>
+                    <div class="bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center gap-4 shadow-sm h-[48px]">
+                        <div class="w-1 bg-gradient-to-b from-blue-400 to-indigo-500 h-full rounded-full"></div>
+                        <div class="flex-1 min-w-0">
+                             @if($selected_grupo_id)
+                                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 truncate">
+                                    <span class="font-medium">{{ $name_escuela }}</span>
+                                    <i class="bi bi-dot text-slate-300"></i>
+                                    <span class="font-medium">{{ $name_seccion }}</span>
+                                    <i class="bi bi-arrow-right-short text-slate-300"></i>
+                                    <span class="font-black text-blue-600 dark:text-blue-400">{{ $name_grupo }}</span>
+                                </div>
+                            @else
+                                <span class="text-sm text-slate-400 font-medium italic flex items-center gap-2">
+                                    <i class="bi bi-info-circle"></i> Seleccione un grupo para ver detalles
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
 
-                    <div class="form-group">
-                        <label class="font-weight-bold mb-2"><i class="bi bi-journal-bookmark-fill"></i> Seleccionar el Módulo:</label>
-                        <div class="row g-2">
-                            @php
-                            $modules = [1 => 'Módulo I', 2 => 'Módulo II', 3 => 'Módulo III', 4 => 'Módulo IV'];
-                            $currentModulo = isset($id_modulo_now) ? (int)$id_modulo_now : null;
-                            $selectedModuloRequest = (int) ($id_modulo ?? 1);
-                            @endphp
-                            @foreach($modules as $m => $label)
-                            @php
-                            $isActive = ($selectedModuloRequest === $m);
-                            $locked = is_null($selected_grupo_id) || is_null($currentModulo) || ($m > $currentModulo);
-                            @endphp
-                            <div class="col">
-                                <div
-                                    class="module-selector-cell btn-etapa h-100 {{ $isActive ? 'active' : '' }} {{ $locked ? 'locked' : 'unlocked' }}"
-                                    role="button"
-                                    tabindex="{{ $locked ? '-1' : '0' }}"
-                                    aria-disabled="{{ $locked ? 'true' : 'false' }}"
-                                    data-module="{{ $m }}"
-                                    data-locked="{{ $locked ? 1 : 0 }}"
-                                    onclick="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})">
-                                    <i class="bi bi-{{ $m }}-circle" style="font-size: 1.5em;"></i><br>{{ $label }}
-                                    @if($locked)
-                                    <span class="lock-overlay" title="Módulo bloqueado"><i class="bi bi-lock-fill"></i></span>
+        <form id="form-modulo" method="GET" action="{{ route('evaluacionPractica.index') }}" class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 relative z-10">
+            <input type="hidden" name="grupo" value="{{ $selected_grupo_id }}">
+            <input type="hidden" name="modulo" id="selected_modulo" value="{{ $id_modulo ?? 1 }}">
+
+            <div class="flex flex-col md:flex-row md:items-center gap-4">
+                <div class="shrink-0">
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 md:mb-0 block md:inline-block">
+                        <i class="bi bi-layers-fill mr-1 text-indigo-500"></i> Módulos:
+                    </label>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                    @php
+                    $modules = [1 => 'Módulo I', 2 => 'Módulo II', 3 => 'Módulo III', 4 => 'Módulo IV'];
+                    $currentModulo = isset($id_modulo_now) ? (int)$id_modulo_now : null;
+                    $selectedModuloRequest = (int) ($id_modulo ?? 1);
+                    @endphp
+                    @foreach($modules as $m => $label)
+                    @php
+                    $isActive = ($selectedModuloRequest === $m);
+                    $locked = is_null($selected_grupo_id) || is_null($currentModulo) || ($m > $currentModulo);
+                    @endphp
+                    <div class="relative">
+                        <div
+                            class="module-selector-cell group relative w-full p-3 rounded-xl border-1 transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer
+                            {{ $isActive 
+                                ? 'bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white shadow-lg shadow-blue-500/30 transform scale-[1.02]' 
+                                : ($locked 
+                                    ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' 
+                                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-300 hover:shadow-md') 
+                            }}"
+                            role="button"
+                            tabindex="{{ $locked ? '-1' : '0' }}"
+                            aria-disabled="{{ $locked ? 'true' : 'false' }}"
+                            @click="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})"
+                            @keydown.enter.prevent="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})"
+                            @keydown.space.prevent="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})">
+                            
+                            <div class="flex flex-col items-center">
+                                <span class="text-[10px] font-black uppercase tracking-widest opacity-70">Módulo</span>
+                                <span class="text-xl font-black">{{ $m }}</span>
+                            </div>
+                            
+                            @if($locked)
+                                <div class="absolute top-2 right-2">
+                                    <i class="bi bi-lock-fill text-xs opacity-50"></i>
+                                </div>
+                            @elseif($isActive)
+                                <div class="absolute top-2 right-2">
+                                    <i class="bi bi-check-circle-fill text-xs text-white/50"></i>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </form>
+        @include('components.skeletonLoader-table')
+        <div class="overflow-x-auto">
+            <table id="tablaSupervision" class="w-full text-left border-collapse table-skeleton-ready">
+                <thead>
+                    <tr class="bg-gradient-to-r from-primary-dark to-primary text-white">
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] first:rounded-tl-2xl border-none">ID</th>
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Facultad</th>
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Escuela</th>
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Estudiante</th>
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Anexo 7</th>
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] last:rounded-tr-2xl border-none">Anexo 8</th>
+                    </tr>
+                </thead>
+                <tbody id="evaluation-table-body">
+                    @foreach ($grupo_estudiante as $index => $item)
+                    @php
+                        $getStatusInfo = function ($state) {
+                            $base = "w-full px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 border-1 shadow-sm hover:shadow-md";
+                            
+                            if (is_null($state)) return [
+                                'classes' => "$base bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-300", 
+                                'label' => 'Sin envío',
+                                'icon' => 'bi-cloud-upload'
+                            ];
+                            
+                            // state 1: Enviado, 5: Aprobado, 2,3,4: Corregir
+                            switch ($state) {
+                                case 5: return ['classes' => "$base bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400", 'label' => 'Aprobado', 'icon' => 'bi-check-circle-fill'];
+                                case 1: return ['classes' => "$base bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 hover:text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400", 'label' => 'Revisar', 'icon' => 'bi-hourglass-split'];
+                                case 2:
+                                case 3:
+                                case 4: return ['classes' => "$base bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100 hover:text-rose-700 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400", 'label' => 'Corregir', 'icon' => 'bi-exclamation-triangle-fill'];
+                                default: return ['classes' => "$base bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700", 'label' => 'Pendiente', 'icon' => 'bi-dash-circle'];
+                            }
+                        };
+
+                        $status7 = $getStatusInfo($item->status_anexo_7);
+                        $status8 = $getStatusInfo($item->status_anexo_8);
+                    @endphp
+                    <tr>
+                        <td><span class="text-xs font-bold text-slate-400 dark:text-slate-500">#{{ str_pad($index + 1, 3, '0', STR_PAD_LEFT) }}</span></td>
+                        <td><span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $item->asignacion_persona->seccion_academica->facultad->name }}</span></td>
+                        <td><span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $item->asignacion_persona->seccion_academica->escuela->name }}</span></td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</span>
+                                <small class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">Estado Gral: 
+                                    @if($item->state == 2)
+                                        <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-400 rounded-lg text-xs font-bold uppercase tracking-wider">Aprobado</span>
+                                    @else
+                                        <span class="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wider">En Proceso</span>
                                     @endif
+                                </small>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="{{ $status7['classes'] }}" 
+                                @click="openSuperviseModal({{ $item->id_ap }}, 7, '{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}')">
+                                <i class="bi {{ $status7['icon'] }} text-sm"></i> <span>Anexo 7 ({{ $status7['label'] }})</span>
+                            </button>
+                        </td>
+                        <td>
+                            <button class="{{ $status8['classes'] }}" 
+                                @click="openSuperviseModal({{ $item->id_ap }}, 8, '{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}')">
+                                <i class="bi {{ $status8['icon'] }} text-sm"></i> <span>Anexo 8 ({{ $status8['label'] }})</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <!-- Modales para Anexo 7 y Anexo 8 -->
+
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    <div x-show="superviseModalOpen"
+        class="fixed inset-0 z-[1100] flex items-center justify-center px-4" 
+        x-cloak>
+        <x-backdrop-modal name="superviseModalOpen" />
+
+        <div x-show="superviseModalOpen" 
+            x-transition:enter="transition ease-out duration-300" 
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4" 
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="relative bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] shadow-2xl w-full max-w-md overflow-hidden border-1 border-slate-100 dark:border-slate-800">
+            <div class="bg-gradient-to-r from-[#111c44] to-blue-900 px-6 py-4">
+                 <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md text-white border-1 border-white/20 dark:border-slate-700">
+                            <i class="bi bi-clipboard-data-fill text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white text-lg font-black tracking-tight leading-none">Calificar Estudiante</h3>
+                            <p class="text-blue-100/60 text-[10px] font-bold uppercase tracking-[0.2em] mt-2" x-text="requireData.student"></p>
+                        </div>
+                    </div>
+                    <button @click="superviseModalOpen = false" class="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4">
+                <template x-if="loading">
+                    <div class="flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    </div>
+                </template>
+                
+                <!-- Estado 1: Enviado / Pendiente de Revisión -->
+                <template x-if="!loading && ldata && ldata.state == 1">
+                    <div>
+                        <div class="bg-blue-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-blue-100 rounded-xl p-4 text-center mb-4 shadow-sm">
+                            <div class="text-blue-500 mb-2">
+                                <i class="bi bi-hourglass-split text-3xl"></i>
+                            </div>
+                            <h5 class="text-base font-bold text-blue-800 dark:text-blue-200 tracking-tight">Enviado para Revisión</h5>
+                            <p class="text-sm text-blue-600/80 dark:text-blue-200 font-medium">Ya has enviado este anexo. El docente lo está revisando.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-2">
+                            <div class="md:col-span-8 flex flex-column gap-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="bi bi-paperclip"></i> Archivo enviado
+                                </label>
+                                
+                                <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-between align-items-center shadow-sm hover:border-blue-300 transition-colors">
+                                    <div class="flex items-center min-w-0 pr-4">
+                                        <i class="bi bi-file-earmark-pdf text-red-500 text-xl me-2"></i>
+                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">Anexo_7_Estudiante.pdf</span>
+                                    </div>
+                                    <a :href="ldata.archivos[0].ruta" target="_blank" 
+                                    class="px-3 py-1 border-1 border-blue-600 text-blue-600 text-[10px] font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-all active:scale-95 flex items-center gap-2 shrink-0 uppercase">
+                                        <i class="bi bi-box-arrow-up-right"></i> Ver
+                                    </a>
                                 </div>
                             </div>
-                            @endforeach
+
+                            <div class="md:col-span-4 flex flex-column gap-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="bi bi-clipboard-data"></i> Nota
+                                </label>
+                                
+                                <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-center align-items-center shadow-sm min-h-[46px]">
+                                    <span class="text-lg font-black text-blue-700 dark:text-green-500" x-text="ldata.nota">--</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </form>
-                </br>
-                <div class="table-responsive">
-                    <table class="table" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Facultad</th>
-                                <th>Escuela</th>
-                                <th>Estudiante</th>
-                                <th>Anexo 7</th>
-                                <th>Anexo 8</th>
-                            </tr>
-                        </thead>
-                        <tbody id="evaluation-table-body">
-                            @foreach ($grupo_estudiante as $index => $item)
-                            @php
-                                $getStatusInfo = function ($state) {
-                                    if (is_null($state)) return ['color' => 'secondary', 'label' => 'Sin envío'];
-                                    
-                                    // state 1: Enviado, 5: Aprobado, 2,3,4: Corregir
-                                    switch ($state) {
-                                        case 5: return ['color' => 'success', 'label' => 'Aprobado'];
-                                        case 1: return ['color' => 'warning', 'label' => 'Revisar'];
-                                        case 2:
-                                        case 3:
-                                        case 4: return ['color' => 'danger', 'label' => 'Por Corregir'];
-                                        default: return ['color' => 'secondary', 'label' => 'Pendiente'];
-                                    }
-                                };
+                </template>
 
-                                $status7 = $getStatusInfo($item->status_anexo_7);
-                                $status8 = $getStatusInfo($item->status_anexo_8);
-                            @endphp
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $item->asignacion_persona->seccion_academica->facultad->name }}</td>
-                                <td>{{ $item->asignacion_persona->seccion_academica->escuela->name }}</td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <strong>{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</strong>
-                                        <small class="text-muted">Estado Gral: 
-                                            @if($item->state == 2)
-                                                <span class="badge bg-success">Aprobado</span>
-                                            @else
-                                                <span class="badge bg-info">En Proceso</span>
-                                            @endif
-                                        </small>
+                <!-- Estado 5: Aprobado -->
+                <template x-if="!loading && ldata && ldata.state == 5">
+                    <div>
+                        <div class="bg-green-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-green-100 rounded-xl p-4 text-center mb-4 shadow-sm">
+                            <div class="text-green-500 mb-2">
+                                <i class="bi bi-check-circle-fill text-3xl"></i>
+                            </div>
+                            <h5 class="text-base font-bold text-green-800 dark:text-green-200 tracking-tight">Aprobado</h5>
+                            <p class="text-sm text-green-600/80 dark:text-green-200 font-medium">El docente ha aprobado este anexo. No se requieren más acciones.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-2">
+                            <div class="md:col-span-8 flex flex-column gap-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="bi bi-paperclip"></i> Archivo Aprobado
+                                </label>
+                                <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-between align-items-center shadow-sm">
+                                    <div class="flex items-center min-w-0 pr-4">
+                                        <i class="bi bi-file-earmark-pdf text-green-500 text-xl me-2"></i>
+                                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">Anexo_Aprobado.pdf</span>
                                     </div>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-{{ $status7['color'] }} btn-subir-anexo w-100" 
-                                        data-id-estudiante="{{ $item->id_ap }}" 
-                                        data-anexo-numero="7">
-                                        <i class="bi bi-file-earmark-arrow-up"></i> Anexo 7 ({{ $status7['label'] }})
-                                    </button>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-{{ $status8['color'] }} btn-subir-anexo w-100" 
-                                        data-id-estudiante="{{ $item->id_ap }}" 
-                                        data-anexo-numero="8">
-                                        <i class="bi bi-file-earmark-arrow-up"></i> Anexo 8 ({{ $status8['label'] }})
-                                    </button>
-                                </td>
-                            </tr>
-                            <!-- Modales para Anexo 7 y Anexo 8 -->
+                                    <a :href="ldata.archivos[0].ruta" target="_blank" class="px-3 py-1 border-1 border-green-600 text-green-600 text-[10px] font-bold rounded-lg hover:bg-green-600 hover:text-white transition-all flex items-center gap-2 shrink-0 uppercase">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="md:col-span-4 flex flex-column gap-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2"><i class="bi bi-clipboard-data"></i> Nota Final</label>
+                                <div class="bg-green-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-green-200 p-2.5 rounded-xl d-flex justify-content-center align-items-center shadow-sm min-h-[46px]">
+                                    <span class="text-lg font-black text-green-600 dark:text-green-400" x-text="ldata.nota"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
 
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                <!-- Formulario: Nuevo (null), Corregir Archivo (2), Corregir Nota (3), Corregir Todo (4) -->
+                <template x-if="!loading && (!ldata || [2, 3, 4].includes(ldata.state))">
+                    <form id="submission-form" 
+                        action="{{ route('subir.anexo') }}" 
+                        method="POST" 
+                        enctype="multipart/form-data"
+                        x-data="{ hasFile: false, fileName: 'Nuevo_Anexo.pdf' }"
+                        class="space-y-4">
+                        @csrf
+                        
+                        <input type="hidden" id="ap_id" name="ap_id" :value="requireData.id">
+                        <input type="hidden" id="number" name="number" :value="requireData.anexo">
+                        <input type="hidden" id="modulo" name="modulo" value="{{ $id_modulo_now }}">
+
+                        <!-- Mensaje de Corrección si existe -->
+                        <template x-if="ldata && [2, 3, 4].includes(ldata.state)">
+                            <div class="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-2">
+                                <div class="flex items-start gap-3">
+                                    <i class="bi bi-exclamation-triangle-fill text-orange-500 mt-0.5"></i>
+                                    <div class="w-full">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <h6 class="text-sm font-bold text-orange-800 m-0">Requiere Corrección</h6>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-orange-100 text-orange-700 border border-orange-200"
+                                                  x-text="ldata.state == 2 ? 'Archivo' : (ldata.state == 3 ? 'Nota' : 'Todo')">
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-orange-700 leading-tight" x-text="ldata.observacion || 'Por favor revise los campos indicados.'"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Input de Archivo: Visible si es nuevo, o estado 2 (Corregir Archivo) o 4 (Corregir Todo) -->
+                        <div x-show="!ldata || [2, 4].includes(ldata.state)" class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 ml-1">
+                                <i class="bi bi-file-pdf-fill text-red-500"></i>
+                                Subir Anexo (PDF)
+                            </label>
+                            
+                            <div class="relative group">
+                                <input type="file" 
+                                    name="anexo" 
+                                    accept="application/pdf"
+                                    onchange="validateFileSize(this, 10)"
+                                    :required="!ldata || [2, 4].includes(ldata.state)"
+                                    class="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 
+                                            file:rounded-xl file:border-0 file:text-xs file:font-black 
+                                            file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100
+                                            border-1 border-slate-200 dark:border-slate-800 rounded-2xl p-1 focus-within:border-blue-400 transition-all">
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium ml-1">Documento PDF • Tamaño máximo 10MB</p>
+                        </div>
+
+                        <!-- Archivo Existente: Visible solo si es estado 3 (Corregir Nota) -->
+                        <div x-show="ldata && ldata.state == 3" 
+                            class="bg-slate-50 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-3">
+                            
+                            <input type="hidden" name="rutaAnexo" :value="ldata ? ldata.archivos[0].ruta : ''">
+                            
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-2 block">
+                                Archivo actualmente en el sistema:
+                            </label>
+                            
+                            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-100 shadow-sm">
+                                <div class="flex items-center min-w-0 pr-2">
+                                    <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center mr-3 shrink-0">
+                                        <i class="bi bi-file-earmark-pdf-fill text-red-500"></i>
+                                    </div>
+                                    <span class="text-sm font-bold text-slate-700 truncate">Anexo_Enviado.pdf</span>
+                                </div>
+                                <a :href="ldata ? '/' + ldata.archivos[0].ruta : '#'" target="_blank"
+                                class="flex items-center gap-2 text-[10px] font-bold text-blue-600 hover:text-blue-800 transition-colors shrink-0 px-3 py-1 bg-blue-50 rounded-lg uppercase">
+                                    <i class="bi bi-box-arrow-up-right text-sm"></i>
+                                    VER
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50/50 dark:bg-slate-900 p-3 rounded-xl border-1 border-blue-100 dark:border-slate-800">
+                            <label for="finalScore" class="text-xs font-bold text-blue-700 uppercase tracking-widest mb-2 block ml-1">
+                                <i class="bi bi-star-fill mr-1"></i> Nota Final (0-20)
+                            </label>
+                            <div class="relative">
+                                <input type="number" 
+                                    name="nota" 
+                                    id="finalScore" 
+                                    min="0" 
+                                    max="20"
+                                    placeholder="00"
+                                    :value="ldata ? ldata.nota : ''"
+                                    :readonly="ldata && ldata.state == 2"
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-xl font-black text-blue-800 dark:text-white focus:ring-2 focus:ring-blue-400 placeholder:text-blue-200 py-2 px-3 shadow-inner">
+                                <div class="absolute right-4 top-1/2 -translate-y-1/2 text-blue-300 font-bold">
+                                    / 20
+                                </div>
+                            </div>
+                            <template x-if="ldata && ldata.state == 2">
+                                <p class="text-[10px] text-blue-400 mt-2 ml-1">* La nota se mantiene, solo debe corregir el archivo.</p>
+                            </template>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-3 pt-2">
+                            <button type="button" 
+                                    @click="superviseModalOpen = false"
+                                    class="px-5 py-1.5 bg-gray-400 text-slate-500 text-xs font-bold hover:text-slate-700 rounded-xl transition-colors uppercase tracking-widest">
+                                Cancelar
+                            </button>
+                            
+                            <button type="submit" 
+                                    id="saveEvaluation"
+                                    class="px-5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-xs font-black rounded-xl 
+                                        hover:from-blue-700 hover:to-indigo-800 shadow-lg shadow-blue-500/30 
+                                        transition-all active:scale-95 uppercase tracking-widest flex items-center gap-2">
+                                <i class="bi bi-check-lg text-base"></i>
+                                Subir
+                            </button>
+                        </div>
+                    </form>
+                </template>
+
+                <!-- Historial Collapsible -->
+                <template x-if="!loading && hdata && hdata.evaluacion_archivo && hdata.evaluacion_archivo.length > 1">
+                    <div class="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+                        <button @click="showHistory = !showHistory" type="button" class="flex items-center justify-between w-full text-left text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-blue-600 transition-colors focus:outline-none">
+                            <span class="flex items-center gap-2"><i class="bi bi-clock-history"></i> Historial de Envíos</span>
+                            <i class="bi transition-transform duration-300" :class="showHistory ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                        </button>
+                        
+                        <div x-show="showHistory" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 -translate-y-2"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="mt-3 space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                            
+                            <template x-for="(item, index) in hdata.evaluacion_archivo" :key="index">
+                                <!-- Ignorar el índice 0 si es el que se muestra arriba, o mostrar todos si se prefiere log completo. 
+                                     La lógica bootstrap saltaba el index 0 si state == 1. Aquí mostraremos del 1 en adelante para no duplicar el actual. -->
+                                <div x-show="index > 0" class="bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border-1 border-slate-100 dark:border-slate-700 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" x-text="'Nota: ' + item.nota"></span>
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
+                                                  :class="{
+                                                    'bg-green-100 text-green-700': item.state == 5,
+                                                    'bg-red-100 text-red-700': [2,3,4].includes(item.state),
+                                                    'bg-blue-100 text-blue-700': item.state == 1
+                                                  }"
+                                                  x-text="item.state == 5 ? 'Aprobado' : ([2,3,4].includes(item.state) ? 'Observado' : 'Enviado')">
+                                            </span>
+                                            <template x-if="[2,3,4].includes(item.state)">
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200"
+                                                      x-text="item.state == 2 ? 'Archivo' : (item.state == 3 ? 'Nota' : 'Todo')"></span>
+                                            </template>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 flex items-center gap-1">
+                                            <i class="bi bi-calendar3"></i>
+                                            <span x-text="item.archivos && item.archivos.length > 0 ? new Date(item.archivos[0].created_at).toLocaleString() : 'Sin fecha'"></span>
+                                        </div>
+                                    </div>
+                                    <template x-if="item.archivos && item.archivos.length > 0">
+                                        <a :href="'/' + item.archivos[0].ruta" target="_blank" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold bg-blue-50 px-2 py-1 rounded-lg transition-colors uppercase">
+                                            <i class="bi bi-file-earmark-pdf"></i> Ver
+                                        </a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 </div>
@@ -993,268 +647,39 @@
         </div>
     </div>
 </div>
+
 @endsection
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@if(session('success'))
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: '{{ session('success') }}',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-    });
-</script>
-@endif
-@if(session('error'))
-<script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'error',
-        title: '{{ session('error') }}',
-        showConfirmButton: false,
-        timer: 4000, // Un poco más de tiempo para errores
-        timerProgressBar: true,
-    });
-</script>
-@endif
-<script>
-    // Función para manejar la selección de módulo (controla bloqueo)
-    function selectModule(moduleId, locked) {
-        if (locked) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Módulo bloqueado',
-                    text: 'No puedes avanzar a este módulo hasta que se habilite según la etapa actual.',
-                    toast: true,
-                    position: 'top-end',
-                    timer: 2500,
-                    showConfirmButton: false,
-                });
-            } else {
-                alert('Módulo bloqueado. No puedes seleccionar este módulo.');
+    $(document).ready(function() {
+        $('#tablaSupervision').DataTable({
+            language: {
+                "lengthMenu": "Mostrar _MENU_",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "search": "",
+                "searchPlaceholder": "Buscar grupo...",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Sig.",
+                    "previous": "Ant."
+                },
+            },
+            pageLength: 10,
+            responsive: true,
+            dom: '<"flex flex-col md:flex-row md:items-center justify-between gap-4 py-8 px-2"lf>rt<"flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 pb-2 px-2"ip>',
+            initComplete: function() {
+                // Hide skeleton and show table
+                $('#skeletonLoader').addClass('hidden');
+                $('#tablaSupervision').addClass('dt-ready');
             }
-            return;
-        }
-
-        // Actualizar el valor del input oculto que contiene el módulo seleccionado
-        document.getElementById('selected_modulo').value = moduleId;
-
-        // Enviar el formulario
-        document.getElementById('form-modulo').submit();
-    }
-
-    // Lógica para manejar el cambio de etapas y actualización del indicador de progreso
-    document.addEventListener('DOMContentLoaded', function() {
-        const ID_MODULO = parseInt(document.getElementById('selected_modulo').value) || 1; // Módulo actual seleccionado
-        const MODAL_SELECTOR = '#evaluationModal';
-        const modalElement = document.querySelector(MODAL_SELECTOR);
-        const myModal = new bootstrap.Modal(modalElement);
-
-        // Accesibilidad: permitir seleccionar módulos con Enter/Space cuando estén enfocados
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                const focused = document.activeElement;
-                if (focused && focused.classList && focused.classList.contains('module-selector-cell')) {
-                    const moduleId = parseInt(focused.getAttribute('data-module'), 10);
-                    const locked = focused.getAttribute('data-locked') === '1';
-                    if (moduleId) {
-                        e.preventDefault();
-                        selectModule(moduleId, locked);
-                    }
-                }
-            }
-        });
-
-        // Seleccionamos TODOS los botones para subir anexos
-        const anexoButtons = document.querySelectorAll('.btn-subir-anexo');
-
-        // Añadimos un "event listener" a cada uno
-        anexoButtons.forEach(button => {
-            button.addEventListener('click', async function() {
-                const ID_EST = this.getAttribute('data-id-estudiante');
-                const anexoNumero = this.getAttribute('data-anexo-numero');
-
-                const ANEXO = 'anexo_' + anexoNumero;
-
-                //console.log(`Buscando datos para estudiante ID: ${ID_EST}, Módulo: ${ID_MODULO}, Anexo: ${ANEXO}`);
-
-                try {
-                    const response = await fetch(`/api/evaluacion_practica/${ID_EST}/${ID_MODULO}/${ANEXO}`);
-
-                    if (!response.ok) {
-                        console.error('Error en la respuesta de la API:', response.status, response.statusText);
-                        return;
-                    }
-
-                    const result = await response.json();
-                    const data = result.length > 0 ? result[0] : null;
-
-                    // Seleccionar los contenedores del modal
-                    const formContainer = document.getElementById('submission-form');
-                    const pendingReviewContainer = document.getElementById('pending-review-container');
-                    const approvedFileContainer = document.getElementById('approved-file-container');
-                    const historyContainer = document.getElementById('historyContainer');
-
-                    const fileAnexo = document.getElementById('archivoAnexo');
-                    const fileLatest = document.getElementById('archivoLatest');
-
-                    const historyList = document.getElementById('archivosEnviadosList');
-
-                    // limpiar todo
-                    formContainer.style.display = 'none';
-                    pendingReviewContainer.style.display = 'none';
-                    approvedFileContainer.style.display = 'none';
-                    historyContainer.style.display = 'none';
-                    historyList.innerHTML = '';
-
-                    document.getElementById('finalScore').value = '';
-
-                    // cerrar collapse
-                    //document.getElementById('collapseExample').classList.remove('show');
-
-                    if (data && data.evaluacion_archivo && data.evaluacion_archivo.length > 0) {
-                        document.getElementById('modalTitle').textContent = `Calificar Estudiante: ${data.id_ap} - Anexo ${anexoNumero}`;
-                        // LÓGICA DE VISIBILIDAD DEL FORMULARIO
-                        const ultimoEnvio = data.evaluacion_archivo[0];
-
-                        formContainer.style.display = 'block';
-                        document.getElementById('ap_id').value = data.id_ap;
-                        document.getElementById('number').value = anexoNumero;
-                        document.getElementById('modulo').value = ID_MODULO;
-                        if (ultimoEnvio && ultimoEnvio.state === 1) {
-                            document.getElementById('pending-nota').textContent = ultimoEnvio.nota;
-                            document.getElementById('pending-ruta').href = `/${ultimoEnvio.archivos[0].ruta}`;
-
-                            formContainer.style.display = 'none';
-                            pendingReviewContainer.style.display = 'block';
-                            approvedFileContainer.style.display = 'none';
-                        } 
-                        if(ultimoEnvio.state === 2) {
-                            document.getElementById('finalScore').value = ultimoEnvio.nota;
-                            document.getElementById('finalScore').readOnly = true;
-                            console.log('Mostrando formulario para nuevo envío. STATE 2');
-                            fileAnexo.style.display = 'block'; // Mostrar input de archivo (aunque podría estar deshabilitado)
-                            fileLatest.style.display = 'none'; // Ocultar el archivo ya enviado
-                            approvedFileContainer.style.display = 'none';
-
-                        }
-
-                        if(ultimoEnvio.state === 3) {
-                            approvedFileContainer.style.display = 'none';
-                            fileAnexo.style.display = 'none';
-                            fileLatest.style.display = 'block';
-                            document.getElementById('finalScore').readOnly = false;
-                            document.getElementById('pending-ruta-form').href = `/${ultimoEnvio.archivos[0].ruta}`;
-                            document.getElementById('rutaAnexo').value = ultimoEnvio.archivos[0].ruta;
-                            document.getElementById('modulo').value = data.id_modulo;
-                        }
-
-                        if(ultimoEnvio.state === 4) {
-                            approvedFileContainer.style.display = 'none';
-                            fileLatest.style.display = 'none';
-                            fileAnexo.style.display = 'block';
-                            document.getElementById('finalScore').readOnly = false;
-                        }
-
-                        if(ultimoEnvio.state === 5) {
-                            approvedFileContainer.style.display = 'block';
-                            document.getElementById('finalScore').value = ultimoEnvio.nota;
-                            document.getElementById('finalScore').readOnly = true;
-                            formContainer.style.display = 'none';
-                            document.getElementById('pending-ruta-form').href = `/${ultimoEnvio.archivos[0].ruta}`;
-                        }
-
-                        /*else {
-                            // Estado no es 1 (o no hay envío): Mostrar form, ocultar info.
-                            formContainer.style.display = 'block';
-                            document.getElementById('ap_id').value = data.id_ap;
-                            document.getElementById('number').value = anexoNumero;
-                            document.getElementById('modulo').value = ID_MODULO;
-
-                            if (ultimoEnvio.state === 2) {
-                                document.getElementById('finalScore').value = ultimoEnvio.nota;
-                                document.getElementById('finalScore').readOnly = true;
-                                fileAnexo.style.display = 'block'; // Mostrar input de archivo (aunque podría estar deshabilitado)
-                                fileLatest.style.display = 'none'; // Ocultar el archivo ya enviado
-                                approvedFileContainer.style.display = 'none';
-                            } else if (ultimoEnvio.state === 3) { // Corregir solo Nota
-                                approvedFileContainer.style.display = 'none';
-                                fileAnexo.style.display = 'none';
-                                fileLatest.style.display = 'block';
-                                document.getElementById('finalScore').readOnly = false;
-                                document.getElementById('pending-ruta-form').href = `/${ultimoEnvio.archivos[0].ruta}`;
-                                document.getElementById('rutaAnexo').value = ultimoEnvio.archivos[0].ruta;
-                                document.getElementById('modulo').value = data.id_modulo;
-                            } else if (ultimoEnvio.state === 4) { // Corregir solo Archivo
-                                approvedFileContainer.style.display = 'none';
-                                fileLatest.style.display = 'none';
-                                fileAnexo.style.display = 'block';
-                                document.getElementById('finalScore').readOnly = false;
-                            } else if (ultimoEnvio.state === 5) { // Aprobado
-                                approvedFileContainer.style.display = 'block';
-                                document.getElementById('finalScore').value = ultimoEnvio.nota;
-                                document.getElementById('finalScore').readOnly = true;
-                                formContainer.style.display = 'none';
-                                document.getElementById('pending-ruta-form').href = `/${ultimoEnvio.archivos[0].ruta}`;
-                            } else {
-                                // Para cualquier otro caso, como un estado inicial o desconocido
-                                fileLatest.style.display = 'none';
-                                fileAnexo.style.display = 'block';
-                                document.getElementById('finalScore').readOnly = false;
-                            }
-
-                            console.log('Mostrando formulario para nuevo envío.');
-                            pendingReviewContainer.style.display = 'none';
-                        }*/
-
-                        data.evaluacion_archivo.forEach((ear, index) => {
-                            let archivo = null;
-                            if (ear.archivos && ear.archivos.length > 0) {
-                                archivo = ear.archivos[0]; // Suponiendo que solo hay un archivo por evaluación
-                            }
-
-                            if(index === 0 && archivo.state === 1) return;
-
-                            let li = document.createElement('li');
-                            li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-                            li.innerHTML = `
-                                <div>
-                                    <strong>Archivo:</strong> ${archivo.tipo.toUpperCase()} <br>
-                                    <strong>Nota:</strong> ${ear.nota} <br>
-                                    <strong>Fecha de Envío:</strong> ${new Date(archivo.created_at).toLocaleString()}
-                                </div>
-                                <a href="${archivo.ruta}" target="_blank" class="btn btn-sm btn-outline-success" target="_blank">
-                                    <i class="bi bi-file-earmark-pdf"></i> Ver
-                                </a>
-                            `;
-                            historyList.appendChild(li);
-                            historyContainer.style.display = 'block';
-                        });
-                    } else {
-                        console.log('No se encontraron archivos asociados.');
-                        // Si no hay datos, asegurarse de que el formulario esté visible
-                        formContainer.style.display = 'block';
-                        document.getElementById('ap_id').value = ID_EST;
-                        document.getElementById('number').value = anexoNumero;
-                        document.getElementById('modulo').value = ID_MODULO;
-                        console.log('Mostrando formulario para nuevo envío.');
-                        console.log('ID_MODULO: ' + ID_MODULO);
-                        pendingReviewContainer.style.display = 'none';
-
-                        document.getElementById('finalScore').readOnly = false;
-                    }
-                    myModal.show();
-                } catch (error) {
-                    console.error('Falló la petición fetch:', error);
-                }
-            });
         });
     });
 </script>

@@ -563,16 +563,22 @@
 
 @section('content')
 
-<div class="dashboard-container fade-in">
-    <div class="dashboard-card">
-        <div class="dashboard-card-header">
-            <h5 class="dashboard-card-title">
-                <i class="bi bi-speedometer2"></i>
-                Panel de Control Administrativo
-            </h5>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
+                    <i class="bi bi-speedometer2 text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Panel de Control Administrativo</h2>
+                    <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Gestión académica oficial</p>
+                </div>
+            </div>
         </div>
 
-        <div class="dashboard-card-body">
+        <div class="">
             {{-- Filtros --}}
             <x-data-filter
                 route="admin.Dashboard"

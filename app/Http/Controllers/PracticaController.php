@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Empresa;
 use App\Models\grupo_estudiante;
-use App\Models\grupos_practica;
+use App\Models\grupo_practica;
 use App\Models\JefeInmediato;
 use App\Models\Practica;
 use App\Models\Persona;
@@ -22,7 +22,7 @@ class PracticaController extends Controller
         $user = auth()->user();
         $userRolId = $user->getRolId();
         $id_semestre = session('semestre_actual_id');
-        $ap = $user->persona->asignacion_persona()->where('id_semestre', $id_semestre)->first();
+        $ap = $user->persona->asignacion_persona()->first();
 
         $facQuery = Facultad::query();
         if ($userRolId == 2) {
@@ -58,6 +58,45 @@ class PracticaController extends Controller
             ->get();
 
         return view('practicas.admin.supervision', compact('personas', 'facultades'));
+    }
+
+    public function detalle_supervision($id){
+        $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Usuario no autorizado');
+        }
+
+        // Logic similar to desarrollo() but for a specific ID passed in URL
+        $practicaData = Practica::with([
+            'empresa', 
+            'jefeInmediato', 
+            'asignacion_persona.persona', 
+            'asignacion_persona.seccion_academica.escuela', 
+            'asignacion_persona.seccion_academica.semestre'
+        ])->findOrFail($id);
+        
+        // Log::info('QUE SALEEE: '.$practicaData);
+
+        $semestre = $practicaData->asignacion_persona->seccion_academica->semestre;
+        $escuela = $practicaData->asignacion_persona->seccion_academica->escuela;
+        $estudiante = $practicaData->asignacion_persona->persona;
+        
+        // Find docente and supervisor
+        $grupo_estudiante = grupo_estudiante::where('id_estudiante', $practicaData->asignacion_persona->id)->first();
+        $docente = null;
+        $supervisor = null;
+
+        if($grupo_estudiante){
+             $grupo_practica = grupo_practica::find($grupo_estudiante->id_grupo_practica);
+             if($grupo_practica) {
+                $docente = Persona::find($grupo_practica->id_docente);
+             }
+             if($grupo_estudiante->id_supervisor) {
+                $supervisor = Persona::find($grupo_estudiante->id_supervisor);
+             }
+        }
+
+        return view('practicas.admin.detalle_supervision', compact('practicaData', 'estudiante', 'semestre', 'escuela', 'docente', 'supervisor'));
     }
 
     public function show($id){

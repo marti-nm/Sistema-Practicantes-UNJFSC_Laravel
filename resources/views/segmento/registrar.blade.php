@@ -366,24 +366,553 @@
 @endpush
 
 @section('content')
-<div class="registration-container">
-    <div class="row justify-content-center">
-        <div class="col-xl-5 col-lg-6 col-md-6 mb-4">
-            <div class="registration-card" data-toggle="modal" data-target="#modalRegistro">
-                <i class="bi bi-person-plus registration-icon"></i>
-                <h3 class="registration-title">Añadir Usuario</h3>
-                <p class="registration-subtitle">Registrar un nuevo usuario individualmente</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" 
+    x-data="{
+        individualModalOpen: false,
+        massModalOpen: false,
+        loading: false,
+        verified: false,
+        userExists: false,
+        assigned: false,
+        
+        formData: {
+            rol: '',
+            searchValue: '',
+            persona_id: null,
+            codigo: '',
+            correo_inst: '',
+            apellidos: '',
+            nombres: '',
+            sexo: '',
+            dni: '',
+            celular: '',
+            provincia: '',
+            distrito: '',
+            facultad: '',
+            escuela: '',
+            seccion: '',
+            id_semestre: '{{ session('semestre_actual_id') }}'
+        },
+
+        massFormData: {
+            rol: '',
+            facultad: '',
+            escuela: '',
+            seccion: '',
+            fileName: 'Ningún archivo seleccionado'
+        },
+
+        escuelas: [],
+        secciones: [],
+
+        openIndividualModal() {
+            this.resetForm();
+            this.individualModalOpen = true;
+        },
+
+        openMassModal() {
+            this.massFormData = {
+                rol: '',
+                facultad: '',
+                escuela: '',
+                seccion: '',
+                fileName: 'Ningún archivo seleccionado'
+            };
+            this.escuelas = [];
+            this.secciones = [];
+            this.massModalOpen = true;
+        },
+
+        resetForm() {
+            this.formData = {
+                rol: '', searchValue: '', persona_id: null, codigo: '', correo_inst: '',
+                apellidos: '', nombres: '', sexo: '', dni: '', celular: '',
+                provincia: '', distrito: '', facultad: '', escuela: '', seccion: '',
+                id_semestre: '{{ session('semestre_actual_id') }}'
+            };
+            this.verified = false; this.userExists = false; this.assigned = false;
+            this.escuelas = []; this.secciones = [];
+        },
+
+        async verifyUser() {
+            if(!this.formData.rol || !this.formData.searchValue) return;
+            this.loading = true;
+            try {
+                const fullEmail = `${this.formData.searchValue}@unjfsc.edu.pe`;
+                const response = await fetch(`/api/verificar/${fullEmail}`);
+                const data = await response.json();
+                
+                this.verified = true;
+                if(data.persona) {
+                    this.userExists = true;
+                    this.formData.persona_id = data.persona.id;
+                    this.formData.nombres = data.persona.nombres;
+                    this.formData.apellidos = data.persona.apellidos;
+                    this.formData.sexo = data.persona.sexo;
+                    this.formData.dni = data.persona.dni;
+                    this.formData.codigo = data.persona.codigo;
+                    this.formData.correo_inst = data.persona.correo_inst;
+                    
+                    if(data.asignacionExistente) {
+                        this.assigned = true;
+                    }
+                } else {
+                    this.userExists = false;
+                    this.formData.persona_id = null;
+                    this.formData.nombres = '';
+                    this.formData.apellidos = '';
+                    this.formData.sexo = '';
+                    this.formData.dni = '';
+                    if(/^\d+$/.test(this.formData.searchValue)) this.formData.codigo = this.formData.searchValue;
+                    this.formData.correo_inst = fullEmail;
+                }
+            } catch(e) { 
+                console.error('Error en verificación:', e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo completar la verificación en este momento.'
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async fetchEscuelas() {
+            if(!this.formData.facultad) return;
+            const res = await fetch(`/api/escuelas/${this.formData.facultad}`);
+            this.escuelas = await res.json();
+            this.secciones = [];
+        },
+
+        async fetchSecciones() {
+            if(!this.formData.escuela) return;
+            const res = await fetch(`/api/secciones/${this.formData.escuela}/${this.formData.id_semestre}`);
+            this.secciones = await res.json();
+        },
+
+        async fetchMassEscuelas() {
+            if(!this.massFormData.facultad) return;
+            const res = await fetch(`/api/escuelas/${this.massFormData.facultad}`);
+            this.escuelas = await res.json();
+            this.secciones = [];
+        },
+
+        async fetchMassSecciones() {
+            if(!this.massFormData.escuela) return;
+            const res = await fetch(`/api/secciones/${this.massFormData.escuela}/${this.formData.id_semestre}`);
+            this.secciones = await res.json();
+        },
+        
+        handleFileSelect(event) {
+            const file = event.target.files[0];
+            if(file) {
+                this.massFormData.fileName = file.name;
+            } else {
+                this.massFormData.fileName = 'Ningún archivo seleccionado';
+            }
+        }
+    }">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
+        <!-- Añadir Usuario Card -->
+        <div class="group relative bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border-1 border-slate-100 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center text-center hover:-translate-y-2"
+            @click="openIndividualModal">
+            
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-indigo-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
+            
+            <div class="w-24 h-24 rounded-[2rem] bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-8 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-inner border-1 border-blue-100/50 dark:border-blue-500/10">
+                <i class="bi bi-person-plus text-5xl"></i>
             </div>
+            
+            <h3 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight leading-none mb-4 uppercase">Añadir Usuario</h3>
+            <p class="text-sm font-bold text-slate-400 dark:text-slate-500 leading-relaxed max-w-[240px]">
+                Registra un nuevo usuario de forma individual completando la información personal y académica.
+            </p>
+            
+            <div class="mt-10 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-black text-[11px] uppercase tracking-[0.25em] opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                Iniciar Registro <i class="bi bi-arrow-right-short text-xl"></i>
+            </div>
+
+            <!-- Background Decoration -->
+            <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors"></div>
         </div>
 
-        <div class="col-xl-5 col-lg-6 col-md-6 mb-4">
-            <div class="registration-card" data-toggle="modal" data-target="#modalCargaMasiva">
-                <i class="bi bi-people registration-icon"></i>
-                <h3 class="registration-title">Carga Masiva</h3>
-                <p class="registration-subtitle">Importar múltiples usuarios desde archivo CSV</p>
+        <!-- Carga Masiva Card -->
+        <div class="group relative bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border-1 border-slate-100 dark:border-slate-800 hover:border-emerald-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center text-center hover:-translate-y-2"
+             @click="openMassModal">
+            
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
+            
+            <div class="w-24 h-24 rounded-[2rem] bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-8 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500 shadow-inner border-1 border-emerald-100/50 dark:border-emerald-500/10">
+                <i class="bi bi-people text-5xl"></i>
+            </div>
+            
+            <h3 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight leading-none mb-4 uppercase">Carga Masiva</h3>
+            <p class="text-sm font-bold text-slate-400 dark:text-slate-500 leading-relaxed max-w-[240px]">
+                Optimiza el tiempo importando múltiples usuarios simultáneamente a través de un archivo CSV estructurado.
+            </p>
+            
+            <div class="mt-10 flex items-center gap-3 text-emerald-600 dark:text-emerald-400 font-black text-[11px] uppercase tracking-[0.25em] opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                Subir Archivo <i class="bi bi-cloud-arrow-up text-xl"></i>
+            </div>
+
+            <!-- Background Decoration -->
+            <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
+        </div>
+    </div>
+
+    <div x-show="individualModalOpen"
+        class="fixed inset-0 z-[1100] flex items-center justify-center px-4"
+        x-cloak>
+        <x-backdrop-modal name="individualModalOpen" />
+        <div x-show="individualModalOpen"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="relative bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border-1 border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
+            
+            <div class="bg-gradient-to-r from-blue-950 to-blue-900 px-6 py-4 shrink-0">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md text-white border-1 border-white/20 dark:border-slate-700">
+                            <i class="bi bi-clipboard-data-fill text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white text-base font-black tracking-tight leading-none">Añadir Usuario Individual</h3>
+                            <p class="text-blue-100/60 text-[9px] font-bold uppercase tracking-[0.2em] mt-1.5">Registro académico</p>
+                        </div>
+                    </div>
+                    <button @click="individualModalOpen = false" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 space-y-4 overflow-y-auto custom-scrollbar">
+                <!-- PASO 1: VERIFICACIÓN -->
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border-1 border-slate-100 dark:border-slate-700/50 shadow-sm">
+                    <h6 class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[9px]">1</span>
+                        Verificar Usuario Existente
+                    </h6>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end text-left">
+                        <div class="md:col-span-4 space-y-1">
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Tipo de Usuario (Rol)</label>
+                            <select x-model="formData.rol" class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none appearance-none">
+                                <option value="">Seleccionar rol</option>
+                                @foreach($roles as $rol)
+                                    <option value="{{ $rol->id }}">{{ $rol->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="md:col-span-6 space-y-1">
+                            <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Correo Institucional / Código</label>
+                            <div class="relative group">
+                                <input type="text" x-model="formData.searchValue" placeholder="Eje: 2020112233 o jperez" 
+                                    class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-28 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase">
+                                    @unjfsc.edu.pe
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <button @click="verifyUser()" :disabled="loading"
+                                class="w-full h-[34px] bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-lg shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center disabled:opacity-50">
+                                <template x-if="!loading">
+                                    <i class="bi bi-search text-sm"></i>
+                                </template>
+                                <template x-if="loading">
+                                    <div class="animate-spin rounded-full h-4 w-4 border-2 border-white/20 border-t-white"></div>
+                                </template>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- si existe, mostrar mensaje de ya está asignacod y que verifque bien el usaurio. Caso contrario se comunique con el admin --}}
+                <template x-if="userExists && assigned">
+                    <div 
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 -translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="relative overflow-hidden bg-amber-50/50 dark:bg-amber-900/10 border-1 border-amber-200 dark:border-amber-700 rounded-xl p-4 shadow-sm shadow-amber-100/50 group"
+                    >
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                                <i class="bi bi-exclamation-triangle-fill text-sm"></i>
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-black text-amber-900 uppercase tracking-widest flex items-center gap-2">
+                                    Advertencia
+                                </h4>
+                                <p class="mt-1 text-xs font-medium text-amber-700 leading-relaxed">
+                                    El usuario ya existe y se encuentra asignado. Revise el usuario o contacte con el administrador.
+                                </p>
+                            </div>
+
+                            <button @click="userExists = false" class="text-amber-400 hover:text-amber-600 transition-colors">
+                                <i class="bi bi-x-lg text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+                <!-- SECCIONES SIGUIENTES -->
+                <div x-show="verified" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4 text-left">
+                    
+                    <form action="{{ route('personas.store') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="persona_id" x-model="formData.persona_id">
+                        <input type="hidden" name="rol" x-model="formData.rol">
+                        <input type="hidden" name="id_semestre" x-model="formData.id_semestre">
+
+                        <!-- PASO 2: DATOS PERSONALES -->
+                        <div class="space-y-3">
+                            <h6 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center text-[9px]">2</span>
+                                Información Personal
+                            </h6>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Código</label>
+                                    <input type="text" name="codigo" x-model="formData.codigo" :disabled="userExists" class="w-full bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold uppercase text-slate-600 disabled:opacity-60">
+                                </div>
+                                <div class="md:col-span-2 space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Correo Institucional</label>
+                                    <input type="email" name="correo_inst" x-model="formData.correo_inst" :disabled="userExists" class="w-full bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold uppercase text-slate-600 disabled:opacity-60">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Apellidos</label>
+                                    <input type="text" name="apellidos" x-model="formData.apellidos" :disabled="userExists" class="w-full bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold uppercase text-slate-600 disabled:opacity-60">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Nombres</label>
+                                    <input type="text" name="nombres" x-model="formData.nombres" :disabled="userExists" class="w-full bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold uppercase text-slate-600 disabled:opacity-60">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Género</label>
+                                    <select name="sexo" x-model="formData.sexo" :disabled="userExists" class="w-full bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold uppercase text-slate-600 disabled:opacity-60 appearance-none">
+                                        <option value="">Seleccionar</option>
+                                        <option value="M">Masculino</option>
+                                        <option value="F">Femenino</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PASO 3: ASIGNACIÓN -->
+                        <div class="pt-4 space-y-3">
+                            <h6 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center text-[9px]">3</span>
+                                Asignación Académica
+                            </h6>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-blue-50/30 dark:bg-blue-900/10 p-3 rounded-xl border-1 border-blue-100 dark:border-blue-900/30">
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Facultad</label>
+                                    <select name="facultad" x-model="formData.facultad" @change="fetchEscuelas()" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none">
+                                        <option value="">Facultad</option>
+                                        @foreach($facultades as $fac)
+                                            <option value="{{ $fac->id }}">{{ $fac->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Escuela</label>
+                                    <select name="escuela" x-model="formData.escuela" @change="fetchSecciones()" :disabled="!formData.facultad" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none disabled:opacity-40">
+                                        <option value="">Escuela</option>
+                                        <template x-for="item in escuelas" :key="item.id">
+                                            <option :value="item.id" x-text="item.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Sección</label>
+                                    <select name="seccion" x-model="formData.seccion" :disabled="!formData.escuela" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none disabled:opacity-40">
+                                        <option value="">Sección</option>
+                                        <template x-for="item in secciones" :key="item.id">
+                                            <option :value="item.id" x-text="item.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div class="pt-6 flex items-center justify-end gap-3">
+                            <button type="button" @click="individualModalOpen = false" class="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-blue-500/20 active:scale-95 transition-all flex items-center gap-2">
+                                <i class="bi bi-person-plus-fill text-sm"></i>
+                                Completar Registro
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
+
+    <div x-show="massModalOpen"
+        class="fixed inset-0 z-[1100] flex items-center justify-center px-4"
+        x-cloak>
+        <x-backdrop-modal name="massModalOpen" />
+        <div x-show="massModalOpen"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="relative bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border-1 border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
+            
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 shrink-0">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md text-white border-1 border-white/20 dark:border-slate-700">
+                            <i class="bi bi-people-fill text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white text-base font-black tracking-tight leading-none">Carga Masiva de Usuarios</h3>
+                            <p class="text-emerald-100/60 text-[9px] font-bold uppercase tracking-[0.2em] mt-1.5">Importación CSV</p>
+                        </div>
+                    </div>
+                    <button @click="massModalOpen = false" class="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-4 overflow-y-auto custom-scrollbar">
+                <form id="formUsuarioMasivo" enctype="multipart/form-data" action="{{ route('usuarios.masivos.store') }}" method="POST" class="space-y-4">
+                    <meta name="csrf-token" content="{{ csrf_token() }}">
+                    @csrf
+                    @method('POST')
+                    
+                    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border-1 border-slate-100 dark:border-slate-700/50 shadow-sm">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Tipo de Usuario</label>
+                                <select x-model="massFormData.rol" id="rolMasivo" name="rol" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none appearance-none">
+                                    <option value="">Seleccionar tipo</option>
+                                    @foreach($roles as $rol)
+                                        <option value="{{ $rol->id }}">{{ $rol->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Archivo CSV</label>
+                                <div class="relative group cursor-pointer" onclick="document.getElementById('archivo').click()">
+                                    <div class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 flex items-center justify-between group-hover:border-emerald-500 transition-all">
+                                        <div class="flex items-center gap-2 overflow-hidden">
+                                            <div class="w-6 h-6 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
+                                                <i class="bi bi-file-earmark-spreadsheet text-xs"></i>
+                                            </div>
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate" x-text="massFormData.fileName"></span>
+                                        </div>
+                                        <span class="text-[9px] font-black text-emerald-600 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded">Examinar</span>
+                                    </div>
+                                    <input type="file" class="hidden" id="archivo" name="archivo" accept=".csv" required 
+                                        @change="handleFileSelect($event)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Imagen del Modelo -->
+                    <div x-show="['2','3','4'].includes(massFormData.rol)" 
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 -translate-y-4"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-3 border-1 border-blue-100 dark:border-blue-800/30">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-blue-400 mb-2 flex items-center gap-2">
+                            <i class="bi bi-info-circle-fill"></i> Formato Requerido
+                        </p>
+                        <img src="{{ asset('img/model-registro.png') }}" alt="Modelo de Registro" class="w-full rounded-lg shadow-sm">
+                    </div>
+                    
+                    <!-- Sección de ASIGNACIÓN -->
+                    <div x-show="massFormData.rol !== ''" 
+                         x-transition:enter="transition ease-out duration-500"
+                         x-transition:enter-start="opacity-0 translate-y-4"
+                         x-transition:enter-end="opacity-100 translate-y-0">
+                        
+                        <div class="space-y-3">
+                            <h6 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center text-[9px]">3</span>
+                                Asignación Académica
+                            </h6>
+
+                            @if(Auth::user()->hasAnyRoles([3]))
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border-1 border-slate-100 dark:border-slate-700">
+                                    <div class="space-y-1">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Facultad</label>
+                                        <select class="w-full bg-slate-100 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-500 cursor-not-allowed" name="facultad" readonly>
+                                            <option value="{{ $ap->seccion_academica->facultad->id }}">{{ $ap->seccion_academica->facultad->name }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Escuela</label>
+                                        <select class="w-full bg-slate-100 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-500 cursor-not-allowed" name="escuela" readonly>
+                                            <option value="{{ $ap->seccion_academica->escuela->id }}">{{ $ap->seccion_academica->escuela->name }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Sección</label>
+                                        <select class="w-full bg-slate-100 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-500 cursor-not-allowed" name="seccion" readonly>
+                                            <option value="{{ $ap->seccion_academica->id }}">{{ $ap->seccion_academica->seccion }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border-1 border-slate-100 dark:border-slate-700">
+                                    <div class="space-y-1">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Facultad</label>
+                                        <select x-model="massFormData.facultad" @change="fetchMassEscuelas()" name="facultad" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-50 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all appearance-none">
+                                            <option value="">Seleccione una facultad</option>
+                                            @foreach($facultades as $fac)
+                                                <option value="{{ $fac->id }}">{{ $fac->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Escuela</label>
+                                        <select x-model="massFormData.escuela" @change="fetchMassSecciones()" :disabled="!massFormData.facultad" name="escuela" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-50 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all appearance-none disabled:opacity-40">
+                                            <option value="">Seleccione una escuela</option>
+                                            <template x-for="item in escuelas" :key="item.id">
+                                                <option :value="item.id" x-text="item.name"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Sección</label>
+                                        <select x-model="massFormData.seccion" :disabled="!massFormData.escuela" name="seccion" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-50 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all appearance-none disabled:opacity-40">
+                                            <option value="">Seleccione una sección</option>
+                                            <template x-for="item in secciones" :key="item.id">
+                                                <option :value="item.id" x-text="item.name"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="pt-6 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <button type="button" @click="massModalOpen = false" class="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-2">
+                                <i class="bi bi-cloud-arrow-up-fill text-sm"></i>
+                                Importar Usuarios
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
 @php
@@ -391,127 +920,7 @@
 @endphp
 
 <!--Carga_Masiva-->
-<div class="modal fade" id="modalCargaMasiva" tabindex="-1" role="dialog" aria-labelledby="modalCargaMasivaLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalCargaMasivaLabel">
-                    <i class="bi bi-people me-2"></i>
-                    Carga Masiva de Usuarios
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="formUsuarioMasivo" enctype="multipart/form-data" action="{{ route('usuarios.masivos.store') }}" method="POST">
-                    <meta name="csrf-token" content="{{ csrf_token() }}">
-                    @csrf
-                    @method('POST')
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="rol">Tipo de Usuario</label>
-                                <select class="form-control" id="rolMasivo" name="rol" required>
-                                    <option value="">Seleccione un tipo de usuario</option>
-                                    @foreach($roles as $rol)
-                                        <option value="{{ $rol->id }}">{{ $rol->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="archivo" class="d-block mb-2">Archivo CSV</label>
-                                <div class="file-upload-container" onclick="document.getElementById('archivo').click()">
-                                    <i class="bi bi-cloud-upload me-2"></i>
-                                    <span class="file-upload-text">Seleccionar Archivo</span>
-                                    <div class="file-name" id="archivo-nombre">Ningún archivo seleccionado</div>
-                                    <input type="file" class="d-none" id="archivo" name="archivo" accept=".csv" required 
-                                        onchange="document.getElementById('archivo-nombre').textContent = this.files[0].name">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Poner la imagen de model-registro del csv -->
-                    <div id="model-img-registro" class="" style="display: none;">
-                        <!-- info de formato de modelo de registro -->
-                        <label for="model-img-registro" class="d-block mb-2 text-secondary">Formato de Modelo de Registro</label>
-                        <img src="{{ asset('img/model-registro.png') }}" alt="Modelo de Registro" class="img-fluid">
-                    </div>
-                    
-                    <!-- Sección de ASIGNACIÓN (Habilitada en ambos casos, pero con lógica) -->
-                    <div id="assignmentContainer" class="section-box mt-4" style="display: none;">
-                        <h6 class="mb-3 text-secondary"><i class="bi bi-clipboard-check-fill me-1"></i> 3. Asignación y Rol</h6>
-                        @if(Auth::user()->hasAnyRoles([3]))
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label for="facultad" class="form-label">Facultad</label>
-                                    <select class="form-control" id="facultad" name="facultad" required>
-                                        <option value="{{ $ap->seccion_academica->facultad->id }}">{{ $ap->seccion_academica->facultad->name }}</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="escuela" class="form-label">Escuela</label>
-                                    <select class="form-control" id="escuela" name="escuela" required>
-                                        <option value="{{ $ap->seccion_academica->escuela->id }}">{{ $ap->seccion_academica->escuela->name }}</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="seccion" class="form-label">Sección</label>
-                                    <select class="form-control" id="seccion" name="seccion" required>
-                                        <option value="{{ $ap->seccion_academica->id }}">{{ $ap->seccion_academica->seccion }}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        @else
-                        <div class="row g-3">
-                            <!-- Facultad -->
-                            <div class="col-md-4">
-                                <label for="facultad" class="form-label">Facultad</label>
-                                <select class="form-control" id="facultad_masivo" name="facultad" required>
-                                    <option value="">Seleccione una facultad</option>
-                                    @foreach($facultades as $facultad)
-                                        @foreach($facultades as $fac)
-                                            <option value="{{ $fac->id }}">{{ $fac->name }}</option>
-                                        @endforeach
-                                    @endforeach
-                                </select>
-                            </div>
-                            <!-- Escuela -->
-                            <div class="col-md-4">
-                                <label for="escuela" class="form-label">Escuela</label>
-                                <select class="form-control" id="escuela_masivo" name="escuela" required disabled>
-                                    <option value="">Seleccione una escuela</option>
-                                </select>
-                            </div>
-                            <!-- Seccion -->
-                            <div class="col-md-4">
-                                <label for="seccion" class="form-label">Sección</label>
-                                <select class="form-control" id="seccion_masivo" name="seccion" disabled>
-                                    <option value="">Seleccione una sección</option>
-                                </select>
-                            </div>
-                        </div>
-                        @endif
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>
-                    Cerrar
-                </button>
-                <button type="submit" form="formUsuarioMasivo" class="btn btn-primary">
-                    <i class="bi bi-upload me-2"></i>
-                    Importar Usuarios
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 <!--Fin Carga_Masiva-->
 
 <!--Registro-->
@@ -728,303 +1137,4 @@
     });
 </script>
 @endif
-
-<script src="{{ asset('js/cuadro_registro_user.js') }}"></script>
-<script>
-    // Filtro Facultad - Escuela - Seccion
-    function setupDependentSelects(facultadId, escuelaId, seccionId) {
-        const facultadSelect = document.getElementById(facultadId);
-        const escuelaSelect = document.getElementById(escuelaId);
-        const seccionSelect = document.getElementById(seccionId);
-        const semestreActivoId = {{ session('semestre_actual_id') ?? 'null' }};
-
-        if (facultadSelect) {
-            facultadSelect.addEventListener('change', function () {
-                const selectedFacultadId = this.value;
-                // Reset dependants
-                escuelaSelect.innerHTML = '<option value="">Seleccione una escuela</option>';
-                seccionSelect.innerHTML = '<option value="">Seleccione una sección</option>';
-
-                escuelaSelect.disabled = true;
-                seccionSelect.disabled = true;
-                if (!selectedFacultadId) {
-                    return;
-                }
-
-                escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
-                fetch(`/api/escuelas/${selectedFacultadId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        let options = '<option value="">Seleccione una escuela</option>';
-                        data.forEach(e => {
-                            options += `<option value="${e.id}">${e.name}</option>`;
-                        });
-                        escuelaSelect.innerHTML = options;
-                        escuelaSelect.disabled = false;
-                    })
-                    .catch(() => {
-                        escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
-                    });
-            });
-        }
-
-        if (escuelaSelect) {
-            escuelaSelect.addEventListener('change', function () {
-                const selectedEscuelaId = this.value;
-                seccionSelect.innerHTML = '<option value="">Seleccione una sección</option>';
-                seccionSelect.disabled = true;
-
-                if (!selectedEscuelaId || !semestreActivoId) {
-                    return;
-                }
-
-                seccionSelect.innerHTML = '<option value="">Cargando...</option>';
-                fetch(`/api/secciones/${selectedEscuelaId}/${semestreActivoId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        let options = '<option value="">Seleccione una sección</option>';
-                        data.forEach(d => {
-                            options += `<option value="${d.id}">${d.name}</option>`;
-                        });
-                        seccionSelect.innerHTML = options;
-                        seccionSelect.disabled = false;
-                    })
-                    .catch(() => {
-                        seccionSelect.innerHTML = '<option value="">Error al cargar</option>';
-                    });
-            });
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        // Inicializar para el modal de registro individual
-        setupDependentSelects('facultad_registro', 'escuela_registro', 'seccion_registro');
-        // Inicializar para el modal de carga masiva
-        setupDependentSelects('facultad_masivo', 'escuela_masivo', 'seccion_masivo');
-    });
-
-    const ELEMENTS = {
-        form: document.getElementById('formRegistro'),
-        searchValue: document.getElementById('searchValue'),
-        rolRegistro: document.getElementById('rolRegistro'),
-        btnVerify: document.getElementById('btnVerify'),
-        searchResult: document.getElementById('searchResult'),
-        personalDataContainer: document.getElementById('personalDataContainer'),
-        btnSubmit: document.querySelector('#modalRegistro button[type="submit"]'),
-        
-        // Campos del formulario
-        inputPersonaId: document.getElementById('personaId'), 
-        inputDni: document.getElementById('dni'),
-        inputCodigo: document.getElementById('codigo'),
-        inputNombres: document.getElementById('nombres'),
-        inputApellidos: document.getElementById('apellidos'),
-        
-        // Campos de Asignación
-        facultadRegistro: document.getElementById('facultad_registro') || document.getElementById('facultad_registro_fixed'),
-        escuelaRegistro: document.getElementById('escuela_registro') || document.getElementById('escuela_registro_fixed'),
-        seccionRegistro: document.getElementById('seccion_registro') || document.getElementById('seccion_registro_fixed'),
-        
-        // Lista de todos los campos de datos personales (excepto los de búsqueda)
-        personalInputs: [
-            document.getElementById('dni'),
-            document.getElementById('codigo'),
-            document.getElementById('nombres'),
-            document.getElementById('apellidos'),
-            document.getElementById('celular'),
-            document.getElementById('correo_inst'), // Este es el campo correcto
-            document.getElementById('sexo'),
-            document.getElementById('provincia'),
-            document.getElementById('distrito'),
-        ]
-    };
-
-    function showNewUserForm(fullEmail) {
-        ELEMENTS.searchResult.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>No se encontró usuario. Complete los datos para crearlo.</div>`;
-        ELEMENTS.personalDataContainer.style.display = 'block';
-        ELEMENTS.form.classList.remove('form-state-existing');
-        ELEMENTS.form.classList.add('form-state-new');
-
-        ELEMENTS.personalInputs.forEach(input => {
-            input.disabled = false;
-            input.readOnly = false;
-            if (input.id !== 'correo_inst' && input.id !== 'codigo') {
-                 input.value = '';
-            }
-        });
-
-        ELEMENTS.inputPersonaId.value = '';
-        ELEMENTS.inputCodigo.value = ELEMENTS.searchValue.value;
-        ELEMENTS.inputCodigo.readOnly = true;
-        ELEMENTS.personalInputs.find(i => i.id === 'correo_inst').value = fullEmail;
-        ELEMENTS.personalInputs.find(i => i.id === 'correo_inst').readOnly = true;
-        
-        //ELEMENTS.facultadRegistro.disabled = false;
-        //ELEMENTS.escuelaRegistro.disabled = true;
-        ELEMENTS.btnSubmit.disabled = false;
-        ELEMENTS.inputNombres.focus();
-    }
-
-    function showExistingUserForm(persona, isAssigned, ap) {
-        const message = isAssigned 
-            ? `<div class="alert alert-danger"><i class="bi bi-x-circle-fill me-2"></i>Usuario encontrado, pero <strong>YA ESTÁ ASIGNADO</strong> a este semestre.</div>`
-            : `<div class="alert alert-info"><i class="bi bi-info-circle-fill me-2"></i>Usuario encontrado: <strong>${persona.nombres} ${persona.apellidos}</strong>. Proceda a la Asignación.</div>`;
-        
-        ELEMENTS.searchResult.innerHTML = message;
-        ELEMENTS.personalDataContainer.style.display = 'block';
-        ELEMENTS.form.classList.remove('form-state-new');
-        ELEMENTS.form.classList.add('form-state-existing');
-
-        ELEMENTS.personalInputs.forEach(input => {
-            input.disabled = true;
-            input.value = persona[input.name] || '';
-        });
-
-        ELEMENTS.inputPersonaId.value = persona.id;
-        ELEMENTS.btnSubmit.disabled = isAssigned;
-
-        ELEMENTS.facultadRegistro.innerHTML = `<option value="">${ap.seccion_academica.facultad.name}</option>`;
-        ELEMENTS.escuelaRegistro.innerHTML = `<option value="">${ap.seccion_academica.escuela.name}</option>`;
-        ELEMENTS.seccionRegistro.innerHTML = `<option value="">${ap.seccion_academica.seccion}</option>`;
-    }
-
-    function resetForm() {
-        ELEMENTS.form.reset();
-        ELEMENTS.form.classList.remove('form-state-new', 'form-state-existing');
-        ELEMENTS.searchResult.innerHTML = '';
-        ELEMENTS.personalDataContainer.style.display = 'none';
-        ELEMENTS.btnSubmit.disabled = true;
-        ELEMENTS.rolRegistro.disabled = false;
-        ELEMENTS.facultadRegistro.disabled = false;
-        ELEMENTS.escuelaRegistro.disabled = false;
-        ELEMENTS.seccionRegistro.disabled = false;
-        ELEMENTS.inputPersonaId.value = '';
-        ELEMENTS.searchValue.disabled = false;
-    }
-
-    // Verificar usuario existente btnVerify
-    async function verifyUser() {
-        const searchValue = ELEMENTS.searchValue.value.trim().toLowerCase();
-        const rolId = ELEMENTS.rolRegistro.value;
-        
-        
-        if (!rolId || !searchValue) {
-            ELEMENTS.searchResult.innerHTML = `<div class="alert alert-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>Debe seleccionar un rol e ingresar el correo para verificar.</div>`;
-            return;
-        }
-
-        ELEMENTS.btnVerify.disabled = true;
-        ELEMENTS.btnVerify.classList.add('loading');
-
-        // Limpiamos solo el resultado anterior antes de una nueva búsqueda.
-        ELEMENTS.searchResult.innerHTML = '';
-        // Guardar el rol seleccionado en el campo oculto del formulario
-        document.getElementById('rolHidden').value = ELEMENTS.rolRegistro.value;
-
-        const fullEmail = `${searchValue}@unjfsc.edu.pe`;
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        console.log(fullEmail);
-
-        const response = await fetch(`/api/verificar/${fullEmail}`);
-
-        if(!response.ok) {
-            alert('Error al verificar usuario:' + error);
-            console.error('Error al verificar usuario:', error);
-            ELEMENTS.searchResult.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Ocurrió un error al verificar.</div>`;
-            return;
-        }
-
-        ELEMENTS.btnVerify.disabled = false;
-        ELEMENTS.btnVerify.classList.remove('loading');
-
-        const result = await response.json();
-        const data = result;
-
-        //resetForm();
-        console.log(data.persona);
-        console.log(data);
-
-        resetForm();
-
-        if(data.persona) {
-            showExistingUserForm(data.persona, data.asignacionExistente, data.ap);
-        } else {
-            showNewUserForm(fullEmail);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const rolSelect = document.getElementById('rolRegistro');
-        const searchInput = document.getElementById('searchValue');
-        const verifyButton = document.getElementById('btnVerify');
-        let isNewUserFormActive = false; // Flag para controlar si el form de nuevo usuario está activo
-        let previousRolValue = rolSelect.value;
-
-        // Función para actualizar el estado del formulario de nuevo usuario
-        window.setNewUserFormStatus = (isActive) => {
-            isNewUserFormActive = isActive;
-        };
-
-        // Guardar el valor anterior antes del cambio
-        rolSelect.addEventListener('focus', function() {
-            previousRolValue = this.value;
-        });
-    
-        function updateSearchInputRestrictions() {
-            const selectedValue = rolSelect.value;
-            const selectedOption = rolSelect.options[rolSelect.selectedIndex];
-            const isStudent = selectedOption.text.toLowerCase().includes('estudiante');
-
-            if (!selectedValue) {
-                searchInput.disabled = true;
-                verifyButton.disabled = true;
-                searchInput.placeholder = 'Seleccione un rol primero';
-                return;
-            }
-
-            searchInput.disabled = false;
-            verifyButton.disabled = false;
-            searchInput.value = '';
-
-            if (isStudent) {
-                searchInput.type = 'tel';
-                searchInput.placeholder = 'Ingrese solo el código de 10 dígitos';
-                searchInput.maxLength = 10;
-                searchInput.pattern = '[0-9]*';
-            } else {
-                searchInput.type = 'text';
-                searchInput.placeholder = 'ej: jperez';
-                searchInput.maxLength = 50;
-                searchInput.removeAttribute('pattern');
-            }
-            searchInput.focus();
-        }
-
-        rolSelect.addEventListener('change', function() {
-            updateSearchInputRestrictions();
-        });
-
-        updateSearchInputRestrictions();
-    });
-
-    // rolMasivo
-    document.getElementById('rolMasivo').addEventListener('change', function() {
-        console.log(this.value);
-        //puede ver 2, 3, 4
-        if (this.value === '2' || this.value === '3' || this.value === '4') {
-            document.getElementById('model-img-registro').style.display = 'block';
-            console.log('block');
-        } else {
-            document.getElementById('model-img-registro').style.display = 'none';
-            console.log('none');
-        }
-
-        // si value es vacio o nullo
-        if(this.value == '' || this.value == null) {
-            document.getElementById('assignmentContainer').style.display = 'none';
-        } else {
-            document.getElementById('assignmentContainer').style.display = 'block';
-        }
-    });
-        
-</script>
 @endpush

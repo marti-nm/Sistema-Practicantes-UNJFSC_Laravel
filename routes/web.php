@@ -205,6 +205,7 @@ Route::get('/practicas/estudiante', [homeController::class, 'practicasEstudiante
 Route::get('/matricula/estudiante', [homeController::class, 'matriculaEstudiante'])->middleware('auth')->name('matricula.estudiante');
 
 Route::get('/supervision', [PracticaController::class, 'lst_supervision'])->middleware('auth')->name('supervision');
+Route::get('/supervision/seguimiento/{id}', [PracticaController::class, 'detalle_supervision'])->middleware('auth')->name('supervision.detalle');
 
 Route::get('/empresa', [EmpresaController::class, 'index'])->middleware('auth')->name('empresa');
 Route::get('/jefe_inmediato', [JefeInmediatoController::class, 'index'])->middleware('auth')->name('jefes');
@@ -306,6 +307,8 @@ Route::get('/api/asignar_estudiantes/{saId}', function ($saId) {
         ->get();
 });
 
+Route::get('/api/grupo/{id}', [AsignacionController::class, 'getGrupo']);
+
 // obtener a los estudiante de grupo_estudiante
 Route::get('/api/grupo_estudiantes/{grupoId}', function ($grupoId) {
     return DB::table('grupo_estudiante as ge')
@@ -333,6 +336,7 @@ Route::post('/api/solicitud_nota', [PracticaController::class, 'solicitud_nota']
 Route::post('/api/solicitud_ap', [SolicitudController::class, 'solicitud_ap'])->name('solicitud_ap');
 Route::get('/api/solicitud/getSolicitudNota/{id_practica}', [SolicitudController::class, 'getSolicitudNota']);
 Route::get('/api/solicitud/getSolicitudAp/{id_ap}', [SolicitudController::class, 'getSolicitudAp']);
+Route::get('/api/persona/{id}', [PersonaController::class, 'getPersonaForEdit'])->middleware('auth');
 
 Route::get('/docente/semestres/{escuela}', [DashboardDocenteController::class, 'getSemestres']);
 Route::get('/docente/supervisores/{escuela}', [DashboardDocenteController::class, 'getSupervisores']);

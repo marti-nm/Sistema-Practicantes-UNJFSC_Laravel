@@ -38,7 +38,9 @@ class AcreditarController extends Controller
             $query->where('id_semestre', $id_semestre);
             $query->where('id_rol', 3); // Rol de Supervisor
         })->with([
-            'asignacion_persona', 
+            'asignacion_persona' => function($query) {
+                $query->where('id_semestre', session('semestre_actual_id'));
+            }, 
             'asignacion_persona.semestre', 
             'asignacion_persona.seccion_academica.escuela',
             'asignacion_persona.acreditacion.archivos' => function($query) {

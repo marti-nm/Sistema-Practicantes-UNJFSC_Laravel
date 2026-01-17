@@ -92,6 +92,15 @@ class semestreController extends Controller
             // Actualizar la session del nuevo semestre
             session(['semestre_actual_id' => $semestreNuevo->id]);
 
+            // Actualizar o sea crear una nueva la asignacion persona del admin
+            /*AsignacionPersona::create([
+                'id_semestre' => $semestreNuevo->id,
+                'id_persona' => 1,
+                'id_rol' => 1,
+                'date_create' => now(),
+                'state' => 1
+            ]);*/
+
             // Confirmar la transacción
             DB::commit();
 

@@ -1,6 +1,6 @@
 @extends('template')
-@section('title', 'Gestión de Estudiantes')
-@section('subtitle', 'Administrar y visualizar información de estudiantes')
+@section('title', 'Gestión de Usuarios')
+@section('subtitle', 'Administrar y visualizar información de usuarios')
 
 @push('css')
 <style>
@@ -715,456 +715,272 @@
 @endpush
 
 @section('content')
-<div class="docentes-container">
-    <div class="docentes-card fade-in">
-        <div class="docentes-card-header">
-            <h5 class="docentes-card-title">
-                <i class="bi bi-mortarboard"></i>
-                Lista de Estudiantes
-            </h5>
-        </div>
-        <div class="docentes-card-body">
-            {{-- Filtros --}}
-            @if(Auth::user()->hasAnyRoles([1, 2]))
-            <x-data-filter
-                route="estudiante"
-                :facultades="$facultades"
-            />
-            @endif
-            <div class="table-container">
-                <div class="table-responsive">
-                    <table class="table" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Email</th>
-                                <th>Apellidos y Nombres</th>
-                                <th>Facultad</th>
-                                <th>Escuela</th>
-                                <th>Sección</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($personas as $index => $persona)
-                            <tr data-docente-id="{{ $persona->id }}">
-                                <td>{{ $index + 1 }}</td>
-                                <td>
-                                    <span class="badge badge-light" style="background: var(--background-color); color: var(--text-primary); font-weight: 500;">
-                                        {{ $persona->correo_inst }}
-                                    </span>
-                                </td>
-                                <td>{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) }}</td>
-                                <td>{{ $persona->asignacion_persona->seccion_academica->facultad->name }}</td>
-                                <td>{{ $persona->asignacion_persona->seccion_academica->escuela->name }}</td>
-                                <td>{{ $persona->asignacion_persona->seccion_academica->seccion}}</td>
-                                <td>
-                                    @if($persona->asignacion_persona->state == 1 || $persona->asignacion_persona->state == 2)
-                                    <button type="button" class="btn btn-info" 
-                                    data-toggle="modal" data-target="#modalEditar{{ $persona->id }}" 
-                                    data-d="{{ $persona->distrito }}" data-p="{{ $persona->provincia }}"
-                                    data-f="{{ $persona->escuela->facultad_id ?? '' }}" data-e="{{ $persona->id_escuela ?? '' }}">
-                                        <i class="bi bi-eye"></i>
-                                        
-                                    </button>
-                                    @if(!$semestre_bloqueado)
-                                    <button type="button" class="btn btn-danger btn-disabled-ap" 
-                                        data-id-ap="{{ $persona->asignacion_persona->id }}"
-                                        data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
-                                        data-state-ap="{{ $persona->asignacion_persona->state }}"
-                                        data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
-                                        data-email-ap="{{ $persona->correo_inst }}">
-                                        <i class="bi bi-person-x-fill"></i>
-                                    </button>
-                                    @endif
-                                    @elseif($persona->asignacion_persona->state == 3 && Auth::user()->hasAnyRoles([1,2]))
-                                    <button type="button" class="btn btn-secondary btn-management-ap" 
-                                        data-id-ap="{{ $persona->asignacion_persona->id }}"
-                                        data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
-                                        data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
-                                        data-email-ap="{{ $persona->correo_inst }}">
-                                        <i class="bi bi-hourglass-bottom"></i>
-                                    </button>
-                                    @elseif($persona->asignacion_persona->state == 3)
-                                        <label class="badge badge-warning text-black">Pendiente</label>
-                                    @elseif($persona->asignacion_persona->state == 4)
-                                        <!-- button para habilitar -->
-                                        <button type="button" class="btn btn-warning btn-disabled-ap" 
-                                            data-id-ap="{{ $persona->asignacion_persona->id }}"
-                                            data-id-sa="{{ $persona->asignacion_persona->seccion_academica->id }}"
-                                            data-state-ap="{{ $persona->asignacion_persona->state }}"
-                                            data-nombre-ap="{{ $persona->apellidos . ' ' . $persona->nombres }}"
-                                            data-email-ap="{{ $persona->correo_inst }}">
-                                            <i class="bi bi-person-check-fill"></i>
-                                        </button>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
-                            @if($personas->isEmpty())
-                            <tr>
-                                <td colspan="7" class="empty-state">
-                                    <i class="bi bi-person-x"></i>
-                                    <p class="mb-0">No se encontraron docentes registrados.</p>
-                                </td>
-                            </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="{
+        // Modal states
+        editAPModalOpen: false,
+        solicitudAPModalOpen: false,
+        managementAPModalOpen: false,
 
-<!--Modal-->
-@foreach ($personas as $persona)
-<div class="modal fade" id="modalEditar{{ $persona->id }}" tabindex="-1" role="dialog" aria-labelledby="modalEditarLabel" aria-hidden="true"> 
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalVerLabel">
-                    <i class="bi bi-person-vcard"></i>
-                    Información del Docente
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="formEditPersona{{ $persona->id }}" method="POST" action="{{ route('persona.editar') }}" enctype="multipart/form-data">
-                    <meta name="csrf-token" content="{{ csrf_token() }}">
-                    @csrf
-                    @method('POST')
-                    <input type="hidden" id="persona_id" name="persona_id" value="{{ $persona->id }}">
-                    <div class="row">
-                        <!-- Columna izquierda: Formulario -->
-                        <div class="col-md-8">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="codigo">Código</label>
-                                        <input type="text" class="form-control" id="codigo" name="codigo" value="{{ $persona->codigo }}" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="dni">DNI</label>
-                                        <input type="text" class="form-control" id="dni" name="dni" value="{{ $persona->dni }}" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="celular">Celular</label>
-                                        <input type="tel" class="form-control" id="celular" name="celular" value="{{ $persona->celular }}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="nombres">Nombres</label>
-                                        <input type="text" class="form-control" id="nombres" name="nombres" value="{{ $persona->nombres }}" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="apellidos">Apellidos</label>
-                                        <input type="text" class="form-control" id="apellidos" name="apellidos" value="{{ $persona->apellidos }}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="correo_inst">Correo Institucional</label>
-                                        <input type="email" class="form-control" id="correo_inst" name="correo_inst" value="{{ $persona->correo_inst }}" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="departamento">Departamento</label>
-                                        <input type="text" class="form-control" id="departamento" name="departamento" value="{{ $persona->departamento }}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="sexo">Género</label>
-                                        <select class="form-control" id="sexo" name="sexo" value="{{ $persona->sexo }}" disabled>
-                                            <option value="">Seleccione</option>
-                                            <option value="M"{{ $persona->sexo == 'M' ? 'selected' : '' }}>Masculino</option>
-                                            <option value="F"{{ $persona->sexo == 'F' ? 'selected' : '' }}>Femenino</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="provincia">Provincia</label>
-                                        <select class="form-control" id="provincia" name="provincia" disabled>
-                                            <option value="">Seleccione</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="distrito">Distrito</label>
-                                        <select class="form-control" id="distrito" name="distrito" value="{{ $persona->distrito }}"  disabled>
-                                            <option value="">Seleccione</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="facultad">Facultad</label>
-                                        <select class="form-control" id="facultad" name="facultad" disabled>
-                                            <option value="">Seleccione</option>
-                                            @foreach($facultades as $facultad)
-                                                <option value="{{ $facultad->id }}">{{ $facultad->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="escuela">Escuela</label>
-                                        <select class="form-control" id="escuela" name="escuela" disabled>
-                                            <option value="">Seleccione</option>
-                                            @foreach($escuelas as $escuela)
-                                                <option value="{{ $escuela->id }}" data-facultad="{{ $escuela->facultad_id }}" hidden>
-                                                    {{ $escuela->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        // Loading states
+        loading: false,
+        loadingEdit: false,
+
+        // Data containers
+        requireData: { id_ap: null, id_sa: null, state_ap: null, nombre_ap: null },
+        solicitudData: { id: null, accion: '', justificacion: '' },
+        editData: {},
+        provincias: [],
+        all_distritos: {},
+        distritos_options: [],
+        selectedProvincia: '',
+        selectedDistrito: '',
+
+        // API fetch methods
+        async initLocations() {
+            if (this.provincias.length > 0) return; // Already loaded
+            try {
+                const [provRes, distRes] = await Promise.all([
+                    fetch('/data/provincias.json'),
+                    fetch('/data/distritos.json')
+                ]);
+                const provData = await provRes.json();
+                const distData = await distRes.json();
+                this.provincias = provData.provincias || [];
+                this.all_distritos = distData.distritos || {};
+            } catch (error) {
+                console.error('Error loading locations:', error);
+            }
+        },
+
+        updateDistritos() {
+            this.distritos_options = this.all_distritos[this.selectedProvincia] || [];
+            // If the currently selected district is not in the new options, clear it
+            if (!this.distritos_options.find(d => d.id == this.selectedDistrito)) {
+                this.selectedDistrito = '';
+            }
+        },
+
+        async fetchEditPersona(personaId) {
+            this.loadingEdit = true;
+            this.editData = {};
+            this.selectedProvincia = '';
+            this.selectedDistrito = '';
+            
+            try {
+                // Load locations and data in parallel if possible, but we need locations to set selected
+                await this.initLocations();
+                
+                const response = await fetch(`/api/persona/${personaId}`);
+                this.editData = await response.json();
+                
+                // Logic to match Province (ID or Name)
+                if (this.editData.provincia) {
+                    let prov = this.provincias.find(p => p.id == this.editData.provincia);
+                    if (!prov) {
+                        prov = this.provincias.find(p => p.nombre.toLowerCase() === this.editData.provincia.toLowerCase());
+                    }
+                    if (prov) {
+                        this.selectedProvincia = prov.id;
+                        this.updateDistritos();
                         
-                        <!-- Columna derecha: Fotografía -->
-                        <div class="col-md-4">
-                            <div class="photo-section">
-                                <div class="photo-container">
-                                    @if ($persona->ruta_foto)
-                                        <img src="{{ asset($persona->ruta_foto) }}" alt="Foto del docente" class="profile-photo" id="previewFoto">
-                                    @else
-                                        <div class="default-avatar" id="iconoDefault">
-                                            <i class="bi bi-person"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                
-                                <input type="file" name="ruta_foto" id="ruta_foto{{ $persona->id }}" accept="image/*" onchange="previewImagen(event)" style="display: none;">
-                                
-                                <label for="ruta_foto{{ $persona->id }}" class="upload-btn">
-                                    <i class="bi bi-cloud-upload"></i>
-                                    Actualizar Foto
-                                </label>
-                                
-                                <div class="photo-info">
-                                    <div class="info-item">
-                                        <i class="bi bi-file-earmark-image"></i>
-                                        <span>JPG, PNG, GIF</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <i class="bi bi-hdd"></i>
-                                        <span>Máximo 2MB</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <i class="bi bi-aspect-ratio"></i>
-                                        <span>Recomendado: 500x500px</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-info" id="btnEditar">
-                    <i class="bi bi-pencil-square"></i> 
-                    Editar 
-                </button>
-                <button type="submit" form="formEditPersona{{ $persona->id }}" class="btn btn-success d-none" id="btnUpdate">
-                    <i class="bi bi-check-circle"></i>
-                    Guardar Cambios
-                </button>
-                <button type="button" class="btn btn-secondary" id="btnCancelar" data-dismiss="modal">
-                    <i class="bi bi-x-circle"></i>
-                    Cerrar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-@endforeach
+                        // Logic to match District
+                        if (this.editData.distrito) {
+                            let dist = this.distritos_options.find(d => d.id == this.editData.distrito);
+                            if (!dist) {
+                                dist = this.distritos_options.find(d => d.nombre.toLowerCase() === this.editData.distrito.toLowerCase());
+                            }
+                            if (dist) this.selectedDistrito = dist.id;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching persona data:', error);
+            } finally {
+                this.loadingEdit = false;
+            }
+        },
 
-{{--  
-<div class="modal" id="modalDisabledAp">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Deshabilitar Estudiante</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- mensaje que primero tendra ser aprobado por el administrador -->
-                <div id="alertDeshabilitarAp" class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>Advertencia!</strong>
-                    <p>El estudiante debe ser aprobado por el administrador antes de deshabilitarlo o eliminado.</p>
-                </div>
-                <!-- mensaje que tendra el docente para habilitar a un estudiante -->
-                <div id="alertHabilitarAp" class="alert alert-info">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>Advertencia!</strong>
-                    <p>Para habilitar a un estudiante debe ser aprobado por el administrador.</p>
-                </div>
-                <form id="formEliminar" action="{{ route('solicitud_ap') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="id_ap" id="id_ap">
-                    <input type="hidden" name="id_sa" id="id_sa">
-                    <!-- mostrar el nombre del estudiante -->
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="bi bi-person"></i> Nombre del Estudiante:</label>
-                        <p id="nombre_ap" class="font-weight-bold align-items-center"></p>
-                    </div>
-                    <div class="form-group mt-3" id="correccion-options-ap">
-                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Seleccionar una opción:</label>
-                        <div id="option-deshabilitar-ap">
-                            <div class="row g-2">
-                                <div class="col">
-                                    <div class="correccion-cell h-100" id="deshabilitar-ap" onclick="selectCorreccion('deshabilitar', 'ap')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Podra deshabilitar y luego habilitar.">
-                                        <i class="bi bi-lock" style="font-size: 1.5em;"></i><br>Deshabilitar
-                                        <input type="radio" name="opcion" id="correccionDeshabilitar-ap" value="1" class="d-none" checked>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="correccion-cell h-100" id="eliminar-ap" onclick="selectCorreccion('eliminar', 'ap')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Tendrá que enviar otra nota y aprueba el archivo.">
-                                        <i class="bi bi-trash" style="font-size: 1.5em;"></i><br>Eliminar
-                                        <input type="radio" name="opcion" id="correccionEliminar-ap" value="2" class="d-none">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="option-habilitar-ap" class="row g-2">
-                            <div class="col">
-                                <div class="correccion-cell h-100" id="habilitar-ap" onclick="selectCorreccion('habilitar', 'ap')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Podra deshabilitar y luego habilitar.">
-                                    <i class="bi bi-unlock" style="font-size: 1.5em;"></i><br>Habilitar
-                                    <input type="radio" name="opcion" id="correccionHabilitar-ap" value="3" class="d-none" checked>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group mt-3">
-                        <label for="comentario-ap" class="font-weight-bold">
-                            <i class="bi bi-chat-dots"></i> Comentario
-                        </label>
-                        <textarea name="comentario" id="comentario-ap" class="form-control" required rows="3" placeholder="Ej: La firma no es visible, por favor, vuelva a escanear el documento."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="submit" form="formEliminar" class="btn btn-danger" id="btnEliminar">Enviar</button>
-            </div>
-        </div>
-    </div>
-</div>
+        async fetchManagementAP(id) {
+            this.loading = true;
+            this.solicitudData = { id: null, accion: 'Cargando...', justificacion: 'Cargando...' };
+            try {
+                const response = await fetch(`/api/solicitud/getSolicitudAp/${id}`);
+                const result = await response.json();
+                this.solicitudData.id = result.id;
+                this.solicitudData.accion = result.data?.opcion?.toUpperCase() || 'SIN DATOS';
+                this.solicitudData.justificacion = result.motivo?.toUpperCase() || 'SIN DATOS';
+            } finally { this.loading = false; }
+        },
 
-<div class="modal" id="modalManagementAp">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Gestionar Estudiante</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="formManagement" action="{{ route('solicitud.ap') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="id_sol" id="id_sol">
-                    <div class="form-group">
-                        <label class="font-weight-bold"><i class="bi bi-person"></i> Nombre del Estudiante:</label>
-                        <p id="nombre_m_ap" class="font-weight-bold align-items-center text-capitalize"></p>
-                    </div>
-                    <!-- mostrar el estado de la solicitud de baja -->
-                    <div class="form-group mt-3" id="estado-solicitud-ap">
-                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Acción a realizar:</label>
-                        <p id="accion_ap" class="font-weight-bold align-items-center"></p>
-                    </div>
-                    <!-- justificacion de la solicitud -->
-                    <div class="form-group mt-3">
-                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Justificación:</label>
-                        <p id="justificacion_ap" class="font-weight-bold align-items-center"></p>
-                    </div>
-                    <div class="form-group mt-3">
-                        <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Seleccionar una opción:</label>
-                        <div class="row g-2">
-                            <div class="col">
-                                <div class="correccion-cell h-100" id="aprobar-management" onclick="selectGestion('aprobar')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;">
-                                    <i class="bi bi-check-circle" style="font-size: 1.5em;"></i><br>Aprobar
-                                    <input type="radio" name="estado" id="gestionAprobar" value="1" class="d-none" checked>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="correccion-cell h-100" id="rechazar-management" onclick="selectGestion('rechazar')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;">
-                                    <i class="bi bi-x-circle" style="font-size: 1.5em;"></i><br>Rechazar
-                                    <input type="radio" name="estado" id="gestionRechazar" value="2" class="d-none">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group mt-3">
-                        <label for="comentario-ap" class="font-weight-bold">
-                            <i class="bi bi-chat-dots"></i> Comentario
-                        </label>
-                        <textarea name="comentario" id="comentario-management" required class="form-control" rows="3" placeholder="Ej: Documentación incompleta."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="submit" form="formManagement" class="btn btn-primary" id="btnManagement">Guardar</button>
-            </div>
-        </div>
-    </div>
-</div>
+        // Modal open handlers
+        openEditModal(data) {
+            this.requireData = data;
+            this.editAPModalOpen = true;
+            this.fetchEditPersona(data.id_ap)
+        },
 
-<!-- modal para enabledAp -->
-<div class="modal" id="modalEnabledAp">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Habilitar Estudiante</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>¿Está seguro de habilitar al estudiante?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnEnabledAp">Habilitar</button>
-            </div>
-        </div>
-    </div>
-</div>
- --}}
+        openSolicitudModal(data) {
+            this.requireData = data;
+            this.solicitudAPModalOpen = true;
+        },
+        
+        openManagementModal(data) {
+            this.requireData = data;
+            this.managementAPModalOpen = true;
+            this.fetchManagementAP(data.id_ap); // id_ap here is asignacion_persona id
+        }
+    }">
+    <x-header-content
+        title="Lista de {{ $cargo }}"
+        subtitle="Gestionar y validar documentos académicos del {{ $cargo }}"
+        icon="bi-person-badge-fill"
+        :enableButton="true"
+        msj="Registrar {{ $cargo }}"
+        icon_msj="bi-person-badge-fill"
+        route="registrar"
+    />
 
- @include('list_users.partials.modales_gestion_estado')
+    @if(Auth::user()->hasAnyRoles([1, 2]))
+        <x-data-filter
+            route="{{ $rutaFilter }}"
+            :facultades="$facultades"
+        />
+    @endif
+
+    @include('components.skeletonLoader-table')
+    <div class="overflow-x-auto">
+        <table id="tablaEstudiantes" class="w-full text-left border-collapse table-skeleton-ready rounded-t-2xl overflow-hidden">
+            <thead>
+                <tr class="bg-gradient-to-r from-primary-dark to-primary text-white">
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] first:rounded-tl-2xl border-none">#</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Email</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Apellidos y Nombres</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Facultad</th>
+                    @if($cargo != "Sub Administrador")
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Escuela</th>
+                        <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Sección</th>
+                    @endif
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] last:rounded-tr-2xl border-none">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:bgdivide-slate-800 bg-white dark:bg-slate-900/50">
+                @foreach ($personas as $index => $persona)
+                <tr class="group hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors duration-200">
+                    <td class="px-6 py-2 text-center">
+                        <span class="text-xs font-bold text-slate-400 dark:text-slate-500">#{{ str_pad($index + 1, 3, '0', STR_PAD_LEFT) }}</span>
+                    </td>
+                    <td class="px-6 py-2">
+                        <span class="text-sm text-slate-800 dark:text-slate-200 leading-tight tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $persona->correo_inst }}</span>
+                    </td>
+                    <td class="px-6 py-2">
+                        <span class="text-sm text-slate-800 dark:text-slate-200 leading-tight tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ strtoupper($persona->apellidos . ' ' . $persona->nombres) }}</span>
+                    </td>
+                    <td class="px-6 py-2">
+                        <span class="text-sm text-slate-800 dark:text-slate-200 leading-tight tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $persona->asignacion_persona->seccion_academica->facultad->name }}</span>
+                    </td>
+                    @if($cargo != "Sub Administrador")
+                        <td class="px-6 py-2">
+                            <span class="text-sm text-slate-800 dark:text-slate-200 leading-tight tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $persona->asignacion_persona->seccion_academica->escuela->name }}</span>
+                        </td>
+                        <td class="px-6 py-2">
+                            <span class="text-sm text-slate-800 dark:text-slate-200 leading-tight tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $persona->asignacion_persona->seccion_academica->seccion}}</span>
+                        </td>
+                    @endif
+                    <td class="px-6 py-2 text-center">
+                        @if($persona->asignacion_persona->state == 1 || $persona->asignacion_persona->state == 2)
+                        <button type="button" class="btn btn-info" 
+                            @click="openEditModal({
+                                id_ap: {{ $persona->id }},
+                                id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},
+                                state_ap: {{ $persona->asignacion_persona->state }},
+                                nombre_ap: '{{ $persona->apellidos . ' ' . $persona->nombres }}',
+                                facultad: '{{ $persona->asignacion_persona->seccion_academica->facultad->name }}',
+                                escuela: '{{ $persona->asignacion_persona->seccion_academica->escuela->name }}',
+                                seccion: '{{ $persona->asignacion_persona->seccion_academica->seccion }}'
+                            })">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        @if(!$semestre_bloqueado)
+                        <button type="button" class="btn btn-danger" 
+                            @click="openSolicitudModal({
+                                id_ap: {{ $persona->asignacion_persona->id }},
+                                id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},
+                                state_ap: {{ $persona->asignacion_persona->state }},
+                                nombre_ap: '{{ $persona->apellidos . ' ' . $persona->nombres }}'
+                            })">
+                            <i class="bi bi-person-x-fill"></i>
+                        </button>
+                        @endif
+                        @elseif($persona->asignacion_persona->state == 3 && Auth::user()->hasAnyRoles([1,2]))
+                        <button type="button" class="btn btn-secondary" 
+                            @click="openManagementModal({
+                                id_ap: {{ $persona->asignacion_persona->id }},
+                                id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},
+                                nombre_ap: '{{ $persona->apellidos . ' ' . $persona->nombres }}'
+                            })">
+                            <i class="bi bi-hourglass-bottom"></i>
+                        </button>
+                        @elseif($persona->asignacion_persona->state == 3)
+                            <label class="badge badge-warning text-black">Pendiente</label>
+                        @elseif($persona->asignacion_persona->state == 4)
+                            <!-- button para habilitar -->
+                            <button type="button" class="btn btn-warning" 
+                                @click="openSolicitudModal({
+                                    id_ap: {{ $persona->asignacion_persona->id }},
+                                    id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},
+                                    state_ap: {{ $persona->asignacion_persona->state }},
+                                    nombre_ap: '{{ $persona->apellidos . ' ' . $persona->nombres }}'
+                                })">
+                                <i class="bi bi-person-check-fill"></i>
+                            </button>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    @include('list_users.partials.modales_gestion_estado')
+</div>
 @endsection
 
 @push('js')
-<script src="{{ asset('js/persona_edit.js') }}"></script>
-<script src="{{ asset('js/gestion_estado_usuario.js') }}"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#tablaEstudiantes').DataTable({
+        language: {
+            "lengthMenu": "Mostrar _MENU_",
+            "zeroRecords": "No se encontraron resultados",
+            "info": "Mostrando _PAGE_ de _PAGES_",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "search": "",
+            "searchPlaceholder": "Buscar escuela...",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Sig.",
+                "previous": "Ant."
+            },
+        },
+        pageLength: 10,
+        responsive: true,
+        dom: '<"flex flex-col md:flex-row md:items-center justify-between gap-4 py-8 px-2"lf>rt<"flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 pb-2 px-2"ip>',
+        initComplete: function() {
+            // Hide skeleton and show table
+            $('#skeletonLoader').addClass('hidden');
+            $('#tablaEstudiantes').addClass('dt-ready');
+        }
+    });
+});
+</script>
+@endpush
+
+@push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @if(session('success'))
     <script>
@@ -1260,170 +1076,4 @@
         });
     });
 </script>
-{{--  
-<script>
-    // btn-disabled-ap
-    document.addEventListener('DOMContentLoaded', function () {
-        const btnDisabledAp = document.querySelectorAll('.btn-disabled-ap');
-
-        const MODAL_SELECTOR = '#modalDisabledAp';
-        const modalElement = document.querySelector(MODAL_SELECTOR);
-        const myModal = new bootstrap.Modal(modalElement);
-
-        btnDisabledAp.forEach(btn => {
-            btn.addEventListener('click', function () {
-                const ID_AP = this.getAttribute('data-id-ap');
-                document.getElementById('id_ap').value = ID_AP;
-                document.getElementById('nombre_ap').textContent = this.getAttribute('data-nombre-ap');
-                document.getElementById('id_sa').value = this.getAttribute('data-id-sa');
-                const stateAp = this.getAttribute('data-state-ap');
-
-                const optionHabilitarAp = document.getElementById('option-habilitar-ap');
-                const optionDeshabilitarAp = document.getElementById('option-deshabilitar-ap');
-                if(stateAp < 4){
-                    document.getElementById('alertDeshabilitarAp').classList.remove('d-none');
-                    document.getElementById('alertHabilitarAp').classList.add('d-none');
-
-                    optionHabilitarAp.style.display = 'none';
-                    optionDeshabilitarAp.style.display = 'block';
-
-                    selectCorreccion('deshabilitar', 'ap');
-                }else{
-                    document.getElementById('alertDeshabilitarAp').classList.add('d-none');
-                    document.getElementById('alertHabilitarAp').classList.remove('d-none');
-
-                    optionHabilitarAp.style.display = 'block';
-                    optionDeshabilitarAp.style.display = 'none';
-                    selectCorreccion('habilitar', 'ap');
-                }
-                
-                myModal.show();
-            });
-        });
-
-        // Inicializar estilo por defecto
-        updateCorreccionStyles('deshabilitar', 'ap');
-    });
-
-    // Función global para seleccionar corrección
-    window.selectCorreccion = function(tipo, suffix) {
-        // Actualizar Radio Button
-        const radioId = 'correccion' + tipo.charAt(0).toUpperCase() + tipo.slice(1) + '-' + suffix;
-        const radioParams = document.getElementById(radioId);
-        if(radioParams) radioParams.checked = true;
-
-        // Actualizar Estilos Visuales
-        updateCorreccionStyles(tipo, suffix);
-    };
-
-    function updateCorreccionStyles(selectedTipo, suffix) {
-        // IDs de las celdas
-        const cellDeshabilitar = document.getElementById('deshabilitar-' + suffix);
-        const cellEliminar = document.getElementById('eliminar-' + suffix);
-
-        // Reset styles
-        [cellDeshabilitar, cellEliminar].forEach(cell => {
-            if(cell) {
-                cell.classList.remove('bg-primary', 'text-white', 'border-primary');
-                cell.classList.add('border-secondary', 'text-secondary');
-                cell.style.backgroundColor = '#f8f9fa'; // Un gris muy claro por defecto
-            }
-        });
-
-        // Apply active style
-        const activeCell = document.getElementById(selectedTipo + '-' + suffix);
-        if (activeCell) {
-            activeCell.classList.remove('border-secondary', 'text-secondary');
-            activeCell.classList.add('bg-primary', 'text-white', 'border-primary');
-            activeCell.style.backgroundColor = ''; // Limpiar inline style para que tome la clase bg-primary
-        }
-    }
-
-    const btnManagementAp = document.querySelectorAll('.btn-management-ap');
-    document.addEventListener('DOMContentLoaded', function () {
-        const MODAL_SELECTOR = '#modalManagementAp';
-        const modalElement = document.querySelector(MODAL_SELECTOR);
-        const myModal = new bootstrap.Modal(modalElement);
-
-        btnManagementAp.forEach(button => {
-            button.addEventListener('click', async function () {
-                const idAp = this.getAttribute('data-id-ap');
-                const nombreAp = this.getAttribute('data-nombre-ap');
-                const idSa = this.getAttribute('data-id-sa');
-                document.getElementById('id_ap').value = idAp;
-                document.getElementById('nombre_m_ap').textContent = nombreAp;
-
-                const reponse = await fetch(`/api/solicitud/getSolicitudAp/${idAp}`);
-                const data = await reponse.json();
-                console.log(data);
-
-                document.getElementById('id_sol').value = data.id;
-                document.getElementById('accion_ap').textContent = data.data.opcion.toUpperCase() ?? 'Error';
-                document.getElementById('accion_ap').classList.add('font-weight-bold');
-
-                document.getElementById('justificacion_ap').textContent = data.motivo.toUpperCase() ?? 'Error';
-                document.getElementById('justificacion_ap').classList.add('font-weight-bold');
-
-                selectGestion('aprobar');
-                myModal.show();
-            });
-        });
-
-        if(document.getElementById('aprobar-management')) {
-            updateGestionStyles('aprobar');
-        }
-    })
-
-    // Función para seleccionar gestión (Aprobar/Rechazar)
-    window.selectGestion = function(tipo) {
-        const radioId = 'gestion' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
-        const radioBtn = document.getElementById(radioId);
-        if(radioBtn) radioBtn.checked = true;
-
-        updateGestionStyles(tipo);
-    };
-
-    function updateGestionStyles(selectedTipo) {
-        const cellAprobar = document.getElementById('aprobar-management');
-        const cellRechazar = document.getElementById('rechazar-management');
-
-        // Reset
-        [cellAprobar, cellRechazar].forEach(cell => {
-            if(cell) {
-                cell.classList.remove('bg-success', 'bg-danger', 'text-white', 'border-success', 'border-danger');
-                cell.classList.add('border-secondary', 'text-secondary');
-                cell.style.backgroundColor = '#f8f9fa';
-            }
-        });
-
-        // Active
-        const activeCell = document.getElementById(selectedTipo + '-management');
-        if(activeCell) {
-            activeCell.classList.remove('border-secondary', 'text-secondary');
-            activeCell.style.backgroundColor = '';
-            
-            if(selectedTipo === 'aprobar') {
-                activeCell.classList.add('bg-success', 'text-white', 'border-success');
-            } else {
-                activeCell.classList.add('bg-danger', 'text-white', 'border-danger');
-            }
-        }
-    }
-
-    const btnEnabledAp = document.querySelectorAll('.btn-enabled-ap');
-    document.addEventListener('DOMContentLoaded', function () {
-        const MODAL_SELECTOR = '#modalEnabledAp';
-        const modalElement = document.querySelector(MODAL_SELECTOR);
-        const myModal = new bootstrap.Modal(modalElement);
-
-        btnEnabledAp.forEach(button => {
-            button.addEventListener('click', function () {
-                console.log('Habilitar');
-                myModal.show();
-            });
-        });
-    });
-
-</script>
---}}
 @endpush

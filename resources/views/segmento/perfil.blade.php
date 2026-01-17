@@ -2,678 +2,449 @@
 @section('title', 'Mi Perfil')
 @section('subtitle', 'Gestionar información personal y configuración de cuenta')
 
-@push('css')
-<style>
-    :root {
-        --primary-color: #1e3a8a;
-        --primary-light: #3b82f6;
-        --secondary-color: #64748b;
-        --background-color: #f8fafc;
-        --surface-color: #ffffff;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --border-color: #e2e8f0;
-        --success-color: #059669;
-        --warning-color: #d97706;
-        --danger-color: #dc2626;
-        --info-color: #0891b2;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    .profile-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    /* Card Styles */
-    .profile-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .profile-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
-
-    .profile-card-header {
-        background: linear-gradient(135deg, var(--surface-color) 0%, #f8fafc 100%);
-        border-bottom: 2px solid var(--border-color);
-        padding: 1.5rem 2rem;
-        position: relative;
-    }
-
-    .profile-card-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    }
-
-    .profile-card-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .profile-card-title i {
-        color: var(--primary-color);
-        font-size: 1.25rem;
-    }
-
-    .profile-card-body {
-        padding: 2rem;
-    }
-
-    /* Form Styles */
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-        font-weight: 500;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-        display: block;
-    }
-
-    .form-control {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        padding: 0.875rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        background: var(--surface-color);
-    }
-
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-        outline: none;
-    }
-
-    .form-control[readonly] {
-        background-color: #f8fafc;
-        border-color: #e2e8f0;
-        color: var(--text-secondary);
-        cursor: not-allowed;
-    }
-
-    .form-control[readonly]:focus {
-        box-shadow: none;
-        border-color: #e2e8f0;
-    }
-
-    /* Button Styles */
-    .btn {
-        font-family: 'Inter', sans-serif;
-        font-weight: 500;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-primary {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: var(--primary-light);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    .btn-success {
-        background: var(--success-color);
-        color: white;
-    }
-
-    .btn-success:hover {
-        background: #047857;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    .btn-info {
-        background: var(--info-color);
-        color: white;
-    }
-
-    .btn-info:hover {
-        background: #0e7490;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    /* Photo Section */
-    .photo-container {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .profile-photo {
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 4px solid var(--border-color);
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-    }
-
-    .profile-photo:hover {
-        transform: scale(1.05);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .default-avatar {
-        width: 200px;
-        height: 200px;
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 4rem;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-    }
-
-    .default-avatar:hover {
-        transform: scale(1.05);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .photo-divider {
-        width: 100%;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--border-color), transparent);
-        margin: 1.5rem 0;
-    }
-
-    /* Modal Styles */
-    .modal-content {
-        border: none;
-        border-radius: 1rem;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .modal-header {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        color: white;
-        border-radius: 1rem 1rem 0 0;
-        padding: 1.5rem 2rem;
-        border-bottom: none;
-    }
-
-    .modal-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        margin: 0;
-    }
-
-    .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
-    }
-
-    .btn-close:hover {
-        opacity: 1;
-    }
-
-    .modal-body {
-        padding: 2rem;
-        background: var(--surface-color);
-    }
-
-    .modal-footer {
-        background: var(--background-color);
-        border-top: 1px solid var(--border-color);
-        border-radius: 0 0 1rem 1rem;
-        padding: 1.5rem 2rem;
-    }
-
-    /* File Input Styles */
-    .file-input-container {
-        position: relative;
-        display: block;
-        width: 100%;
-    }
-
-    .file-input-container input[type="file"] {
-        width: 100%;
-        padding: 1rem;
-        border: 2px dashed var(--border-color);
-        border-radius: 0.75rem;
-        background: var(--background-color);
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-
-    .file-input-container input[type="file"]:hover {
-        border-color: var(--primary-color);
-        background: rgba(30, 58, 138, 0.02);
-    }
-
-    .file-input-container input[type="file"]:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 0.75rem;
-        align-items: center;
-    }
-
-    /* Alerts y notificaciones */
-    .alert {
-        border: none;
-        border-radius: 0.75rem;
-        padding: 1rem 1.25rem;
-        font-size: 0.9rem;
-        border-left: 4px solid;
-    }
-
-    .alert-info {
-        background: rgba(8, 145, 178, 0.1);
-        border-left-color: var(--info-color);
-        color: #0e7490;
-    }
-
-    .alert-success {
-        background: rgba(5, 150, 105, 0.1);
-        border-left-color: var(--success-color);
-        color: #047857;
-    }
-
-    .alert-warning {
-        background: rgba(217, 119, 6, 0.1);
-        border-left-color: var(--warning-color);
-        color: #92400e;
-    }
-
-    .alert-danger {
-        background: rgba(220, 38, 38, 0.1);
-        border-left-color: var(--danger-color);
-        color: #991b1b;
-    }
-
-    /* Texto secundario mejorado */
-    .text-secondary {
-        color: var(--text-secondary) !important;
-        font-size: 0.875rem;
-        line-height: 1.5;
-    }
-
-    /* Estados de formulario editables */
-    .form-control:not([readonly]):not([disabled]) {
-        border-color: var(--primary-color);
-        background: var(--surface-color);
-    }
-
-    .form-control:not([readonly]):not([disabled]):focus {
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    /* Mejoras para la transición de estados */
-    .form-control {
-        transition: all 0.3s ease;
-    }
-
-    /* Estilo para campos deshabilitados en modo edición */
-    .form-control[disabled] {
-        background-color: #f1f5f9;
-        border-color: #cbd5e1;
-        color: #64748b;
-        opacity: 0.8;
-    }
-
-    /* Mejoras en el layout del header de las cards */
-    .profile-card-header .d-flex {
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    @media (max-width: 768px) {
-        .profile-card-header .d-flex {
-            flex-direction: column;
-            align-items: flex-start !important;
-        }
-
-        .action-buttons {
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-    }
-
-    /* Estados de hover para botones */
-    .btn:not(:disabled):not(.disabled):hover {
-        text-decoration: none;
-    }
-
-    /* Mejoras en la tipografía */
-    .profile-card-body p {
-        margin-bottom: 0.75rem;
-        line-height: 1.6;
-    }
-
-    /* Efectos de enfoque mejorados */
-    .btn:focus,
-    .btn.focus {
-        outline: 0;
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.25);
-    }
-
-    /* Separadores mejorados */
-    .photo-divider {
-        position: relative;
-    }
-
-    .photo-divider::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 8px;
-        height: 8px;
-        background: var(--primary-color);
-        border-radius: 50%;
-        box-shadow: var(--shadow-sm);
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .profile-card-header {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .profile-card-body {
-            padding: 1.5rem;
-        }
-
-        .profile-card-title {
-            font-size: 1.25rem;
-        }
-
-        .action-buttons {
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .action-buttons .btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .profile-photo,
-        .default-avatar {
-            width: 150px;
-            height: 150px;
-        }
-
-        .default-avatar {
-            font-size: 3rem;
-        }
-    }
-
-    /* Loading State */
-    .btn.loading {
-        position: relative;
-        color: transparent;
-    }
-
-    .btn.loading::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid transparent;
-        border-top: 2px solid currentColor;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        color: white;
-    }
-
-    @keyframes spin {
-        0% { transform: translate(-50%, -50%) rotate(0deg); }
-        100% { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-</style>
-@endpush
-
 @section('content')
-<div class="profile-container">
-    <div class="row">
-        <!-- Datos Personales -->
-        <div class="col-xl-8 col-lg-7">
-            <div class="profile-card mb-4">
-                <div class="profile-card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="profile-card-title">
-                            <i class="bi bi-person-lines-fill"></i>
-                            Datos Personales
-                        </h5>
-                        <div class="action-buttons">
-                            <button type="button" class="btn btn-info" id="perfEdit">
-                                <i class="bi bi-pencil-square"></i>    
-                                Editar 
+<div class="max-w-5xl mx-auto pb-20" x-data="profileManagement()">
+    
+    <!-- Loading Overlay -->
+    <div x-show="loading" class="fixed inset-0 z-50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center transition-all duration-300" 
+         x-transition:enter="ease-out" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         style="display: none;">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-10 h-10 border-2 border-slate-200 border-t-slate-800 dark:border-slate-700 dark:border-t-white rounded-full animate-spin"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div x-show="loading" class="fixed inset-0 z-50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center transition-all duration-300" 
+         x-transition:enter="ease-out" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         style="display: none;">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-10 h-10 border-2 border-slate-200 border-t-slate-800 dark:border-slate-700 dark:border-t-white rounded-full animate-spin"></div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <form method="POST" action="{{ route('persona.editar') }}" enctype="multipart/form-data" @submit="loading = true">
+        @csrf
+        <input type="hidden" name="persona_id" value="{{ $persona->id }}">
+
+        <div class="space-y-20 mt-8">
+            
+            <!-- SECTION 1: PHOTO -->
+            <section id="photo" class="group">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
+                    <!-- Section Title -->
+                    <div class="md:col-span-4">
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Fotografía</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Esta imagen se mostrará en tu perfil y en los listados de estudiantes. Soporta JPG, PNG y GIF.
+                        </p>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="md:col-span-8">
+                        <div class="flex items-center gap-8">
+                            <div class="relative w-32 h-32 flex-shrink-0">
+                                <div class="w-full h-full rounded-full overflow-hidden shadow-xl ring-4 ring-white dark:ring-slate-800 bg-slate-100 dark:bg-slate-800">
+                                    <template x-if="previewUrl">
+                                        <img :src="previewUrl" class="w-full h-full object-cover">
+                                    </template>
+                                    <template x-if="!previewUrl && '{{ $persona->ruta_foto }}'">
+                                        <img src="{{ asset($persona->ruta_foto) }}" class="w-full h-full object-cover">
+                                    </template>
+                                    <template x-if="!previewUrl && !'{{ $persona->ruta_foto }}'">
+                                        <div class="w-full h-full flex items-center justify-center text-slate-300">
+                                            <i class="bi bi-person-fill text-5xl"></i>
+                                        </div>
+                                    </template>
+                                </div>
+                                
+                                <!-- Hidden File Input -->
+                                <input type="file" name="ruta_foto" x-ref="photoInput" class="hidden" accept="image/*" @change="previewUrl = URL.createObjectURL($event.target.files[0])">
+                            </div>
+
+                            <div class="space-y-4">
+                                <button type="button" @click="$refs.photoInput.click()" class="px-5 py-2.5 bg-slate-900 dark:bg-slate-700 text-white dark:text-slate-900 text-xs font-bold uppercase tracking-widest rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
+                                    Cambiar imagen
+                                </button>
+                                <button type="submit" x-show="previewUrl" class="block w-full px-5 py-2.5 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-blue-700 transition-all animate-fade-in-up">
+                                    Guardar Foto
+                                </button>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                                    Recomendado 500x500 px <br> Máximo 2MB
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Divider -->
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+
+            <!-- SECTION 2: PERSONAL DATA -->
+            <section id="personal" class="group">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
+                    <!-- Section Title -->
+                    <div class="md:col-span-4 sticky top-10">
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Información Personal</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                            Mantén tu información personal actualizada para facilitar la comunicación y los trámites administrativos.
+                        </p>
+                        
+                        <div class="flex items-center gap-2">
+                             <div class="relative inline-flex items-center cursor-pointer" @click="isEditing = !isEditing">
+                                <input type="checkbox" class="sr-only peer" :checked="isEditing">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-slate-900"></div>
+                                <span class="ml-3 text-[10px] font-bold uppercase tracking-widest text-slate-500" x-text="isEditing ? 'Edición Habilitada' : 'Habilitar Edición'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="md:col-span-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                            
+                            <!-- Read Only Identifiers -->
+                            <div class="md:col-span-2 grid grid-cols-2 gap-6 mb-2">
+                                <div class="group/input">
+                                    <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Código</label>
+                                    <div class="text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-2.5 rounded-lg border-1 border-slate-200 dark:border-slate-700">
+                                        {{ $persona->codigo }}
+                                    </div>
+                                </div>
+                                <div class="group/input">
+                                    <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Correo Institucional</label>
+                                    <div class="text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-2.5 rounded-lg border-1 border-slate-200 dark:border-slate-700 truncate">
+                                        {{ $persona->correo_inst }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Editable Inputs Style: Boxed -->
+                            <div class="group/input">
+                                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 transition-colors" :class="{'text-blue-500': isEditing}">DNI</label>
+                                <input type="text" name="dni" value="{{ $persona->dni }}" :disabled="!isEditing"
+                                    class="block w-full text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-500 transition-all py-2.5 px-3 placeholder-slate-300">
+                            </div>
+
+                            <div class="group/input">
+                                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 transition-colors" :class="{'text-blue-500': isEditing}">Celular</label>
+                                <input type="tel" name="celular" value="{{ $persona->celular }}" :disabled="!isEditing"
+                                    class="block w-full text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-500 transition-all py-2.5 px-3 placeholder-slate-300">
+                            </div>
+
+                            <div class="group/input md:col-span-2">
+                                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 transition-colors" :class="{'text-blue-500': isEditing}">Nombres</label>
+                                <input type="text" name="nombres" value="{{ $persona->nombres }}" :disabled="!isEditing"
+                                    class="block w-full text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-500 transition-all py-2.5 px-3 placeholder-slate-300">
+                            </div>
+
+                            <div class="group/input md:col-span-2">
+                                <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 transition-colors" :class="{'text-blue-500': isEditing}">Apellidos</label>
+                                <input type="text" name="apellidos" value="{{ $persona->apellidos }}" :disabled="!isEditing"
+                                    class="block w-full text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-500 transition-all py-2.5 px-3 placeholder-slate-300">
+                            </div>
+
+                            <!-- Location Block -->
+                            <div class="md:col-span-2 mt-2">
+                                <span class="text-xs font-bold text-slate-900 dark:text-white mb-4 block">Ubicación Geográfica</span>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    
+                                    <!-- Departamento (Always Read-Only) -->
+                                    <div class="group/input">
+                                        <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Dpto.</label>
+                                        <input type="text" value="{{ $persona->departamento }}" disabled
+                                            class="block w-full text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-lg py-2.5 px-3">
+                                    </div>
+
+                                    <!-- Provincia -->
+                                    <div class="group/input">
+                                        <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Provincia</label>
+                                        
+                                        <!-- Read Only Text (Computed) -->
+                                        <div x-show="!isEditing" class="text-xs font-bold text-slate-700 dark:text-slate-300 py-2.5 px-3 border-1 border-slate-200 dark:border-slate-700 rounded-lg" x-text="getProvinciaName()"></div>
+                                        
+                                        <!-- Interactive Select & Hidden Input for DB -->
+                                        <div x-show="isEditing" class="relative">
+                                            <input type="hidden" name="provincia" :value="getProvinciaName()">
+                                            <select x-model="selectedProvincia" @change="updateDistritos()"
+                                                class="block w-full text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all py-2.5 px-3 appearance-none">
+                                                <option value="">Seleccione</option>
+                                                <template x-for="prov in provincias" :key="prov.id">
+                                                    <option :value="prov.id" x-text="prov.nombre"></option>
+                                                </template>
+                                            </select>
+                                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <i class="bi bi-chevron-down text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Distrito -->
+                                    <div class="group/input">
+                                        <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Distrito</label>
+                                        
+                                        <!-- Read Only Text (Computed) -->
+                                        <div x-show="!isEditing" class="text-xs font-bold text-slate-700 dark:text-slate-300 py-2.5 px-3 border-1 border-slate-200 dark:border-slate-700 rounded-lg" x-text="getDistritoName()"></div>
+                                        
+                                        <!-- Interactive Select & Hidden Input for DB -->
+                                        <div x-show="isEditing" class="relative">
+                                            <input type="hidden" name="distrito" :value="getDistritoName()">
+                                            <select x-model="selectedDistrito" :disabled="!selectedProvincia"
+                                                class="block w-full text-xs font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-slate-50 disabled:text-slate-500 transition-all py-2.5 px-3 appearance-none">
+                                                <option value="">Seleccione</option>
+                                                <template x-for="dist in distritos_options" :key="dist.id">
+                                                    <option :value="dist.id" x-text="dist.nombre"></option>
+                                                </template>
+                                            </select>
+                                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                                <i class="bi bi-chevron-down text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div x-show="isEditing" class="mt-8 flex items-center justify-end gap-4 animate-fade-in-up">
+                            <button type="button" @click="cancelEditing()" class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">
+                                Cancelar
                             </button>
-                            <button type="submit" form="formEditPerfil" class="btn btn-success d-none" id="perfUpdate">
-                                <i class="bi bi-check-circle"></i>
+                            <button type="submit" class="px-6 py-2.5 bg-slate-900 dark:bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
                                 Guardar Cambios
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="profile-card-body">
-                    <form id="formEditPerfil" method="POST" action="{{ route('persona.editar') }}" enctype="multipart/form-data">
-                        <meta name="csrf-token" content="{{ csrf_token() }}">
-                        @csrf
-                        @method('POST')
-                        <input type="hidden" id="persona_id" name="persona_id" value="{{ $persona->id }}">
-                        
-                        <!-- Fila 1: Código, DNI, Celular -->
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="codigo">Código</label>
-                                    <input type="text" class="form-control" id="codigo" name="codigo" value="{{ $persona->codigo ?? '' }}" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="dni">DNI</label>
-                                    <input type="text" class="form-control" id="dni" name="dni" value="{{ $persona->dni ?? '' }}" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="celular">Celular</label>
-                                    <input type="text" class="form-control" id="celular" name="celular" value="{{ $persona->celular ?? '' }}" disabled>
-                                </div>
-                            </div>
-                        </div>  
-                        
-                        <!-- Fila 2: Nombres y Apellidos -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="nombres">Nombres</label>
-                                    <input type="text" class="form-control" id="nombres" name="nombres" value="{{ $persona->nombres ?? '' }}" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="apellidos">Apellidos</label>
-                                    <input type="text" class="form-control" id="apellidos" name="apellidos" value="{{ $persona->apellidos ?? '' }}" disabled>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Fila 3: Correo y Departamento -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="correo_inst">Correo Institucional</label>
-                                    <input type="email" class="form-control" id="correo_inst" name="correo_inst" value="{{ $persona->correo_inst ?? '' }}" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="departamento">Departamento</label>
-                                    <input type="text" class="form-control" id="departamento" name="departamento" value="{{ $persona->departamento ?? '' }}" disabled>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Fila 4: Provincia y Distrito -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="provincia">Provincia</label>
-                                    <select class="form-control" id="provincia" name="provincia" data-valor="{{ $persona->provincia ?? '' }}" disabled>
-                                        <option value="">Seleccione una provincia</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="distrito">Distrito</label>
-                                    <select class="form-control" id="distrito" name="distrito" data-valor="{{ $persona->distrito ?? '' }}" disabled>
-                                        <option value="">Seleccione un distrito</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- Fotografía -->
-        <div class="col-xl-4 col-lg-5">
-            <div class="profile-card mb-4">
-                <div class="profile-card-header">
-                    <h5 class="profile-card-title">
-                        <i class="bi bi-camera"></i>
-                        Fotografía de Perfil
-                    </h5>
-                </div>
-                <div class="profile-card-body">
-                    <div class="photo-container">
-                        @if ($persona->ruta_foto)
-                            <img src="{{ asset($persona->ruta_foto) }}" alt="Foto de perfil" class="profile-photo">
-                        @else
-                            <div class="default-avatar">
-                                <i class="bi bi-person"></i>
-                            </div>
-                        @endif
-                        
-                        <div class="photo-divider"></div>
-                        
-                        <p class="text-secondary mb-3">
-                            Formatos permitidos: JPG, PNG, GIF<br>
-                            Tamaño máximo: 2MB
+            <!-- Divider -->
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+
+            <!-- SECTION 3: ACADEMIC -->
+            <section id="academic" class="scroll-mt-32 group">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start opacity-70 group-hover:opacity-100 transition-opacity duration-500">
+                    <!-- Section Title -->
+                    <div class="md:col-span-4">
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-2">Información Académica</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Detalles de tu asignación actual.
+                            @if($persona->asignacion_persona && $persona->asignacion_persona->state != 1)
+                                <span class="text-blue-500 font-bold block mt-1">Puedes editar estos datos mientras la validación esté pendiente.</span>
+                            @endif
                         </p>
-                        
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalFoto">
-                            <i class="bi bi-cloud-upload"></i>
-                            Cambiar Foto
-                        </button>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Modal Subir Foto -->
-<div class="modal fade" id="modalFoto" tabindex="-1" aria-labelledby="modalFotoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalFotoLabel">
-                    <i class="bi bi-camera me-2"></i>
-                    Editar Fotografía de Perfil
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('store.foto') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="persona_id" value="{{ $persona->id }}">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="foto" class="form-label">Seleccionar Nueva Fotografía</label>
-                        <div class="file-input-container">
-                            <input type="file" name="foto" id="foto" accept="image/*" required class="form-control">
-                        </div>
-                    </div>
-                    <div class="alert alert-info" role="alert">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Requisitos:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>Formatos permitidos: JPG, PNG, GIF</li>
-                            <li>Tamaño máximo: 2MB</li>
-                            <li>Dimensiones recomendadas: 500x500 píxeles</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-cloud-upload me-2"></i>
-                        Subir Fotografía
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+                    <!-- Content -->
+                    <div class="md:col-span-8">
+                         @if($persona->asignacion_persona)
+                            <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border-1 border-slate-100 dark:border-slate-800">
+                                
+                                {{-- If Validated: Read Only --}}
+                                @if($persona->asignacion_persona->state == 1)
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Facultad</span>
+                                            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                {{ $persona->asignacion_persona->seccion_academica->facultad->name ?? 'N/A' }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Escuela</span>
+                                            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                {{ $persona->asignacion_persona->seccion_academica->escuela->name ?? 'N/A' }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Sección</span>
+                                            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                {{ $persona->asignacion_persona->seccion_academica->seccion ?? 'N/A' }}
+                                            </p>
+                                        </div>
+                                    </div>
 
+                                    <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                                        <i class="bi bi-shield-check text-emerald-500"></i>
+                                        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">Asignación Validada y Activa</span>
+                                    </div>
+                                
+                                {{-- If Not Validated: Editable --}}
+                                @else
+                                    <div class="grid grid-cols-1 gap-6">
+                                        
+                                        <!-- Facultad -->
+                                        <div class="group/input">
+                                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Facultad</label>
+                                            <select x-model="selectedFacultad" @change="loadEscuelas(); selectedEscuela=''; selectedSeccionAcad=''" class="block w-full text-xs font-medium text-slate-900 dark:text-white bg-transparent border-0 border-b border-slate-200 dark:border-slate-700 focus:ring-0 focus:border-slate-900 transition-all py-1.5 appearance-none rounded-none">
+                                                <option value="">Seleccione Facultad</option>
+                                                @foreach($facultades as $fac)
+                                                    <option value="{{ $fac->id }}">{{Str::limit($fac->name, 40)}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- Escuela -->
+                                        <div class="group/input">
+                                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Escuela</label>
+                                            <select x-model="selectedEscuela" @change="loadSecciones(); selectedSeccionAcad=''" :disabled="!selectedFacultad" class="block w-full text-xs font-medium text-slate-900 dark:text-white bg-transparent border-0 border-b border-slate-200 dark:border-slate-700 focus:ring-0 focus:border-slate-900 disabled:border-slate-100 disabled:text-slate-500 transition-all py-1.5 appearance-none rounded-none">
+                                                <option value="">Seleccione Escuela</option>
+                                                <template x-for="esc in escuelas" :key="esc.id">
+                                                    <option :value="esc.id" x-text="esc.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        <!-- Sección -->
+                                        <div class="group/input">
+                                            <label class="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Sección</label>
+                                            <select name="seccion_id" x-model="selectedSeccionAcad" :disabled="!selectedEscuela" class="block w-full text-xs font-medium text-slate-900 dark:text-white bg-transparent border-0 border-b border-slate-200 dark:border-slate-700 focus:ring-0 focus:border-slate-900 disabled:border-slate-100 disabled:text-slate-500 transition-all py-1.5 appearance-none rounded-none">
+                                                <option value="">Seleccione Sección</option>
+                                                <template x-for="sec in secciones" :key="sec.id">
+                                                    <option :value="sec.id" x-text="sec.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <i class="bi bi-clock-history text-amber-500"></i>
+                                            <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wide">Pendiente de Validación</span>
+                                        </div>
+                                        <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest rounded shadow hover:bg-blue-700 transition-colors">
+                                            Actualizar Asignación
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                         @else
+                            <div class="p-6 text-center border-2 border-dashed border-slate-200 rounded-2xl">
+                                <span class="text-xs text-slate-400">Sin información académica registrada</span>
+                            </div>
+                         @endif
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </form>
+</div>
 @endsection
 
 @push('js')
-<script src="{{ asset('js/perfil_edit.js') }}"></script>
+<script>
+    function profileManagement() {
+        return {
+            loading: false,
+            isEditing: false,
+            previewUrl: null,
+            provincias: [],
+            all_distritos: {},
+            distritos_options: [],
+            selectedProvincia: '{{ $persona->provincia }}',
+            selectedDistrito: '{{ $persona->distrito }}',
+            
+            // Academic Data
+            escuelas: [],
+            secciones: [],
+            selectedFacultad: '{{ $persona->asignacion_persona?->seccion_academica?->id_facultad ?? "" }}',
+            selectedEscuela: '{{ $persona->asignacion_persona?->seccion_academica?->id_escuela ?? "" }}',
+            selectedSeccionAcad: '{{ $persona->asignacion_persona?->id_sa ?? "" }}',
+            semestreId: '{{ $persona->asignacion_persona?->id_semestre ?? session("semestre_actual_id") }}',
+
+            async init() {
+                // Initialize Locations
+                try {
+                    const [provRes, distRes] = await Promise.all([
+                        fetch('/data/provincias.json'),
+                        fetch('/data/distritos.json')
+                    ]);
+                    const provData = await provRes.json();
+                    const distData = await distRes.json();
+                    this.provincias = provData.provincias || [];
+                    this.all_distritos = distData.distritos || {};
+                    
+                    // Match Name to ID logic
+                    if (this.selectedProvincia) {
+                        // First try finding by ID (if saved as ID)
+                        let prov = this.provincias.find(p => p.id == this.selectedProvincia); 
+                        if (!prov) {
+                            // If not found, try finding by Name (case insensitive)
+                            prov = this.provincias.find(p => p.nombre.toLowerCase() == this.selectedProvincia.toLowerCase());
+                            if (prov) this.selectedProvincia = prov.id;
+                        }
+                        
+                        this.updateDistritos();
+                        
+                        // Wait for districts to populate
+                        this.$nextTick(() => {
+                            if (this.selectedDistrito) {
+                                // Try ID match
+                                let dist = this.distritos_options.find(d => d.id == this.selectedDistrito);
+                                if (!dist) {
+                                    // Try Name match
+                                    dist = this.distritos_options.find(d => d.nombre.toLowerCase() == this.selectedDistrito.toLowerCase());
+                                    if (dist) this.selectedDistrito = dist.id;
+                                }
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading locations:', error);
+                }
+
+                // Initialize Academic Data
+                if (this.selectedFacultad) await this.loadEscuelas();
+                if (this.selectedEscuela) await this.loadSecciones();
+            },
+            
+            // Helper: Get Province Name for Display/DB
+            getProvinciaName() {
+                const prov = this.provincias.find(p => p.id == this.selectedProvincia);
+                // If found, return name. If not (e.g. init loading), return the raw value from DB.
+                return prov ? prov.nombre : '{{ $persona->provincia }}';
+            },
+            
+            // Helper: Get District Name for Display/DB
+            getDistritoName() {
+                const dist = this.distritos_options.find(d => d.id == this.selectedDistrito);
+                return dist ? dist.nombre : '{{ $persona->distrito }}';
+            },
+
+            updateDistritos() {
+                this.distritos_options = this.all_distritos[this.selectedProvincia] || [];
+            },
+
+            // Academic Methods
+            async loadEscuelas() {
+                if (!this.selectedFacultad) { this.escuelas = []; return; }
+                try {
+                    const response = await fetch('/api/escuelas/' + this.selectedFacultad);
+                    this.escuelas = await response.json();
+                } catch (error) { console.error('Error loading escuelas:', error); }
+            },
+
+            async loadSecciones() {
+                if (!this.selectedEscuela || !this.semestreId) { this.secciones = []; return; }
+                try {
+                    const response = await fetch('/api/secciones/' + this.selectedEscuela + '/' + this.semestreId);
+                    this.secciones = await response.json();
+                } catch (error) { console.error('Error loading secciones:', error); }
+            },
+
+            cancelEditing() {
+                this.isEditing = false;
+                window.location.reload();
+            }
+        }
+    }
+</script>
+<style>
+    html { scroll-behavior: smooth; }
+</style>
 @endpush

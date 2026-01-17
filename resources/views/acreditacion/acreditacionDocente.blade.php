@@ -4,47 +4,38 @@
 
 @section('content')
 
-<!-- Estilos personalizados para el área de carga (Bootstrap no tiene border-dashed por defecto) -->
-<style>
-    .file-drop-area {
-        border: 2px dashed #ced4da; /* Simula border-dashed */
-        padding: 40px 20px;
-        transition: border-color 0.15s ease-in-out;
-    }
-    .file-drop-area:hover {
-        border-color: #0d6efd;
-        cursor: pointer;
-    }
-    .card-hover-scale {
-        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    }
-    .card-hover-scale:hover {
-        transform: scale(1.02);
-        box-shadow: 0 10px 20px rgba(0,0,0,.15);
-    }
-</style>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-<!-- Contenedor Principal (Bootstrap) -->
-<div class="container">
+    <x-header-content
+        title="Requisitos de Habilitación de Acceso"
+        subtitle="Gestionar y validar documentos académicos de estudiantes"
+        icon="bi-patch-check-fill"
+        :enableButton="false"
+    />
 
-    <!-- Encabezado de la Sección -->
-    <div class="">
-        <div class="p-3">
-            <h1 class="fs-3 fw-bolder text-dark mb-2 d-flex align-items-center">
-                <svg class="bi me-3 text-primary" width="32" height="32" fill="currentColor" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <!-- Info Banner -->
+    <div class="mb-8 p-6 bg-slate-50 dark:bg-slate-800 rounded-[1.25rem] shadow-sm border-1 border-slate-100 dark:border-slate-700 relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4 opacity-10">
+            <i class="bi bi-shield-lock-fill text-9xl text-slate-300 dark:text-slate-600"></i>
+        </div>
+        <div class="relative z-10 flex flex-col sm:flex-row items-start gap-5">
+            <div class="shrink-0 p-3.5 bg-blue-50 dark:bg-blue-900/30 rounded-2xl text-blue-600 dark:text-blue-400">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
                     <path d="M4 8a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3A.5.5 0 0 1 4 8m5.5 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m-5.5 4a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m5.5 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
                 </svg>
-                Requisitos de Habilitación de Acceso
-            </h1>
-            <p class="text-secondary">
-                Debe subir la documentación obligatoria correspondiente a su rol para habilitar la navegación completa del sistema.
-            </p>
+            </div>
+            <div>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight mb-2">Requisitos de Habilitación de Acceso</h3>
+                <p class="text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-3xl">
+                    Debe subir la documentación obligatoria correspondiente a su rol para habilitar la navegación completa del sistema. Asegúrese de que los documentos sean legibles y estén en formato PDF.
+                </p>
+            </div>
         </div>
     </div>
 
-    <!-- Contenedor de las Tarjetas (Responsive Grid con Bootstrap Row/Col) -->
-    <div class="row g-4">
+    <!-- Grid Cards -->
+    <div class="grid grid-cols-1 {{ ($ap->id_rol == 4) ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }} gap-6">
         @php
             $archivosPorTipo = $acreditacion->archivos->groupBy('tipo');
 
@@ -67,164 +58,198 @@
             $latestResolucion = $getLatest('resolucion');
             $estadoResolucion = $latestResolucion ? $latestResolucion->estado_archivo : 'Falta';
             $msjResolucion = ($estadoResolucion === 'Corregir') ? $latestResolucion->comentario : null;
-
-            /*$colorResolucion = match($estadoResolucion) {
-                'Aprobado' => 'success',
-                'Enviado' => 'warning',
-                'Corregir' => 'danger',
-                default => 'secondary',
-            };*/
         @endphp
-        <!-- TARJETA 1: CARGA LECTIVA -->
-        <div class="col-lg-{{ ($ap->id_rol == 4)? 4 : 6; }}">
-            <div class="card shadow-lg rounded-3 h-100 card-hover-scale">
-                <div class="card-body p-4 p-md-5">
-                    <div class="d-flex align-items-start mb-4">
-                        <div class="text-primary bg-primary bg-opacity-10 p-3 rounded-circle me-4">
-                            <!-- Icono de Carga Lectiva (Gráfico) -->
-                            <svg class="bi" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm6-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1zm6-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="h4 fw-bold text-dark">Carga Lectiva (C.L.)</h2>
-                            <p class="text-muted mb-0">Documento oficial de distribución de horas.</p>
-                        </div>
-                    </div>
 
-                    <p class="text-secondary mb-4 border-start border-4 border-info ps-3 py-1">
-                        Debe estar firmado y sellado. (Formato PDF).
-                    </p>
+        <!-- TARJETA 1: CARGA LECTIVA -->
+        <div class="group relative bg-slate-50 dark:bg-slate-800 rounded-[1.5rem] border-1 border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+             x-data="{ fileName: '' }">
+            <div class="p-6 sm:p-8 flex-1 flex flex-col">
+                <div class="flex items-start gap-5 mb-6">
+                    <div class="shrink-0 w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm">
+                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M1 11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm6-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1zm6-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800 dark:text-white tracking-tight">Carga Lectiva (C.L.)</h2>
+                        <p class="text-sm font-medium text-slate-400 dark:text-slate-500 mt-1">Documento oficial de distribución de horas.</p>
+                    </div>
+                </div>
+
+                <div class="mb-6 pl-4 border-l-4 border-blue-400 dark:border-blue-500">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Requisito</p>
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Debe estar firmado y sellado. (Formato PDF).</p>
+                </div>
+
+                <div class="mt-auto space-y-4">
                     @if($estadoCL === 'Aprobado')
-                        <div class="alert alert-success border-start border-4 border-success rounded-3 mt-4" role="alert">
-                            <p class="mb-0 fw-bold">¡Documento Aprobado! ✅</p>
+                        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border-1 border-emerald-100 dark:border-emerald-800/30">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <p class="text-sm font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-wide">¡Documento Aprobado!</p>
+                            </div>
                             @if($latestCL->ruta ?? null)
-                                <a href="{{ asset($latestCL->ruta) }}" target="_blank" class="btn btn-sm btn-outline-success mt-2"><i class="bi bi-eye"></i> Ver Versión Aprobada</a>
+                                <a href="{{ asset($latestCL->ruta) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border-1 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors">
+                                    <i class="bi bi-eye-fill"></i> Ver Versión Aprobada
+                                </a>
                             @endif
                         </div>
                     @elseif($estadoCL === 'Enviado')
-                        <div class="mt-4 p-3 alert alert-info border-start border-4 border-info rounded-3" role="alert">
-                            <p class="mb-0">Su constancia de Carga Lectiva está siendo revisada. Por favor, espere la confirmación.</p>
-                        </div>
-                    @elseif($estadoCL === 'Corregir')
-                        <div class="alert alert-danger border-start border-4 border-danger rounded-3 mt-4" role="alert">
-                            <p class="mb-1 fw-bold">⚠️ Debe Corregir la Resolución.</p>
-                            <p class="mb-0">Mensaje del Revisor: <strong>{{ $msjCL ?: 'Sin comentarios.' }}</strong></p>
-                            {{-- Si hay una ruta para ver la versión que fue corregida --}}
-                            @if($latestCL->ruta ?? null)
-                                <a href="{{ asset($latestCL->ruta) }}" target="_blank" class="btn btn-sm btn-outline-danger mt-2">Ver Versión Anterior</a>
-                            @endif
-                            {{-- mensaje que vuelva enviar --}}
-                            <p class="mb-0">Vuelve enviar</p>
-                        </div>
-                    @endif
-                    @if($estadoCL != 'Enviado' && $estadoCL != 'Aprobado')
-                        <form action="{{ route('subir.clectiva') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="ap_id" value="{{ $ap->id }}">
-                        <!-- Área de Subida de Archivos Estilizada con input oculto -->
-                        <div class="mb-4">
-                            <label for="carga_lectiva" class="form-label fw-bold">Seleccionar Archivo (PDF Máx. 5MB)</label>
-                            <div class="file-drop-area text-center bg-light rounded-3" onclick="document.getElementById('carga_lectiva').click()">
-                                <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-secondary" width="48" height="48" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v12m0 0V20a4 4 0 00-4-4h-4m4 4v12m-4-12v12m-4-12v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 32h40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    <div class="d-flex justify-content-center text-sm text-muted">
-                                        <label for="carga_lectiva" class="position-relative text-primary fw-bold" style="cursor: pointer;">
-                                            Buscar Archivo
-                                        </label>
-                                        <p class="ps-1 mb-0">o arrastrar y soltar</p>
-                                    </div>
-                                    <p class="text-xs text-secondary mb-0" id="carga_lectiva_nombre">PDF, máximo 5MB</p>
-                                </div>
-                                <!-- Input File Real (Oculto visualmente, pero activado por el div) -->
-                                <input id="carga_lectiva" name="carga_lectiva" type="file" class="d-none" onchange="document.getElementById('carga_lectiva_nombre').textContent = this.files[0] ? this.files[0].name : 'PDF, máximo 5MB';" accept=".pdf" required>
+                        <div class="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border-1 border-blue-100 dark:border-blue-800/30 flex items-start gap-3">
+                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-blue-800 dark:text-blue-300">En Revisión</p>
+                                <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">Su constancia está siendo revisada. Por favor, espere.</p>
                             </div>
                         </div>
-
-                        <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3">
-                            <i class="bi bi-cloud-upload me-2"></i>
-                            Confirmar y Subir Carga Lectiva
-                        </button>
-                    </form>
-                    
+                    @elseif($estadoCL === 'Corregir')
+                        <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border-1 border-rose-100 dark:border-rose-800/30">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-800/50 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                </div>
+                                <p class="text-sm font-black text-rose-800 dark:text-rose-400 uppercase tracking-wide">Debe Corregir</p>
+                            </div>
+                            <p class="text-xs font-medium text-rose-700 dark:text-rose-300 mb-3 pl-11">
+                                <span class="font-bold">Observación:</span> {{ $msjCL ?: 'Sin comentarios.' }}
+                            </p>
+                            @if($latestCL->ruta ?? null)
+                                <a href="{{ asset($latestCL->ruta) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border-1 border-rose-200 dark:border-rose-700 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-50 transition-colors mb-2">
+                                    Ver Versión Anterior
+                                </a>
+                            @endif
+                        </div>
                     @endif
-                    
+
+                    @if($estadoCL != 'Enviado' && $estadoCL != 'Aprobado')
+                        <form action="{{ route('subir.clectiva') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="ap_id" value="{{ $ap->id }}">
+                            
+                            <div class="relative group/drop">
+                                <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 ml-1">Subir Archivo</label>
+                                <div class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all cursor-pointer flex flex-col items-center justify-center text-center p-4 group-hover/drop:scale-[1.01]"
+                                     @click="document.getElementById('carga_lectiva').click()">
+                                    
+                                    <div class="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 shadow-sm flex items-center justify-center text-blue-500 mb-2 group-hover/drop:scale-110 transition-transform">
+                                        <i class="bi bi-cloud-arrow-up-fill text-lg"></i>
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-600 dark:text-slate-300" x-text="fileName || 'Click para seleccionar PDF'">Click para seleccionar PDF</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Máximo 5MB</p>
+                                    
+                                    <input id="carga_lectiva" name="carga_lectiva" type="file" class="hidden" 
+                                           @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''" 
+                                           accept=".pdf" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg shadow-blue-500/20 font-bold text-xs uppercase tracking-widest transform active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <i class="bi bi-send-fill"></i>
+                                Confirmar y Subir
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
         
         <!-- TARJETA 2: HORARIO DE CLASES -->
-        <div class="col-lg-{{ ($ap->id_rol == 4)? 4 : 6; }}">
-            <div class="card shadow-lg rounded-3 h-100 card-hover-scale">
-                <div class="card-body p-4 p-md-5">
-                    <div class="d-flex align-items-start mb-4">
-                        <div class="text-success bg-success bg-opacity-10 p-3 rounded-circle me-4">
-                            <!-- Icono de Horario (Calendario) -->
-                            <svg class="bi" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M11 6.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1h2.5V7a.5.5 0 0 1 .5-.5z"/>
-                                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="h4 fw-bold text-dark">Horario de Clases</h2>
-                            <p class="text-muted mb-0">Distribución semanal de la actividad docente.</p>
-                        </div>
+        <div class="group relative bg-slate-50 dark:bg-slate-800 rounded-[1.5rem] border-1 border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+             x-data="{ fileName: '' }">
+            <div class="p-6 sm:p-8 flex-1 flex flex-col">
+                <div class="flex items-start gap-5 mb-6">
+                    <div class="shrink-0 w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 shadow-sm">
+                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11 6.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1h2.5V7a.5.5 0 0 1 .5-.5z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                        </svg>
                     </div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800 dark:text-white tracking-tight">Horario de Clases</h2>
+                        <p class="text-sm font-medium text-slate-400 dark:text-slate-500 mt-1">Distribución semanal de la actividad docente.</p>
+                    </div>
+                </div>
 
-                    <p class="text-secondary mb-4 border-start border-4 border-success ps-3 py-1">
-                        Asegúrese de que coincida con la Carga Lectiva. (Formato PDF).
-                    </p>
+                <div class="mb-6 pl-4 border-l-4 border-teal-400 dark:border-teal-500">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Requisito</p>
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Asegúrese de que coincida con la Carga Lectiva. (PDF).</p>
+                </div>
+
+                <div class="mt-auto space-y-4">
                     @if($estadoHorario === 'Aprobado')
-                        <div class="alert alert-success border-start border-4 border-success rounded-3 mt-4" role="alert">
-                            <p class="mb-0 fw-bold">¡Documento Aprobado! ✅</p>
+                        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border-1 border-emerald-100 dark:border-emerald-800/30">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <p class="text-sm font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-wide">¡Documento Aprobado!</p>
+                            </div>
                             @if($latestHorario->ruta ?? null)
-                                <a href="{{ asset($latestHorario->ruta) }}" target="_blank" class="btn btn-sm btn-outline-success mt-2"><i class="bi bi-eye"></i> Ver Versión Aprobada</a>
+                                <a href="{{ asset($latestHorario->ruta) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border-1 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors">
+                                    <i class="bi bi-eye-fill"></i> Ver Versión Aprobada
+                                </a>
                             @endif
                         </div>
                     @elseif($estadoHorario === 'Enviado')
-                        <div class="mt-4 p-3 alert alert-success border-start border-4 border-success rounded-3" role="alert">
-                            <p class="mb-0">Su constancia de Horario de Clases está siendo revisada. Por favor, espere la confirmación.</p>
-                        </div>
-                    @elseif($estadoHorario === 'Corregir')
-                        <div class="alert alert-danger border-start border-4 border-danger rounded-3 mt-4" role="alert">
-                            <p class="mb-1 fw-bold">⚠️ Debe Corregir la Resolución.</p>
-                            <p class="mb-0">Mensaje del Revisor: <strong>{{ $msjHorario ?: 'Sin comentarios.' }}</strong></p>
-                            {{-- Si hay una ruta para ver la versión que fue corregida --}}
-                            @if($latestHorario->ruta ?? null)
-                                <a href="{{ asset($latestHorario->ruta) }}" target="_blank" class="btn btn-sm btn-outline-danger mt-2">Ver Versión Anterior</a>
-                            @endif
-                            {{-- mensaje que vuelva enviar --}}
-                            <p class="mb-0">Vuelve enviar</p>
-                        </div>
-                    @endif
-                    @if($estadoHorario != 'Enviado' && $estadoHorario != 'Aprobado')
-                    <form action="{{ route('subir.horario') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="ap_id" value="{{ $ap->id }}">
-                        <!-- Área de Subida de Archivos Estilizada con input oculto -->
-                        <div class="mb-4">
-                            <label for="horario" class="form-label fw-bold">Seleccionar Archivo (PDF Máx. 5MB)</label>
-                            <div class="file-drop-area text-center bg-light rounded-3" onclick="document.getElementById('horario').click()">
-                                <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-secondary" width="48" height="48" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v12m0 0V20a4 4 0 00-4-4h-4m4 4v12m-4-12v12m-4-12v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 32h40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    <div class="d-flex justify-content-center text-sm text-muted">
-                                        <label for="carga_lectiva" class="position-relative text-success fw-bold" style="cursor: pointer;">
-                                            Buscar Archivo
-                                        </label>
-                                        <p class="ps-1 mb-0">o arrastrar y soltar</p>
-                                    </div>
-                                    <p class="text-xs text-secondary mb-0" id="horario_clases_nombre">PDF, máximo 5MB</p>
-                                </div>
-                                <!-- Input File Real (Oculto visualmente, pero activado por el div) -->
-                                <input id="horario" name="horario" type="file" class="d-none" onchange="document.getElementById('horario_clases_nombre').textContent = this.files[0] ? this.files[0].name : 'PDF, máximo 5MB';" accept=".pdf" required>
+                        <div class="p-4 rounded-2xl bg-teal-50 dark:bg-teal-900/20 border-1 border-teal-100 dark:border-teal-800/30 flex items-start gap-3">
+                            <div class="shrink-0 w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-800/50 flex items-center justify-center text-teal-600 dark:text-teal-400">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-teal-800 dark:text-teal-300">En Revisión</p>
+                                <p class="text-xs text-teal-600 dark:text-teal-400 mt-1">Su constancia está siendo revisada. Por favor, espere.</p>
                             </div>
                         </div>
+                    @elseif($estadoHorario === 'Corregir')
+                        <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border-1 border-rose-100 dark:border-rose-800/30">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-800/50 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                </div>
+                                <p class="text-sm font-black text-rose-800 dark:text-rose-400 uppercase tracking-wide">Debe Corregir</p>
+                            </div>
+                            <p class="text-xs font-medium text-rose-700 dark:text-rose-300 mb-3 pl-11">
+                                <span class="font-bold">Observación:</span> {{ $msjHorario ?: 'Sin comentarios.' }}
+                            </p>
+                            @if($latestHorario->ruta ?? null)
+                                <a href="{{ asset($latestHorario->ruta) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border-1 border-rose-200 dark:border-rose-700 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-50 transition-colors mb-2">
+                                    Ver Versión Anterior
+                                </a>
+                            @endif
+                        </div>
+                    @endif
 
-                        <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm mt-3">
-                            <i class="bi bi-cloud-upload me-2"></i>
-                            Confirmar y Subir Horario
-                        </button>
-                    </form>
+                    @if($estadoHorario != 'Enviado' && $estadoHorario != 'Aprobado')
+                        <form action="{{ route('subir.horario') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="ap_id" value="{{ $ap->id }}">
+                            
+                            <div class="relative group/drop">
+                                <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 ml-1">Subir Archivo</label>
+                                <div class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 hover:border-teal-500 dark:hover:border-teal-400 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all cursor-pointer flex flex-col items-center justify-center text-center p-4 group-hover/drop:scale-[1.01]"
+                                     @click="document.getElementById('horario').click()">
+                                    
+                                    <div class="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 shadow-sm flex items-center justify-center text-teal-500 mb-2 group-hover/drop:scale-110 transition-transform">
+                                        <i class="bi bi-cloud-arrow-up-fill text-lg"></i>
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-600 dark:text-slate-300" x-text="fileName || 'Click para seleccionar PDF'">Click para seleccionar PDF</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Máximo 5MB</p>
+                                    
+                                    <input id="horario" name="horario" type="file" class="hidden" 
+                                           @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''" 
+                                           accept=".pdf" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-xl shadow-lg shadow-teal-500/20 font-bold text-xs uppercase tracking-widest transform active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <i class="bi bi-send-fill"></i>
+                                Confirmar y Subir
+                            </button>
+                        </form>
                     @endif
                 </div>
             </div>
@@ -232,77 +257,99 @@
 
         <!-- TARJETA 3: RESOLUCION DE DESINGACION DE SUPERVISOR -->
         @if($ap->id_rol == 4)
-        <div class="col-lg-4">
-            <div class="card shadow-lg rounded-3 h-100 card-hover-scale">
-                <div class="card-body p-4 p-md-5">
-                    <div class="d-flex align-items-start mb-4">
-                        <div class="text-success bg-success bg-opacity-10 p-3 rounded-circle me-4">
-                            <!-- Icono de Documento (Documento) -->
-                            <svg class="bi" width="24" height="24" fill="#ffc107" viewBox="0 0 16 16">
-                                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
-                                <path d="M8 5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1 0-1h4V5.5a.5.5 0 0 1-.5-.5zM8 8.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1 0-1h4V9a.5.5 0 0 1-.5-.5zM12 11.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1 0-1h4V12a.5.5 0 0 1-.5-.5z"/>
-                            </svg>                
-                        </div>
-                        <div>
-                            <h2 class="h4 fw-bold text-dark">Resolución</h2>
-                            <p class="text-muted mb-0">Resolución de designacion de docente supervisor.</p>
-                        </div>
+        <div class="group relative bg-slate-50 dark:bg-slate-800 rounded-[1.5rem] border-1 border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+             x-data="{ fileName: '' }">
+            <div class="p-6 sm:p-8 flex-1 flex flex-col">
+                <div class="flex items-start gap-5 mb-6">
+                    <div class="shrink-0 w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-500 dark:text-amber-400 shadow-sm">
+                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
+                            <path d="M8 5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1 0-1h4V5.5a.5.5 0 0 1-.5-.5zM8 8.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1 0-1h4V9a.5.5 0 0 1-.5-.5zM12 11.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1 0-1h4V12a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
                     </div>
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800 dark:text-white tracking-tight">Resolución</h2>
+                        <p class="text-sm font-medium text-slate-400 dark:text-slate-500 mt-1">Resolución de designación de docente supervisor.</p>
+                    </div>
+                </div>
 
-                    <p class="text-secondary mb-4 border-start border-4 border-warning ps-3 py-1">
-                        Asegúrese de que coincida con la Carga Lectiva. (Formato PDF).
-                    </p>
+                <div class="mb-6 pl-4 border-l-4 border-amber-400 dark:border-amber-500">
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Requisito</p>
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Asegúrese de que coincida con la Carga Lectiva. (PDF).</p>
+                </div>
+
+                <div class="mt-auto space-y-4">
                     @if($estadoResolucion === 'Aprobado')
-                        <div class="alert alert-success border-start border-4 border-success rounded-3 mt-4" role="alert">
-                            <p class="mb-0 fw-bold">¡Documento Aprobado! ✅</p>
+                        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border-1 border-emerald-100 dark:border-emerald-800/30">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <p class="text-sm font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-wide">¡Documento Aprobado!</p>
+                            </div>
                             @if($latestResolucion->ruta ?? null)
-                                <a href="{{ asset($latestResolucion->ruta) }}" target="_blank" class="btn btn-sm btn-outline-success mt-2">Ver Versión Aprobada</a>
+                                <a href="{{ asset($latestResolucion->ruta) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border-1 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors">
+                                    <i class="bi bi-eye-fill"></i> Ver Versión Aprobada
+                                </a>
                             @endif
                         </div>
                     @elseif($estadoResolucion === 'Enviado')
-                        <div class="mt-4 p-3 alert alert-success border-start border-4 border-success rounded-3" role="alert">
-                            <p class="mb-0">Su constancia de Horario de Clases está siendo revisada. Por favor, espere la confirmación.</p>
+                        <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border-1 border-amber-100 dark:border-amber-800/30 flex items-start gap-3">
+                            <div class="shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-amber-800 dark:text-amber-300">En Revisión</p>
+                                <p class="text-xs text-amber-600 dark:text-amber-400 mt-1">Su constancia está siendo revisada. Por favor, espere.</p>
+                            </div>
                         </div>
                     @elseif($estadoResolucion === 'Corregir')
-                        <div class="alert alert-danger border-start border-4 border-danger rounded-3 mt-4" role="alert">
-                            <p class="mb-1 fw-bold">⚠️ Debe Corregir la Resolución.</p>
-                            <p class="mb-0">Mensaje del Revisor: <strong>{{ $msjResolucion ?: 'Sin comentarios.' }}</strong></p>
-                            {{-- Si hay una ruta para ver la versión que fue corregida --}}
+                        <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border-1 border-rose-100 dark:border-rose-800/30">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-800/50 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                </div>
+                                <p class="text-sm font-black text-rose-800 dark:text-rose-400 uppercase tracking-wide">Debe Corregir</p>
+                            </div>
+                            <p class="text-xs font-medium text-rose-700 dark:text-rose-300 mb-3 pl-11">
+                                <span class="font-bold">Observación:</span> {{ $msjResolucion ?: 'Sin comentarios.' }}
+                            </p>
                             @if($latestResolucion->ruta ?? null)
-                                <a href="{{ asset($latestResolucion->ruta) }}" target="_blank" class="btn btn-sm btn-outline-danger mt-2">Ver Versión Anterior</a>
+                                <a href="{{ asset($latestResolucion->ruta) }}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border-1 border-rose-200 dark:border-rose-700 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-50 transition-colors mb-2">
+                                    Ver Versión Anterior
+                                </a>
                             @endif
                         </div>
                     @endif
-                    @if($estadoResolucion != 'Enviado' && $estadoResolucion != 'Aprobado')
-                    <form action="{{ route('subir.resolucion') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="ap_id" value="{{ $ap->id }}">
-                        <!-- Área de Subida de Archivos Estilizada con input oculto -->
-                        <div class="mb-4">
-                            <label for="resolucion" class="form-label fw-bold">Seleccionar Archivo (PDF Máx. 5MB)</label>
-                            <div class="file-drop-area text-center bg-light rounded-3" onclick="document.getElementById('resolucion').click()">
-                                <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-secondary" width="48" height="48" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v12m0 0V20a4 4 0 00-4-4h-4m4 4v12m-4-12v12m-4-12v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 32h40" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                    <div class="d-flex justify-content-center text-sm text-muted">
-                                        <label for="carga_lectiva" class="position-relative text-warning fw-bold" style="cursor: pointer;">
-                                            Buscar Archivo
-                                        </label>
-                                        <p class="ps-1 mb-0">o arrastrar y soltar</p>
-                                    </div>
-                                    <p class="text-xs text-secondary mb-0" id="resolucion_nombre">PDF, máximo 5MB</p>
-                                </div>
-                                <!-- Input File Real (Oculto visualmente, pero activado por el div) -->
-                                <input id="resolucion" name="resolucion" type="file" class="d-none" onchange="document.getElementById('resolucion_nombre').textContent = this.files[0] ? this.files[0].name : 'PDF, máximo 5MB';" accept=".pdf" required>
-                            </div>
-                        </div>
 
-                        <button type="submit" class="btn btn-warning btn-lg w-100 shadow-sm mt-3">
-                            <i class="bi bi-cloud-upload me-2"></i>
-                            Confirmar Resolución
-                        </button>
-                    </form>
+                    @if($estadoResolucion != 'Enviado' && $estadoResolucion != 'Aprobado')
+                        <form action="{{ route('subir.resolucion') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="ap_id" value="{{ $ap->id }}">
+                            
+                            <div class="relative group/drop">
+                                <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-2 ml-1">Subir Archivo</label>
+                                <div class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 hover:border-amber-500 dark:hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all cursor-pointer flex flex-col items-center justify-center text-center p-4 group-hover/drop:scale-[1.01]"
+                                     @click="document.getElementById('resolucion').click()">
+                                    
+                                    <div class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-amber-500 mb-2 group-hover/drop:scale-110 transition-transform">
+                                        <i class="bi bi-cloud-arrow-up-fill text-lg"></i>
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-600 dark:text-slate-300" x-text="fileName || 'Click para seleccionar PDF'">Click para seleccionar PDF</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Máximo 5MB</p>
+                                    
+                                    <input id="resolucion" name="resolucion" type="file" class="hidden" 
+                                           @change="fileName = $event.target.files[0] ? $event.target.files[0].name : ''" 
+                                           accept=".pdf" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl shadow-lg shadow-amber-500/20 font-bold text-xs uppercase tracking-widest transform active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <i class="bi bi-send-fill"></i>
+                                Confirmar y Subir
+                            </button>
+                        </form>
                     @endif
-                    <!-- Listado de enviados, o sea corregidos -->
                 </div>
             </div>
         </div>
@@ -311,8 +358,11 @@
 
     <!-- Mensaje de Estado (Si aplica) -->
     @if(session('status'))
-        <div class="mt-6 p-4 alert alert-success border-start border-4 border-success rounded-3" role="alert">
-            <p class="mb-0">{{ session('status') }}</p>
+        <div class="mt-8 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border-1 border-emerald-100 dark:border-emerald-800/30 flex items-center gap-4 shadow-lg shadow-emerald-500/10" role="alert">
+            <div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                <i class="bi bi-check-lg text-xl"></i>
+            </div>
+            <p class="text-sm font-bold text-emerald-800 dark:text-emerald-300">{{ session('status') }}</p>
         </div>
     @endif
 </div>

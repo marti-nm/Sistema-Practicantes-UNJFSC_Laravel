@@ -61,7 +61,10 @@ class PersonaController extends Controller
             'asignacion_persona.seccion_academica'
         ])->get();
 
-        return view('list_users.subadmin', compact('personas', 'facultades', 'escuelas'));
+        $cargo = "Sub Administrador";
+        $rutaFilter = "subadmin";
+
+        return view('list_users.estudiante', compact('personas', 'facultades', 'escuelas', 'cargo', 'rutaFilter'));
     }
 
     public function lista_docentes(Request $request){
@@ -108,7 +111,10 @@ class PersonaController extends Controller
             'asignacion_persona.seccion_academica'
         ])->get();
 
-        return view('list_users.docente', compact('personas', 'facultades', 'escuelas'));
+        $cargo = "Docente";
+        $rutaFilter = "docente";
+
+        return view('list_users.estudiante', compact('personas', 'facultades', 'escuelas', 'cargo', 'rutaFilter'));
     }
 
     public function lista_supervisores(Request $request){
@@ -155,7 +161,10 @@ class PersonaController extends Controller
             'asignacion_persona.seccion_academica'
         ])->get();
 
-        return view('list_users.supervisor', compact('personas', 'facultades', 'escuelas'));
+        $cargo = "Supervisor";
+        $rutaFilter = "supervisor";
+
+        return view('list_users.estudiante', compact('personas', 'facultades', 'escuelas', 'cargo', 'rutaFilter'));
     }
 
     public function lista_estudiantes(Request $request){
@@ -209,7 +218,10 @@ class PersonaController extends Controller
             'asignacion_persona.seccion_academica'
         ])->get();
 
-        return view('list_users.estudiante', compact('personas', 'facultades', 'escuelas'));
+        $cargo = "Estudiante";
+        $rutaFilter = "estudiante";
+
+        return view('list_users.estudiante', compact('personas', 'facultades', 'escuelas', 'cargo', 'rutaFilter'));
     }
 
     public function lista_grupos_estudiantes(){
@@ -244,8 +256,10 @@ class PersonaController extends Controller
         
         // Obtener la persona asociada al usuario
         $persona = $user->persona;
+
+        $facultades = Facultad::where('state', 1)->get();
         
-        return view('segmento.perfil', compact('persona'));
+        return view('segmento.perfil', compact('persona', 'facultades'));
     }
 
     public function changePasswordView()
@@ -314,7 +328,7 @@ class PersonaController extends Controller
                 ->where('ap.id_rol', 3) // Rol docente titular
                 ->where('ap.id_sa', $id_sa)
                 ->where('ap.state', 1)
-                ->select('ap.id as people', 'personas.nombres', 'personas.apellidos')
+                ->select('ap.id as id', 'personas.nombres as nombres', 'personas.apellidos as apellidos')
                 ->get();
 
             return response()->json($docentes);
@@ -333,7 +347,7 @@ class PersonaController extends Controller
                 ->where('ap.id_sa', $id_sa)
                 ->where('ap.state', 1)
                 ->whereNull('gp.id') // Solo docentes sin grupo asignado
-                ->select('ap.id as people', 'personas.nombres', 'personas.apellidos')
+                ->select('ap.id as id', 'personas.nombres as nombres', 'personas.apellidos as apellidos')
                 ->get();
 
             return response()->json($docentes);
@@ -411,7 +425,7 @@ class PersonaController extends Controller
             $success = $this->asignarPersonaASemestre($persona_id_final, $request);
             // Enviar correo de confirmación de asignación (siempre, ya que es por semestre)
             if ($success) {
-                try {
+                /*try {
                     $semestre = Semestre::find($request->id_semestre);
                     $password = ($request->rol == 5) ? $persona->codigo : '12345678';
                     
@@ -426,7 +440,7 @@ class PersonaController extends Controller
                 } catch (\Exception $e) {
                     Log::error('Error al encolar correo de confirmación: ' . $e->getMessage());
                     $success_message .= ' (Nota: El correo de confirmación llegará en breve)';
-                }
+                }*/
             }
 
             return back()->with('success', $success_message);
@@ -740,49 +754,61 @@ class PersonaController extends Controller
         ]);
     }
 
+    public function getDataPersona($id){
+        $persona = Persona::where('id', $id)->first();
+        return response()->json([
+            'persona' => $persona
+        ]);
+    }
+
     public function update(Request $request){
-        $persona = Persona::findOrFail($request->persona_id);
-
-        /*$validated = $request->validate([
-            'codigo' => 'nullable|string|size:10',
-            'nombres' => 'nullable|string|max:50',
-            'apellidos' => 'nullable|string|max:50',
-            'dni' => 'nullable|string|size:8|unique:personas,dni,' . $id,
-            'celular' => 'nullable|string|size:9',
-            'correo_inst' => 'nullable|email|max:150|unique:personas,correo_inst,' . $id,
-            'sexo' => 'in:M,F',
-            'provincia' => 'nullable|string|max:50',
-            'distrito' => 'nullable|string|max:50',
-        ]);*/
-
         try {
-            $data = [
-                'codigo' => $request->codigo,
-                'nombres' => $request->nombres,
-                'apellidos' => $request->apellidos,
-                'dni' => $request->dni,
-                'celular' => $request->celular,
-                'sexo' => $request->sexo,
-                'correo_inst' => $request->correo_inst,
-                'provincia' => $request->provincia,
-                'distrito' => $request->distrito,
-                'date_update' => now(),
-            ];
+            $persona = Persona::findOrFail($request->persona_id);
+    
+            /*$request->validate([
+                'nombres' => 'required|string|max:50',
+                'apellidos' => 'required|string|max:50',
+                'dni' => 'required|string|size:8|unique:personas,dni,' . $persona->id,
+                'celular' => 'nullable|string|size:9',
+                'sexo' => 'required|in:M,F',
+                'provincia' => 'nullable|string|max:50',
+                'distrito' => 'nullable|string|max:50',
+                'departamento' => 'nullable|string|max:50',
+                'ruta_foto' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            ]);*/
+    
+            $data = $request->only([
+                'nombres', 'apellidos', 'dni', 'celular', 'sexo', 'provincia', 'distrito', 'departamento'
+            ]);
+            
+            // Filter out null values (disabled inputs don't send data, but 'only' fills them with null)
+            $data = array_filter($data, function($value) { return !is_null($value); });
+            $data['date_update'] = now();
         
-            // Solo actualizar id_escuela si viene en el request
-            if ($request->filled('escuela')) {
-                $data['id_escuela'] = $request->escuela;
+            if ($request->hasFile('ruta_foto')) {
+                $nombre = 'foto_' . $persona->id . '_' . time() . '.' . $request->file('ruta_foto')->getClientOriginalExtension();
+                $ruta = $request->file('ruta_foto')->storeAs('fotos', $nombre, 'public');
+                $data['ruta_foto'] = 'storage/' . $ruta;
             }
         
-            $persona->update($data);
+            if (!empty($data)) {
+                $persona->update($data);
+            }
 
-            return back()->with('success', 'Persona actualizada correctamente.');
-
+            // Update Assignment if provided and allowed
+            if ($request->filled('seccion_id')) {
+                $ap = $persona->asignacion_persona; // Assumes model relationship uses hasOne or similar
+                if ($ap && $ap->state != 1) { // Only if not validated
+                    $ap->id_sa = $request->seccion_id;
+                    $ap->save();
+                }
+            }
+    
+            return back()->with('success', 'Perfil actualizado correctamente.');
+    
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar la persona: ' . $e->getMessage()
-            ], 500);
+            Log::error("Error al actualizar persona: " . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al actualizar: ' . $e->getMessage());
         }
     }
 
@@ -952,5 +978,26 @@ class PersonaController extends Controller
             $ap->save();
         }
         return back()->with('success', 'Solicitud de baja enviada correctamente.');
+    }
+
+    public function getPersonaForEdit($id){
+        $id_semestre = session('semestre_actual_id');
+        
+        $persona = Persona::with(['asignacion_persona' => function($q) use ($id_semestre) {
+            $q->where('id_semestre', $id_semestre)->with(['seccion_academica.facultad', 'seccion_academica.escuela']);
+        }])->find($id);
+    
+        if (!$persona) {
+            return response()->json(['error' => 'Persona no encontrada'], 404);
+        }
+        
+        // 'with' devuelve una colección. Necesitamos el objeto único de la asignación para el semestre actual.
+        $asignacion = $persona->asignacion_persona->first();
+        
+        // Limpiamos la colección y establecemos el objeto único para facilitar el uso en el frontend.
+        unset($persona->asignacion_persona);
+        $persona->asignacion_persona = $asignacion;
+    
+        return response()->json($persona);
     }
 }

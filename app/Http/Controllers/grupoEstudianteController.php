@@ -11,10 +11,14 @@ use App\Models\Persona;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Traits\SincronizaGrupoTrait;
+
 
 
 class grupoEstudianteController extends Controller
 {
+    use SincronizaGrupoTrait;
+
     public function index(Request $request)
     {
         $id_semestre = session('semestre_actual_id');
@@ -83,11 +87,16 @@ class grupoEstudianteController extends Controller
                     );
                 }
             }
-
-            if ($asignacion->wasRecentlyCreated) {
-                $asignadosCount++;
-            }
         }
+        Log::info('Se asignaron ' . $asignadosCount . ' estudiantes al grupo ' . $grupoId);
+
+        // Sincronizar el módulo del grupo basado en el progreso de sus integrantes
+        try {
+            $this->sincronizarModuloGrupo($grupoId);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al sincronizar el módulo del grupo: ' . $e->getMessage());
+        }
+
 
         return redirect()->back()->with('success', "Se asignaron {$asignadosCount} nuevos estudiantes al grupo correctamente.");
     }
@@ -96,8 +105,13 @@ public function destroy($id)
 {
     try {
         $registro = grupo_estudiante::findOrFail($id);
+        $grupoId = $registro->id_gp;
         $registro->delete();
+
+        // Sincronizar el módulo del grupo tras eliminar a un estudiante
+        $this->sincronizarModuloGrupo($grupoId);
     } catch (\Exception $e) {
+
         return back()->with('error', 'Error al eliminar el estudiante del grupo: ' . $e->getMessage());
     }
 

@@ -2,1241 +2,582 @@
 @section('title', 'Revisión de Supervisión de Prácticas')
 @section('subtitle', 'Panel de supervisión y seguimiento de estudiantes')
 
-@push('css')
-<style>
-    :root {
-        --primary-color: #1e3a8a;
-        --primary-light: #3b82f6;
-        --secondary-color: #64748b;
-        --background-color: #f8fafc;
-        --surface-color: #ffffff;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --border-color: #e2e8f0;
-        --success-color: #059669;
-        --warning-color: #d97706;
-        --danger-color: #dc2626;
-        --info-color: #0891b2;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    .supervision-container {
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    /* Card Principal */
-    .supervision-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .supervision-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
-
-    .supervision-card-header {
-        background: linear-gradient(135deg, var(--surface-color) 0%, #f8fafc 100%);
-        border-bottom: 2px solid var(--border-color);
-        padding: 1.5rem 2rem;
-        position: relative;
-    }
-
-    .supervision-card-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    }
-
-    .supervision-card-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        text-transform: none;
-    }
-
-    .supervision-card-title i {
-        color: var(--primary-color);
-        font-size: 1.25rem;
-    }
-
-    .supervision-card-body {
-        padding: 1.5rem;
-    }
-
-    /* Tabla Moderna */
-    .table-container {
-        background: var(--surface-color);
-        border-radius: 0.75rem;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .table {
-        margin: 0;
-        border: none;
-        font-size: 0.9rem;
-    }
-
-    .table thead th {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border: none;
-        border-bottom: 2px solid var(--border-color);
-        font-weight: 600;
-        color: var(--text-primary);
-        padding: 1rem 0.75rem;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        white-space: nowrap;
-        text-align: center;
-    }
-
-    .table tbody td {
-        padding: 1rem 0.75rem;
-        border-bottom: 1px solid #f1f5f9;
-        color: var(--text-primary);
-        vertical-align: middle;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s ease;
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(30, 58, 138, 0.02);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* Badges para tipo de práctica y área */
-    .practice-badge {
-        background: linear-gradient(135deg, var(--info-color), #0e7490);
-        color: white;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-    }
-
-    .area-badge {
-        background: linear-gradient(135deg, var(--success-color), #047857);
-        color: white;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-    }
-
-    .no-registered {
-        color: var(--text-secondary);
-        font-style: italic;
-        font-size: 0.875rem;
-    }
-
-    /* Botones de Acción */
-    .btn {
-        font-family: 'Inter', sans-serif;
-        font-weight: 500;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-info {
-        background: var(--info-color);
-        color: white;
-    }
-
-    .btn-info:hover {
-        background: #0e7490;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    .btn-secondary {
-        background: var(--secondary-color);
-        color: white;
-    }
-
-    .btn-secondary:hover {
-        background: #475569;
-        color: white;
-    }
-
-    /* Modal Styles */
-    .modal-content {
-        border: none;
-        border-radius: 1rem;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .modal-header {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        color: white;
-        border-radius: 1rem 1rem 0 0;
-        padding: 1.5rem 2rem;
-        border-bottom: none;
-    }
-
-    .modal-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
-    }
-
-    .btn-close:hover {
-        opacity: 1;
-    }
-
-    .modal-body {
-        padding: 2rem;
-        background: var(--surface-color);
-    }
-
-    .modal-footer {
-        background: var(--background-color);
-        border-top: 1px solid var(--border-color);
-        border-radius: 0 0 1rem 1rem;
-        padding: 1.5rem 2rem;
-    }
-
-    /* Botones de Etapas */
-    .etapas-container {
-        margin-bottom: 2rem;
-    }
-
-    .btn-etapa {
-        background: var(--surface-color);
-        border: 2px solid var(--border-color);
-        color: var(--text-primary);
-        padding: 1rem;
-        border-radius: 0.75rem;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-etapa::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--secondary-color), var(--text-secondary));
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 0.3s ease;
-    }
-
-    .btn-etapa:hover {
-        border-color: var(--primary-color);
-        background: rgba(30, 58, 138, 0.02);
-        color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-etapa:hover::before {
-        transform: scaleX(1);
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    }
-
-    .btn-etapa.active {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-etapa.active::before {
-        transform: scaleX(1);
-        background: linear-gradient(90deg, var(--primary-light), white);
-    }
-
-    .btn-etapa.completed {
-        background: var(--success-color);
-        border-color: var(--success-color);
-        color: white;
-    }
-
-    .btn-etapa.completed::before {
-        transform: scaleX(1);
-        background: linear-gradient(90deg, #047857, white);
-    }
-
-    /* Contenedor de etapas */
-    .etapa-content {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-top: 1rem;
-        box-shadow: var(--shadow-sm);
-    }
-
-    /* Estados vacíos */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: var(--text-secondary);
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        color: var(--border-color);
-        margin-bottom: 1rem;
-    }
-
-    /* Progress indicator */
-    .progress-indicator {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        position: relative;
-    }
-
-    .progress-indicator::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--border-color);
-        z-index: 0;
-    }
-
-    .progress-indicator::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 0%;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-        border-radius: 2px;
-        transition: width 0.5s ease;
-        z-index: 0;
-    }
-
-    .progress-step {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background: var(--surface-color);
-        border: 2px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        color: var(--text-secondary);
-        position: relative;
-        z-index: 1;
-        transition: all 0.3s ease;
-    }
-
-    .progress-step.active {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-    }
-
-    .progress-step.completed {
-        background: var(--success-color);
-        border-color: var(--success-color);
-        color: white;
-    }
-
-    .progress-indicator.step-1::after { width: 25%; }
-    .progress-indicator.step-2::after { width: 50%; }
-    .progress-indicator.step-3::after { width: 75%; }
-    .progress-indicator.step-4::after { width: 100%; }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .supervision-card-header {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .supervision-card-body {
-            padding: 1rem;
-        }
-
-        .supervision-card-title {
-            font-size: 1.25rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .table {
-            min-width: 700px;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .btn-etapa {
-            padding: 0.75rem;
-            font-size: 0.875rem;
-        }
-
-        .progress-step {
-            width: 2rem;
-            height: 2rem;
-            font-size: 0.875rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .etapas-container .col-md-3 {
-            margin-bottom: 0.75rem;
-        }
-
-        .btn-etapa {
-            padding: 0.75rem 0.5rem;
-        }
-
-        .btn-etapa i {
-            font-size: 1rem;
-        }
-
-        .btn-etapa div {
-            font-size: 0.875rem;
-        }
-
-        .progress-indicator {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .progress-indicator::before,
-        .progress-indicator::after {
-            display: none;
-        }
-
-        .progress-step {
-            width: 2rem;
-            height: 2rem;
-            font-size: 0.875rem;
-        }
-    }
-
-    /* Animaciones */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.3s ease;
-    }
-
-    .etapa-content {
-        animation: fadeIn 0.3s ease;
-    }
-
-    /* Mejoras adicionales para integración completa */
-    
-    /* Estados de badges mejorados */
-    .practice-badge,
-    .area-badge {
-        box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease;
-    }
-
-    .practice-badge:hover,
-    .area-badge:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-1px);
-    }
-
-    /* Texto de estudiante con estilo mejorado */
-    .table tbody td strong {
-        color: var(--text-primary);
-        font-weight: 600;
-        letter-spacing: -0.025em;
-    }
-
-    /* Warning state mejorado */
-    .text-warning {
-        color: var(--warning-color) !important;
-    }
-
-    /* Mejoras en los botones de etapa */
-    .btn-etapa i {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .btn-etapa div {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .btn-etapa small {
-        font-size: 0.75rem;
-        opacity: 0.8;
-        font-weight: 400;
-    }
-
-    /* Estados específicos para el progress indicator */
-    .progress-indicator::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 0%;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-        border-radius: 2px;
-        transition: width 0.5s ease;
-        z-index: 0;
-    }
-
-    .progress-indicator.step-1::after { width: 25%; }
-    .progress-indicator.step-2::after { width: 50%; }
-    .progress-indicator.step-3::after { width: 75%; }
-    .progress-indicator.step-4::after { width: 100%; }
-
-    /* Mejoras en el modal de proceso */
-    .modal-lg {
-        max-width: 900px;
-    }
-
-    /* Contenido de etapa con padding mejorado */
-    .etapa-content {
-        min-height: 300px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Estados de botón activo/completado mejorados */
-    .btn-etapa.active {
-        transform: scale(1.02);
-    }
-
-    .btn-etapa.completed {
-        transform: scale(1.02);
-    }
-
-    .btn-etapa.completed i::before {
-        content: '\f633'; /* Bootstrap icon check-circle */
-    }
-
-    /* Mejoras en hover effects */
-    .table tbody tr:hover td .practice-badge,
-    .table tbody tr:hover td .area-badge {
-        transform: scale(1.05);
-    }
-
-    /* Footer del modal mejorado */
-    .modal-footer .btn {
-        min-width: 120px;
-    }
-
-    /* Estados de carga */
-    .btn.loading {
-        position: relative;
-        color: transparent;
-    }
-
-    .btn.loading::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid transparent;
-        border-top: 2px solid currentColor;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        color: white;
-    }
-
-    @keyframes spin {
-        0% { transform: translate(-50%, -50%) rotate(0deg); }
-        100% { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-
-    /* Mejoras en responsive para etapas */
-    @media (max-width: 576px) {
-        .etapas-container .col-md-3 {
-            margin-bottom: 0.75rem;
-        }
-
-        .btn-etapa {
-            padding: 0.75rem 0.5rem;
-        }
-
-        .btn-etapa i {
-            font-size: 1rem;
-        }
-
-        .btn-etapa div {
-            font-size: 0.875rem;
-        }
-
-        .progress-indicator {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .progress-indicator::before,
-        .progress-indicator::after {
-            display: none;
-        }
-
-        .progress-step {
-            width: 2rem;
-            height: 2rem;
-            font-size: 0.875rem;
-        }
-    }
-
-    /* Mejoras en el estado vacío */
-    .empty-state {
-        animation: fadeIn 0.5s ease;
-    }
-
-    .empty-state p {
-        font-size: 1rem;
-        margin-top: 1rem;
-    }
-
-    /* Transiciones suaves para cambio de etapas */
-    .etapa-content > div {
-        transition: all 0.3s ease;
-    }
-
-    .etapa-content > div[style*="display: none"] {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    /* Focus states mejorados */
-    .btn-etapa:focus,
-    .btn:focus {
-        outline: 0;
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.25);
-    }
-
-    /* Estilos para módulos bloqueados/desbloqueados */
-    .module-selector-cell.locked {
-        opacity: 0.65;
-        cursor: not-allowed;
-        position: relative;
-        pointer-events: none;
-    }
-
-    .module-selector-cell.locked .lock-overlay {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(0,0,0,0.06);
-        color: rgba(0,0,0,0.6);
-        border-radius: 50%;
-        padding: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .module-selector-cell.unlocked { cursor: pointer; }
-
-    /* ...existing styles... */
-</style>
-@endpush
-
 @section('content')
-    <div class="app-container">
-        <div class="app-card">
-            <div class="app-card-header">
-                <h1 class="app-card-title">Panel de Revisión de Evaluaciones</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="{
+        reviewModalOpen: false,
+        showHistory: false,
+        loading: false,
+        requireData: { id: null, anexoNum: null, student: null },
+        ldata: null, // last evaluation_archivo
+        hdata: null, // full data from API
+        
+        // Form fields for revision
+        selectedEstado: 'Aprobado',
+        correccionTipo: '2',
+        comentario: '',
+        evalArchivoId: null,
+        archivoId: null,
+        anexoName: '',
+
+        async fetchRevision(id, anexoNum) {
+            this.loading = true;
+            this.showHistory = false;
+            this.ldata = null;
+            this.hdata = null;
+            this.selectedEstado = 'Aprobado';
+            this.correccionTipo = '2';
+            this.comentario = '';
+            
+            try {
+                const ANEXO = 'anexo_' + anexoNum;
+                const ID_MODULO = {{ $id_modulo }};
+                const r = await fetch(`/api/evaluacion_practica/${id}/${ID_MODULO}/${ANEXO}`); 
+                const result = await r.json();
+                const data = result.length > 0 ? result[0] : null;
+                
+                if (data) {
+                    this.hdata = data;
+                    if (data.evaluacion_archivo && data.evaluacion_archivo.length > 0) {
+                        this.ldata = data.evaluacion_archivo[0];
+                        this.evalArchivoId = this.ldata.id;
+                        if (this.ldata.archivos && this.ldata.archivos.length > 0) {
+                            this.archivoId = this.ldata.archivos[0].id;
+                        }
+                    }
+                }
+            } catch(e) { console.error(e); } 
+            finally { this.loading = false; }
+        },
+        
+        openReviewModal(id, anexoNum, student) {
+            this.requireData.id = id;
+            this.requireData.anexoNum = anexoNum;
+            this.requireData.student = student;
+            this.anexoName = 'anexo_' + anexoNum;
+            this.reviewModalOpen = true;
+            this.fetchRevision(id, anexoNum);
+        },
+
+        selectModule(moduleId, locked) {
+            if (locked) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Módulo bloqueado',
+                        text: 'No puedes avanzar a este módulo hasta que se habilite según la etapa actual.',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 2500,
+                        showConfirmButton: false,
+                    });
+                } else {
+                    alert('Módulo bloqueado. No puedes seleccionar este módulo.');
+                }
+                return;
+            }
+            document.getElementById('selected_modulo').value = moduleId;
+            document.getElementById('form-modulo').submit();
+        }
+    }">
+    
+    <x-header-content
+        title="Panel de Revisión de Evaluaciones"
+        subtitle="Gestión de Supervisión y Seguimiento"
+        icon="bi-clipboard-check-fill"
+        :enableButton="false"
+    />
+
+    @if(Auth::user()->hasAnyRoles([1, 2]))
+        <x-data-filter
+            route="revisar.index"
+            :facultades="$facultades"
+        />
+    @endif
+
+    <form method="GET" action="{{ route('revisar.index') }}" class="relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+            <div class="md:col-span-5">
+                <label for="grupo" class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">
+                    Seleccionar Grupo
+                </label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="bi bi-collection-fill text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                    </div>
+                    <select class="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm cursor-pointer appearance-none" 
+                        id="grupo" name="grupo" onchange="this.form.submit()">
+                        <option value="">-- Seleccione un grupo --</option>
+                        @foreach ($grupos_practica as $gp)
+                            <option value="{{ $gp->id }}" {{ $selected_grupo_id == $gp->id ? 'selected' : '' }}>
+                                {{ $gp->seccion_academica->escuela->name }} - {{ $gp->seccion_academica->seccion }} : {{ $gp->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="bi bi-chevron-down text-xs text-slate-400"></i>
+                    </div>
+                </div>
             </div>
-            <div class="app-card-body">
-                @if(Auth::user()->hasAnyRoles([1, 2]))
-                    <x-data-filter
-                        route="revisar.index"
-                        :facultades="$facultades"
-                    />
-                @endif
-                <div class="row g-3">
-                    <form method="GET" action="{{ route('revisar.index') }}">
-                        <div class="row g-3 d-flex justify-content-between">
-                            <div class="col-md-4">
-                                <label for="grupo">Seleccionar Grupo:</label>
-                                <select class="form-control" id="grupo" name="grupo" onchange="this.form.submit()">
-                                    <option value="">-- Seleccione un grupo --</option>
-                                    @foreach ($grupos_practica as $gp)
-                                        <option value="{{ $gp->id }}">{{ $gp->seccion_academica->escuela->name }} - {{ $gp->seccion_academica->seccion }} : {{ $gp->name }}</option>
-                                    @endforeach
-                                </select>
+            <div class="md:col-span-7">
+                <label class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">
+                    Descripción Actual
+                </label>
+                <div class="bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl p-3 flex items-center gap-4 shadow-sm h-[48px]">
+                    <div class="w-1 bg-gradient-to-b from-blue-400 to-indigo-500 h-full rounded-full"></div>
+                    <div class="flex-1 min-w-0">
+                         @if($selected_grupo_id)
+                            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 truncate">
+                                <span class="font-medium">{{ $name_escuela }}</span>
+                                <i class="bi bi-dot text-slate-300"></i>
+                                <span class="font-medium">{{ $name_seccion }}</span>
+                                <i class="bi bi-arrow-right-short text-slate-300"></i>
+                                <span class="font-black text-blue-600 dark:text-blue-400">{{ $name_grupo }}</span>
                             </div>
-                            <div class="col-md-4">
-                                <label for="descripcion">Descripción:</label>
-                                <div class="form-control bg-primary text-white" id="descripcion">
-                                    {{ $name_escuela }} - {{ $name_seccion }} : {{ $name_grupo }}
+                        @else
+                            <span class="text-sm text-slate-400 font-medium italic flex items-center gap-2">
+                                <i class="bi bi-info-circle"></i> Seleccione un grupo para ver detalles
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <form id="form-modulo" method="GET" action="{{ route('revisar.index') }}" class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 relative z-10">
+        <input type="hidden" name="grupo" value="{{ $selected_grupo_id }}">
+        <input type="hidden" name="modulo" id="selected_modulo" value="{{ $id_modulo ?? 1 }}">
+
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+            <div class="shrink-0">
+                <label class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 md:mb-0 block md:inline-block">
+                    <i class="bi bi-layers-fill mr-1 text-indigo-500"></i> Módulos:
+                </label>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                @php
+                $modules = [1 => 'Módulo I', 2 => 'Módulo II', 3 => 'Módulo III', 4 => 'Módulo IV'];
+                $currentModulo = isset($id_modulo_now) ? (int)$id_modulo_now : null;
+                $selectedModuloRequest = (int) ($id_modulo ?? 1);
+                @endphp
+                @foreach($modules as $m => $label)
+                @php
+                $isActive = ($selectedModuloRequest === $m);
+                $locked = is_null($selected_grupo_id) || is_null($currentModulo) || ($m > $currentModulo);
+                @endphp
+                <div class="relative">
+                    <div
+                        class="module-selector-cell group relative w-full p-3 rounded-xl border-1 transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer
+                        {{ $isActive 
+                            ? 'bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white shadow-lg shadow-blue-500/30 transform scale-[1.02]' 
+                            : ($locked 
+                                ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' 
+                                : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-300 hover:shadow-md') 
+                        }}"
+                        role="button"
+                        tabindex="{{ $locked ? '-1' : '0' }}"
+                        aria-disabled="{{ $locked ? 'true' : 'false' }}"
+                        @click="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})"
+                        @keydown.enter.prevent="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})"
+                        @keydown.space.prevent="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})">
+                        
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] font-black uppercase tracking-widest opacity-70">Módulo</span>
+                            <span class="text-xl font-black">{{ $m }}</span>
+                        </div>
+                        
+                        @if($locked)
+                            <div class="absolute top-2 right-2">
+                                <i class="bi bi-lock-fill text-xs opacity-50"></i>
+                            </div>
+                        @elseif($isActive)
+                            <div class="absolute top-2 right-2">
+                                <i class="bi bi-check-circle-fill text-xs text-white/50"></i>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </form>
+
+    @include('components.skeletonLoader-table')
+
+    <div class="overflow-x-auto mt-8">
+        <table id="tablaRevision" class="w-full text-left border-collapse table-skeleton-ready">
+            <thead>
+                <tr class="bg-gradient-to-r from-primary-dark to-primary text-white">
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] first:rounded-tl-2xl border-none">ID</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Facultad</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Escuela</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Estudiante</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Anexo 7</th>
+                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] last:rounded-tr-2xl border-none">Anexo 8</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($grupo_estudiante as $index => $item)
+                @php
+                    $getStatusInfo = function ($state) {
+                        $base = "w-full px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 border-1 shadow-sm hover:shadow-md";
+                        
+                        if (is_null($state)) return [
+                            'classes' => "$base bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-300", 
+                            'label' => 'Sin envío',
+                            'icon' => 'bi-cloud-upload'
+                        ];
+                        
+                        switch ($state) {
+                            case 5: return ['classes' => "$base bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400", 'label' => 'Aprobado', 'icon' => 'bi-check-circle-fill'];
+                            case 1: return ['classes' => "$base bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 hover:text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400", 'label' => 'Revisar', 'icon' => 'bi-hourglass-split'];
+                            case 2:
+                            case 3:
+                            case 4: return ['classes' => "$base bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100 hover:text-rose-700 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400", 'label' => 'Corregir', 'icon' => 'bi-exclamation-triangle-fill'];
+                            default: return ['classes' => "$base bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-700", 'label' => 'Pendiente', 'icon' => 'bi-dash-circle'];
+                        }
+                    };
+
+                    $status7 = $getStatusInfo($item->status_anexo_7);
+                    $status8 = $getStatusInfo($item->status_anexo_8);
+                @endphp
+                <tr>
+                    <td><span class="text-xs font-bold text-slate-400 dark:text-slate-500">#{{ str_pad($index + 1, 3, '0', STR_PAD_LEFT) }}</span></td>
+                    <td><span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $item->asignacion_persona->seccion_academica->facultad->name }}</span></td>
+                    <td><span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $item->asignacion_persona->seccion_academica->escuela->name }}</span></td>
+                    <td>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</span>
+                            <small class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                                @if($item->state == 2)
+                                    <span class="text-emerald-500">Aprobado</span>
+                                @else
+                                    <span class="text-blue-500">En Proceso</span>
+                                @endif
+                            </small>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="{{ $status7['classes'] }}" 
+                            @click="openReviewModal({{ $item->id_ap }}, 7, '{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}')">
+                            <i class="bi {{ $status7['icon'] }} text-sm"></i> <span>Anexo 7 ({{ $status7['label'] }})</span>
+                        </button>
+                    </td>
+                    <td>
+                        <button class="{{ $status8['classes'] }}" 
+                            @click="openReviewModal({{ $item->id_ap }}, 8, '{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}')">
+                            <i class="bi {{ $status8['icon'] }} text-sm"></i> <span>Anexo 8 ({{ $status8['label'] }})</span>
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal de Revisión (Alpine JS) -->
+    <div x-show="reviewModalOpen"
+        class="fixed inset-0 z-[1100] flex items-center justify-center px-4" 
+        x-cloak>
+        <div x-show="reviewModalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" @click="reviewModalOpen = false"></div>
+
+        <div x-show="reviewModalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="relative bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] shadow-2xl w-full max-w-md overflow-hidden border-1 border-slate-100 dark:border-slate-800">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-[#111c44] to-blue-900 px-6 py-4">
+                 <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md text-white border-1 border-white/20">
+                            <i class="bi bi-clipboard-check-fill text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white text-lg font-black tracking-tight leading-none">Revisar Documento</h3>
+                            <p class="text-blue-100/60 text-[10px] font-bold uppercase tracking-[0.2em] mt-2" x-text="requireData.student"></p>
+                        </div>
+                    </div>
+                    <button @click="reviewModalOpen = false" class="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <!-- Loading State -->
+                <template x-if="loading">
+                    <div class="flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                </template>
+                
+                <div x-show="!loading">
+                    <!-- Case: No file sent yet -->
+                    <template x-if="!ldata">
+                        <div class="bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center">
+                            <div class="text-slate-300 mb-2">
+                                <i class="bi bi-file-earmark-x text-3xl"></i>
+                            </div>
+                            <h5 class="text-base font-bold text-slate-600 dark:text-slate-300 tracking-tight">Sin envío</h5>
+                            <p class="text-xs text-slate-400 font-medium">El estudiante no ha enviado este anexo todavía.</p>
+                        </div>
+                    </template>
+
+                    <!-- Case: File exists -->
+                    <template x-if="ldata">
+                        <div>
+                            <!-- Status Banner -->
+                            <div class="rounded-xl p-4 text-center mb-4 shadow-sm border-1"
+                                :class="{
+                                    'bg-green-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-green-100 text-emerald-700': ldata.state == 5,
+                                    'bg-amber-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-amber-100 text-amber-700': ldata.state == 1,
+                                    'bg-rose-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-rose-100 text-rose-700': [2,3,4].includes(ldata.state)
+                                }">
+                                <div class="mb-2" :class="{
+                                    'text-emerald-500': ldata.state == 5,
+                                    'text-amber-500': ldata.state == 1,
+                                    'text-rose-500': [2,3,4].includes(ldata.state)
+                                }">
+                                    <i class="text-3xl bi" :class="{
+                                        'bi-check-circle-fill': ldata.state == 5,
+                                        'bi-hourglass-split': ldata.state == 1,
+                                        'bi-exclamation-triangle-fill': [2,3,4].includes(ldata.state)
+                                    }"></i>
+                                </div>
+                                <h5 class="text-base font-bold tracking-tight" 
+                                    :class="{
+                                        'text-green-800 dark:text-green-500': ldata.state == 5,
+                                        'text-amber-800 dark:text-amber-500': ldata.state == 1,
+                                        'text-rose-800 dark:text-rose-500': [2,3,4].includes(ldata.state)
+                                    }"
+                                    x-text="ldata.state == 5 ? 'Aprobado' : (ldata.state == 1 ? 'Pendiente de Revisión' : 'En Corrección')"></h5>
+                                <p class="text-sm font-medium" 
+                                   :class="{
+                                        'text-green-600/80 dark:text-green-200': ldata.state == 5,
+                                        'text-amber-600/80 dark:text-amber-200': ldata.state == 1,
+                                        'text-rose-600/80 dark:text-rose-200': [2,3,4].includes(ldata.state)
+                                   }"
+                                   x-text="ldata.state == 5 ? 'Documento validado correctamente.' : (ldata.state == 1 ? 'El estudiante espera su calificación.' : 'Se solicitaron correcciones.')"></p>
+                            </div>
+
+                            <!-- File & Score Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-2">
+                                <div class="md:col-span-8 flex flex-column gap-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                        <i class="bi bi-paperclip"></i> Archivo Enviado
+                                    </label>
+                                    <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-between align-items-center shadow-sm">
+                                        <div class="flex items-center min-w-0 pr-4">
+                                            <i class="bi bi-file-earmark-pdf text-xl me-2"
+                                                :class="{
+                                                    'text-green-500': ldata.state == 5,
+                                                    'text-amber-500': ldata.state == 1,
+                                                    'text-rose-500': [2,3,4].includes(ldata.state)
+                                                }"></i>
+                                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">Anexo_<span x-text="requireData.anexoNum"></span>.pdf</span>
+                                        </div>
+                                        <a :href="ldata.archivos[0] ? '/' + ldata.archivos[0].ruta : '#'" target="_blank" 
+                                        class="px-3 py-1 border-1 text-[10px] font-bold rounded-lg hover:text-white transition-all active:scale-95 flex items-center gap-2 shrink-0 uppercase"
+                                        :class="{
+                                            'border-green-600 text-green-600 hover:bg-green-600 hover:text-white': ldata.state == 5,
+                                            'border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white': ldata.state == 1,
+                                            'border-rose-600 text-rose-600 hover:bg-rose-600 hover:text-white': [2,3,4].includes(ldata.state)
+                                        }">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="md:col-span-4 flex flex-column gap-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                        <i class="bi bi-clipboard-data"></i> Nota
+                                    </label>
+                                    <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-center align-items-center shadow-sm min-h-[46px]">
+                                        <span class="text-lg font-black" :class="{
+                                            'text-green-600': ldata.state == 5,
+                                            'text-amber-600': ldata.state == 1,
+                                            'text-rose-600': [2,3,4].includes(ldata.state)
+                                        }" x-text="ldata.nota || '--'"></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                    <form id="form-modulo" method="GET" action="{{ route('revisar.index') }}" class="mt-4">
-                        <input type="hidden" name="grupo" value="{{ $selected_grupo_id }}">
-                        <input type="hidden" name="modulo" id="selected_modulo" value="{{ $id_modulo ?? 1 }}">
-                        
-                        <div class="form-group">
-                            <label class="font-weight-bold mb-2"><i class="bi bi-journal-bookmark-fill"></i> Seleccionar el Módulo:</label>
-                            <div class="row g-2">
-                                @php
-                                    $modules = [1 => 'Módulo I', 2 => 'Módulo II', 3 => 'Módulo III', 4 => 'Módulo IV'];
-                                    $currentModulo = isset($id_modulo_now) ? (int)$id_modulo_now : null;
-                                    $selectedModuloRequest = (int) ($id_modulo ?? 1);
-                                @endphp
-                                @foreach($modules as $m => $label)
-                                    @php
-                                        $isActive = ($selectedModuloRequest === $m);
-                                        $locked = is_null($selected_grupo_id) || is_null($currentModulo) || ($m > $currentModulo);
-                                    @endphp
-                                    <div class="col">
-                                        <div
-                                            class="module-selector-cell btn-etapa h-100 {{ $isActive ? 'active' : '' }} {{ $locked ? 'locked' : 'unlocked' }}"
-                                            role="button"
-                                            tabindex="{{ $locked ? '-1' : '0' }}"
-                                            aria-disabled="{{ $locked ? 'true' : 'false' }}"
-                                            data-module="{{ $m }}"
-                                            data-locked="{{ $locked ? 1 : 0 }}"
-                                            onclick="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})"
-                                        >
-                                            <i class="bi bi-{{ $m }}-circle" style="font-size: 1.5em;"></i><br>{{ $label }}
-                                            @if($locked)
-                                                <span class="lock-overlay" title="Módulo bloqueado hasta completar etapas anteriores"><i class="bi bi-lock-fill"></i></span>
-                                            @endif
+
+                            <!-- Form for Revision (Only if state is 1)-->
+                            <template x-if="ldata.state == 1">
+                                <form action="{{ route('actualizar.anexo') }}" method="POST" class="space-y-4 mt-4">
+                                    @csrf
+                                    <input type="hidden" name="ap_id" :value="requireData.id">
+                                    <input type="hidden" name="evaluacion" :value="evalArchivoId">
+                                    <input type="hidden" name="archivo" :value="archivoId">
+                                    <input type="hidden" name="anexo" :value="anexoName">
+
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 ml-1">
+                                            <i class="bi bi-gear-fill"></i> Dictamen
+                                        </label>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <label class="cursor-pointer group">
+                                                <input type="radio" name="estado" value="Aprobado" x-model="selectedEstado" class="hidden peer">
+                                                <div class="flex items-center justify-center gap-2 py-2 rounded-xl border-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-xs transition-all peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-transparent peer-checked:shadow-md group-hover:border-emerald-300">
+                                                    <i class="bi bi-check-lg"></i> Aprobar
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer group">
+                                                <input type="radio" name="estado" value="Corregir" x-model="selectedEstado" class="hidden peer">
+                                                <div class="flex items-center justify-center gap-2 py-2 rounded-xl border-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-xs transition-all peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-transparent peer-checked:shadow-md group-hover:border-rose-300">
+                                                    <i class="bi bi-exclamation-triangle"></i> Corregir
+                                                </div>
+                                            </label>
                                         </div>
                                     </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <!-- Espacio -->
-                <br>
-                <div class="table-container">
-                    <div class="table-responsive">
-                        <table class="table" id="dataTable" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Facultad</th>
-                                    <th>Escuela</th>
-                                    <th>Estudiante</th>
-                                    <th>Anexo 7</th>
-                                    <th>Anexo 8</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($grupo_estudiante as $index => $item)
-                                    @php
-                                        $getStatusInfo = function ($state) {
-                                            if (is_null($state)) return ['color' => 'secondary', 'label' => 'Sin envío'];
-                                            
-                                            // state 1: Enviado, 5: Aprobado, 2,3,4: Corregir
-                                            switch ($state) {
-                                                case 5: return ['color' => 'success', 'label' => 'Aprobado'];
-                                                case 1: return ['color' => 'warning', 'label' => 'Revisar'];
-                                                case 2:
-                                                case 3:
-                                                case 4: return ['color' => 'danger', 'label' => 'Por Corregir'];
-                                                default: return ['color' => 'secondary', 'label' => 'Pendiente'];
-                                            }
-                                        };
 
-                                        $status7 = $getStatusInfo($item->status_anexo_7);
-                                        $status8 = $getStatusInfo($item->status_anexo_8);
-                                    @endphp
-                                    <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td><strong>{{ $item->asignacion_persona->seccion_academica->facultad->name }}</strong></td>
-                                        <td><strong>{{ $item->asignacion_persona->seccion_academica->escuela->name }}</strong></td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <strong>{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</strong>
-                                                <small class="text-muted">Estado Gral: 
-                                                    @if($item->state == 2)
-                                                        <span class="badge bg-success">Aprobado</span>
-                                                    @else
-                                                        <span class="badge bg-info">En Proceso</span>
-                                                    @endif
-                                                </small>
+                                    <!-- Correction Type Options -->
+                                    <div x-show="selectedEstado == 'Corregir'" 
+                                         x-transition:enter="transition ease-out duration-200" 
+                                         x-transition:enter-start="opacity-0 -translate-y-2" 
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Tipo de Corrección</label>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <label class="cursor-pointer group">
+                                                <input type="radio" name="correccionTipo" value="2" x-model="correccionTipo" class="hidden peer">
+                                                <div class="flex flex-col items-center justify-center gap-1 p-2 rounded-xl border-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 transition-all peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-400 dark:peer-checked:bg-blue-900/20 group-hover:border-blue-300">
+                                                    <i class="bi bi-file-earmark-pdf text-lg"></i>
+                                                    <span class="text-[10px] font-black uppercase">Archivo</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer group">
+                                                <input type="radio" name="correccionTipo" value="3" x-model="correccionTipo" class="hidden peer">
+                                                <div class="flex flex-col items-center justify-center gap-1 p-2 rounded-xl border-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 transition-all peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-400 dark:peer-checked:bg-blue-900/20 group-hover:border-blue-300">
+                                                    <i class="bi bi-123 text-lg"></i>
+                                                    <span class="text-[10px] font-black uppercase">Nota</span>
+                                                </div>
+                                            </label>
+                                            <label class="cursor-pointer group">
+                                                <input type="radio" name="correccionTipo" value="4" x-model="correccionTipo" class="hidden peer">
+                                                <div class="flex flex-col items-center justify-center gap-1 p-2 rounded-xl border-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 transition-all peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-400 dark:peer-checked:bg-blue-900/20 group-hover:border-blue-300">
+                                                    <div class="flex gap-1">
+                                                        <i class="bi bi-file-earmark-pdf text-xs"></i>
+                                                        <i class="bi bi-plus text-[10px]"></i>
+                                                        <span class="text-[10px] font-black uppercase">20/20</span>
+                                                    </div>
+                                                    <span class="text-[10px] font-black uppercase">Ambos</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2 ml-1">
+                                            <i class="bi bi-chat-dots-fill "></i> Observaciones (Opcional)
+                                        </label>
+                                        <textarea name="comentario" x-model="comentario" rows="3"
+                                            class="w-full bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-medium text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300"
+                                            placeholder="Detalle los motivos..."></textarea>
+                                    </div>
+
+                                    <div class="flex items-center justify-end gap-3 pt-2">
+                                        <button type="button" @click="reviewModalOpen = false"
+                                            class="px-5 py-1.5 bg-gray-400 text-slate-500 text-xs font-bold hover:text-slate-700 rounded-xl transition-colors uppercase tracking-widest">
+                                            Cancelar
+                                        </button>
+                                        <button type="submit"
+                                            class="px-5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-xs font-black rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-lg shadow-blue-500/30 transition-all active:scale-95 uppercase tracking-widest flex items-center gap-2">
+                                            <i class="bi bi-check-lg text-base"></i> Guardar
+                                        </button>
+                                    </div>
+                                </form>
+                            </template>
+
+                            <!-- History Section (Copy from EvaluacionPractica logic but for Reviewer) -->
+                            <template x-if="hdata && hdata.evaluacion_archivo && hdata.evaluacion_archivo.length > (ldata.state == 1 ? 1 : 0)">
+                                <div class="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+                                    <button @click="showHistory = !showHistory" type="button" 
+                                        class="flex items-center justify-between w-full text-left text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-blue-600 transition-colors focus:outline-none">
+                                        <span class="flex items-center gap-2"><i class="bi bi-clock-history"></i> Historial de Envíos</span>
+                                        <i class="bi transition-transform duration-300" :class="showHistory ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                    </button>
+                                    
+                                    <div x-show="showHistory" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 -translate-y-2"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="mt-3 space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                                        
+                                        <template x-for="(item, index) in hdata.evaluacion_archivo" :key="index">
+                                            <!-- If current is pending (state 1), skip index 0 in history because it's the one being reviewed above -->
+                                            <div x-show="(ldata.state == 1 && index > 0) || (ldata.state != 1 && index >= 0)" 
+                                                 class="bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border-1 border-slate-100 dark:border-slate-700 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                                                <div>
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300" x-text="'Nota: ' + item.nota"></span>
+                                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
+                                                                :class="{
+                                                                'bg-green-100 text-green-700': item.state == 5,
+                                                                'bg-red-100 text-red-700': [2,3,4].includes(item.state),
+                                                                'bg-blue-100 text-blue-700': item.state == 1
+                                                                }"
+                                                                x-text="item.state == 5 ? 'Aprobado' : ([2,3,4].includes(item.state) ? 'Observado' : 'Enviado')">
+                                                        </span>
+                                                        <template x-if="[2,3,4].includes(item.state)">
+                                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200"
+                                                                    x-text="item.state == 2 ? 'Archivo' : (item.state == 3 ? 'Nota' : 'Todo')"></span>
+                                                        </template>
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-400 flex items-center gap-1">
+                                                        <i class="bi bi-calendar3"></i>
+                                                        <span x-text="item.archivos && item.archivos.length > 0 ? new Date(item.archivos[0].created_at).toLocaleString() : 'Sin fecha'"></span>
+                                                    </div>
+                                                </div>
+                                                <template x-if="item.archivos && item.archivos.length > 0">
+                                                    <a :href="'/' + item.archivos[0].ruta" target="_blank" 
+                                                        class="text-blue-600 hover:text-blue-800 text-[10px] font-bold bg-blue-50 px-2 py-1 rounded-lg transition-colors uppercase">
+                                                        <i class="bi bi-file-earmark-pdf"></i> Ver
+                                                    </a>
+                                                </template>
                                             </div>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-{{ $status7['color'] }} btn-review-anexo w-100" 
-                                                data-id-estudiante="{{ $item->id_ap }}" 
-                                                data-anexo-numero="7">
-                                                <i class="bi bi-file-earmark-check"></i> Anexo 7 ({{ $status7['label'] }})
-                                            </button>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-{{ $status8['color'] }} btn-review-anexo w-100" 
-                                                data-id-estudiante="{{ $item->id_ap }}" 
-                                                data-anexo-numero="8">
-                                                <i class="bi bi-file-earmark-check"></i> Anexo 8 ({{ $status8['label'] }})
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                @if($grupo_estudiante->isEmpty())
-                                    <tr>
-                                        <td colspan="7" class="empty-state">
-                                            <i class="bi bi-person-x"></i>
-                                            <p class="mb-0">No se encontraron docentes registrados.</p>
-                                        </td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="app-card-footer">
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Revisión de Documento</h5>
-                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" style="padding: 1.5rem;">
-                    <div id="no-file-container" style="display: none;">
-                        <div class="alert alert-info text-center">
-                            <i class="bi bi-file-earmark-x" style="font-size: 2rem;"></i>
-                            <h5 class="alert-heading mt-2">No se ha enviado ningún archivo</h5>
-                            <p>No se ha encontrado ningún archivo para revisar.</p>
-                        </div>
-                    </div>
-                    <div id="approved-file-container" style="display: none;">
-                        <div class="alert alert-info text-center">
-                            <i class="bi bi-clipboard-check" style="font-size: 2rem;"></i>
-                            <h5 class="alert-heading mt-2">Aprobado el Archivo</h5>
-                            <p>El docente ya revisó y ha aprobado este anexo. No es posible modificarlo.</p>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-8 d-flex flex-column">
-                                <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
-                                <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
-                                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
-                                    <a href="#" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
-                                </div>
-                            </div>
-                            <div class="col-md-4 d-flex flex-column">
-                                <label class="font-weight-bold"><i class="bi bi-clipboard-data"></i> Nota:</label>
-                                <div class="alert alert-light p-2 d-flex justify-content-center align-items-center border flex-grow-1">
-                                    <span class="fw-bold fs-5 text-primary">13</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="pending-review-container" style="display: none;">
-                        <div class="alert alert-info text-center">
-                            <i class="bi bi-hourglass-split" style="font-size: 2rem;"></i>
-                            <h5 class="alert-heading mt-2">Enviado para Revisión</h5>
-                            <p>Ya has enviado este anexo. El docente lo está revisando.</p>
-                        </div>
-                        <!--<div class="row mb-3">
-                            <div class="col-md-8 d-flex flex-column">
-                                <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
-                                <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
-                                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
-                                    <a href="#" id="pending-ruta" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
-                                </div>
-                            </div>
-                            <div class="col-md-4 d-flex flex-column">
-                                <label class="font-weight-bold"><i class="bi bi-clipboard-data"></i> Nota:</label>
-                                <div class="alert alert-light p-2 d-flex justify-content-center align-items-center border flex-grow-1">
-                                    <span class="fw-bold fs-5 text-primary" id="pending-nota"></span>
-                                </div>
-                            </div>
-                        </div>-->
-                    </div>
-                    <form id="submission-form" action="{{ route('actualizar.anexo') }}" method="POST">
-                        @csrf
-                        <!-- input de ap_id -->
-                        <input type="hidden" name="ap_id" id="ap_id">
-                        <input type="hidden" name="evaluacion" id="eval_archivo">
-                        <input type="hidden" name="archivo" id="archivo">
-                        <input type="hidden" name="anexo" id="anexo">
-
-                        <div class="row mb-3">
-                            <div class="col-md-8 d-flex flex-column">
-                                <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
-                                <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
-                                    <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
-                                    <a href="#" id="pending-ruta" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
-                                </div>
-                            </div>
-                            <div class="col-md-4 d-flex flex-column">
-                                <label class="font-weight-bold"><i class="bi bi-clipboard-data"></i> Nota:</label>
-                                <div class="alert alert-light p-2 d-flex justify-content-center align-items-center border flex-grow-1">
-                                    <span class="fw-bold fs-5 text-primary" id="pending-nota">13</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group mt-3">
-                            <label for="estado-anexo7-1" class="font-weight-bold mt-2">
-                                <i class="bi bi-gear"></i> Estado del Documento
-                            </label>
-                            <select name="estado" id="estado-anexo7-1" class="form-control" onchange="toggleCorreccion(this)">
-                                <option value="Enviado" selected disabled>Enviado (Pendiente de Revisión)</option>
-                                <option value="Aprobado">Aprobar</option>
-                                <option value="Corregir">Marcar para Corregir</option>
-                            </select>
-                        </div>
-                        <div class="form-group mt-3" id="correccion-options-anexo7-1" style="display: none;">
-                            <label class="font-weight-bold"><i class="bi bi-exclamation-triangle"></i> Indicar qué se debe corregir:</label>
-                            <div class="row g-2">
-                                <div class="col">
-                                    <div class="correccion-cell h-100" id="cellArchivo-anexo7-1" onclick="selectCorreccion('archivo', 'anexo7-1')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Tendrá que enviar otro archivo y aprueba la nota.">
-                                        <i class="bi bi-file-earmark-pdf" style="font-size: 1.5em;"></i><br>Archivo
-                                        <input type="radio" name="correccionTipo" id="correccionArchivo-anexo7-1" value="2" class="d-none" checked>
+                                        </template>
                                     </div>
                                 </div>
-                                <div class="col">
-                                    <div class="correccion-cell h-100" id="cellNota-anexo7-1" onclick="selectCorreccion('nota', 'anexo7-1')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Tendrá que enviar otra nota y aprueba el archivo.">
-                                        <i class="bi bi-123" style="font-size: 1.5em;"></i><br>Nota
-                                        <input type="radio" name="correccionTipo" id="correccionNota-anexo7-1" value="3" class="d-none">
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="correccion-cell h-100" id="cellAmbos-anexo7-1" onclick="selectCorreccion('ambos', 'anexo7-1')" style="cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 5px; text-align: center;" data-toggle="tooltip" data-placement="top" title="Tendrá que enviar nuevamente tanto el archivo como la nota.">
-                                        <i class="bi bi-file-earmark-pdf" style="font-size: 1.5em;"></i> + <i class="bi bi-123" style="font-size: 1.5em;"></i><br>Ambos
-                                        <input type="radio" name="correccionTipo" id="correccionAmbos-anexo7-1" value="4" class="d-none">
-                                    </div>
-                                </div>
-                            </div>
+                            </template>
                         </div>
-                        <div class="form-group mt-3">
-                            <label for="comentario-anexo7-1" class="font-weight-bold">
-                                <i class="bi bi-chat-dots"></i> Comentario
-                            </label>
-                            <textarea name="comentario" id="comentario-anexo7-1" class="form-control" rows="3" placeholder="Ej: La firma no es visible, por favor, vuelva a escanear el documento."></textarea>
-                        </div>
-                        <div class="mt-4 d-flex justify-content-between gap-2">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </div>
-                    </form>
-                    <hr class="my-4">
-                    <div class="history-container mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mt-4">Documentos enviados (Historial)</h6>
-                            <!-- agregar un collapse -->
-                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                                Ver historial
-                            </button>
-                        </div>
-                        <div class="collapse" id="collapseExample">
-                            <div class="card card-body">
-                                <ul class="list-group history-list" id="archivosEnviadosList">
-                                    <!-- Los elementos de la lista se agregarán dinámicamente aquí -->
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
+                    </template>
                 </div>
             </div>
         </div>
     </div>
+</div>
 @endsection
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@if(session('success'))
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: '{{ session('success') }}',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-    });
-</script>
-@endif
-@if(session('error'))
-<script>
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'error',
-        title: '{{ session('error') }}',
-        showConfirmButton: false,
-        timer: 4000, // Un poco más de tiempo para errores
-        timerProgressBar: true,
-    });
-</script>
-@endif
-
-<script>
-    // Función para manejar la selección de módulo (ahora con control de bloqueo)
-    function selectModule(moduleId, locked) {
-        // Si está bloqueado, mostrar notificación y no enviar
-        if (locked) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Módulo bloqueado',
-                    text: 'No puedes avanzar a este módulo hasta que se habilite según la etapa actual.',
-                    toast: true,
-                    position: 'top-end',
-                    timer: 2500,
-                    showConfirmButton: false,
-                });
-            } else {
-                alert('Módulo bloqueado. No puedes seleccionar este módulo.');
+    $(document).ready(function() {
+        $('#tablaRevision').DataTable({
+            language: {
+                "lengthMenu": "Mostrar _MENU_",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                "search": "",
+                "searchPlaceholder": "Buscar grupo...",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Sig.",
+                    "previous": "Ant."
+                },
+            },
+            pageLength: 10,
+            responsive: true,
+            dom: '<"flex flex-col md:flex-row md:items-center justify-between gap-4 py-8 px-2"lf>rt<"flex flex-col md:flex-row md:items-center justify-between gap-4 pt-4 pb-2 px-2"ip>',
+            initComplete: function() {
+                $('#skeletonLoader').addClass('hidden');
+                $('#tablaRevision').addClass('dt-ready');
             }
-            return;
-        }
-
-        // Actualizar el valor del input oculto que contiene el módulo seleccionado
-        document.getElementById('selected_modulo').value = moduleId;
-        // Enviar el formulario
-        document.getElementById('form-modulo').submit();
-    }
-
-    // Script para mantener seleccionado el grupo después de la recarga y añadir accesibilidad al selector de módulos
-    document.addEventListener('DOMContentLoaded', function() {
-        const selectedGrupo = '{{ $selected_grupo_id }}';
-        if (selectedGrupo) {
-            const grupoEl = document.getElementById('grupo');
-            if (grupoEl) grupoEl.value = selectedGrupo;
-        }
-
-        // Añadir listener de teclado para activar módulos con Enter o Space cuando estén enfocados
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                const focused = document.activeElement;
-                if (focused && focused.classList && focused.classList.contains('module-selector-cell')) {
-                    const moduleId = parseInt(focused.getAttribute('data-module'), 10);
-                    const locked = focused.getAttribute('data-locked') === '1';
-                    if (moduleId) {
-                        e.preventDefault();
-                        selectModule(moduleId, locked);
-                    }
-                }
-            }
-        });
-    });
-
-    // Función para mostrar/ocultar opciones de corrección
-    function toggleCorreccion(select) {
-        const optionsContainer = document.getElementById('correccion-options-anexo7-1');
-        if (select.value === 'Corregir') {
-            optionsContainer.style.display = 'block';
-            // Seleccionar por defecto el primero
-            selectCorreccion('archivo', 'anexo7-1');
-        } else {
-            optionsContainer.style.display = 'none';
-        }
-    }
-
-    // Función para seleccionar el tipo de corrección
-    function selectCorreccion(tipo, suffix) {
-        // Resetear estilos
-        const cells = ['cellArchivo-', 'cellNota-', 'cellAmbos-'].map(c => document.getElementById(c + suffix));
-        cells.forEach(cell => {
-            if (cell) {
-                cell.style.borderColor = '#ddd';
-                cell.style.backgroundColor = 'transparent';
-                cell.style.color = 'inherit';
-            }
-        });
-
-        // Aplicar estilo al seleccionado
-        const selectedId = 'cell' + tipo.charAt(0).toUpperCase() + tipo.slice(1) + '-' + suffix;
-        const selectedCard = document.getElementById(selectedId);
-        if (selectedCard) {
-            selectedCard.style.borderColor = 'var(--primary-color)';
-            selectedCard.style.backgroundColor = 'rgba(30, 58, 138, 0.05)';
-            selectedCard.style.color = 'var(--primary-color)';
-        }
-
-        // Marcar el radio button
-        const radioId = 'correccion' + tipo.charAt(0).toUpperCase() + tipo.slice(1) + '-' + suffix;
-        const radio = document.getElementById(radioId);
-        if (radio) radio.checked = true;
-    }
-
-    // Logica del modal de revisión
-    document.addEventListener('DOMContentLoaded', function () {
-        const ID_MODULO = parseInt(document.getElementById('selected_modulo').value) || 1;
-        const MODAL_SELECTOR = '#reviewModal';
-        const modalElement = document.querySelector(MODAL_SELECTOR);
-        const myModal = new bootstrap.Modal(modalElement);
-
-        const anexoButtons = document.querySelectorAll('.btn-review-anexo');
-        anexoButtons.forEach(button => {
-            button.addEventListener('click', async function() {
-                const ID_EST = this.getAttribute('data-id-estudiante');
-                const anexoNumero = this.getAttribute('data-anexo-numero');
-                const ANEXO = 'anexo_' + anexoNumero;
-
-                // Resetear estado del select en el modal
-                const selectEstado = document.getElementById('estado-anexo7-1');
-                if(selectEstado) {
-                    selectEstado.value = 'Enviado';
-                    toggleCorreccion(selectEstado);
-                }
-                document.getElementById('comentario-anexo7-1').value = '';
-
-                try {
-                    const response = await fetch(`/api/evaluacion_practica/${ID_EST}/${ID_MODULO}/${ANEXO}`);
-
-                    if (!response.ok) {
-                        console.error('Error en la respuesta de la API:', response.status, response.statusText);
-                        return;
-                    }
-
-                    const result = await response.json();
-                    const data = result.length > 0 ? result[0] : null;
-
-                    // Seleccionar los contenedores del modal
-                    const formContainer = document.getElementById('submission-form');
-                    const noFileContainer = document.getElementById('no-file-container');
-                    const pendingReviewContainer = document.getElementById('pending-review-container');
-
-                    const historyList = document.getElementById('archivosEnviadosList');
-                    historyList.innerHTML = ''; // Limpiar historial
-
-                    // Asegurarse de que el formulario siempre sea visible al abrir el modal
-                    formContainer.style.display = 'block';
-                    pendingReviewContainer.style.display = 'none';
-                    noFileContainer.style.display = 'none';
-
-                    if(data && data.evaluacion_archivo && data.evaluacion_archivo.length > 0) {
-                        console.log('Datos recibidos:', data);
-                        document.getElementById('modalTitle').textContent = `Calificar Estudiante: Anexo ${anexoNumero}`;
-
-                        const ultimoEnvio = data.evaluacion_archivo[0];
-
-                        if (ultimoEnvio && ultimoEnvio.state === 1) {
-                            document.getElementById('pending-nota').textContent = ultimoEnvio.nota;
-                            const rutaArchivoPendiente = document.getElementById('pending-ruta');
-                            if(ultimoEnvio.archivos && ultimoEnvio.archivos.length > 0) {
-                                rutaArchivoPendiente.href = `/${ultimoEnvio.archivos[0].ruta}`;
-                                document.getElementById('archivo').value = ultimoEnvio.archivos[0].id;
-                            }
-
-                            document.getElementById('ap_id').value = data.id_ap;
-                            document.getElementById('eval_archivo').value = ultimoEnvio.id;
-                            document.getElementById('anexo').value = ANEXO;
-                        } else if (ultimoEnvio && ultimoEnvio.state !== 1) {
-                            formContainer.style.display = 'none';
-                            pendingReviewContainer.style.display = 'block';
-                        }
-
-                        // Llenar el historial de envíos, a partir del segundo envío
-                        data.evaluacion_archivo.forEach((ear, index) => {
-                            let archivo = null;
-
-                            if(ear.archivos && ear.archivos.length > 0) {
-                                archivo = ear.archivos[0];
-                            }
-
-                            if(index === 0 && archivo.state === 1) return;
-                            
-                            let li = document.createElement('li');
-                            li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-                            li.innerHTML = `
-                                <div>
-                                    <strong>Archivo:</strong> ${archivo.tipo.toUpperCase()} <br>
-                                    <strong>Nota:</strong> ${ear.nota} <br>
-                                    <strong>Fecha de Envío:</strong> ${new Date(archivo.created_at).toLocaleString()}
-                                </div>
-                                <a href="/${archivo.ruta}" target="_blank" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-file-earmark-pdf"></i> Ver
-                                </a>
-                            `;
-                            historyList.appendChild(li);                    
-                        });
-                    } else {
-                        // No hay datos de evaluación para este anexo/módulo
-                        document.getElementById('modalTitle').textContent = `Revisar Anexo ${anexoNumero}`;
-                        formContainer.style.display = 'none';
-                        pendingReviewContainer.style.display = 'none';
-                        noFileContainer.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error('Falló la petición fetch:', error);
-                }
-                myModal.show();
-            });
         });
     });
 </script>
