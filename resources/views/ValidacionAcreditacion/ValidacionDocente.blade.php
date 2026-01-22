@@ -3,7 +3,7 @@
 @section('subtitle', 'Gestionar acreditación del oficial')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" 
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" 
     x-data="{ 
         accreditModalOpen: false,
         showHistory: false,
@@ -70,19 +70,19 @@
         <table id="tablaValidacion" class="w-full text-left border-separate border-spacing-0 table-skeleton-ready rounded-t-2xl overflow-hidden">
             <thead>
                 <tr class="bg-gradient-to-r from-blue-800 to-blue-600 text-white">
-                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] first:rounded-tl-2xl border-none">ID</th>
-                    <th class="px-6 py-4 text-left text-[11px] font-black uppercase tracking-[0.15em] border-none">Docente</th>
-                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Semestre</th>
-                    <th class="px-6 py-4 text-left text-[11px] font-black uppercase tracking-[0.15em] border-none">Escuela</th>
-                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">C. Lectiva</th>
-                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] {{ $option == 2 ? 'last:rounded-tr-2xl' : '' }} border-none">Horario</th>
+                    <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-[0.15em] first:rounded-tl-2xl border-none">ID</th>
+                    <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[0.15em] border-none">Docente</th>
+                    <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">Semestre</th>
+                    <th class="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[0.15em] border-none">Escuela</th>
+                    <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-[0.15em] border-none">C. Lectiva</th>
+                    <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-[0.15em] {{ $option == 2 ? 'last:rounded-tr-2xl' : '' }} border-none">Horario</th>
                     @if($option == 2)
-                    <th class="px-6 py-4 text-center text-[11px] font-black uppercase tracking-[0.15em] last:rounded-tr-2xl border-none">Resolución</th>
+                    <th class="px-6 py-5 text-center text-[11px] font-black uppercase tracking-[0.15em] last:rounded-tr-2xl border-none">Resolución</th>
                     @endif
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900/50">
-                @foreach ($acreditar as $index => $item)
+                @foreach ($usuarios as $index => $item)
                     @php
                         $acreditacion = $item->asignacion_persona->acreditacion->first();
                         $archivosPorTipo = $acreditacion ? $acreditacion->archivos->groupBy('tipo') : collect();
@@ -258,11 +258,11 @@
                             </p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-2">
-                            <div class="md:col-span-12 flex flex-column gap-2">
+                            <div class="md:col-span-12 flex flex-col gap-2">
                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                     <i class="bi bi-paperclip"></i> Archivo
                                 </label>
-                                <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-between align-items-center shadow-sm">
+                                <div class="bg-white dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl flex justify-between items-center shadow-sm">
                                     <div class="flex items-center min-w-0 pr-4">
                                         <i class="bi bi-file-earmark-pdf text-xl me-2" :class="{
                                             'text-green-500': ldata.estado_archivo === 'Aprobado',

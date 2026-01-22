@@ -238,7 +238,7 @@
     </section>
 
     <!-- Mision & Vision Section -->
-    <section id="nosotros" class="section-padding bg-slate-50 dark:bg-slate-900/50">
+    <section id="nosotros" class="section-padding bg-white dark:bg-slate-900/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid lg:grid-cols-2 gap-12">
                 <div class="bg-white dark:bg-slate-800 p-12 rounded-[3rem] shadow-xl border border-slate-100 dark:border-slate-700" data-aos="fade-up">

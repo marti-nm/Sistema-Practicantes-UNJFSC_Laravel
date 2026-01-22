@@ -4,559 +4,24 @@
 
 @push('css')
 <style>
-    :root {
-        --primary-color: #1e3a8a;
-        --primary-light: #3b82f6;
-        --secondary-color: #64748b;
-        --background-color: #f8fafc;
-        --surface-color: #ffffff;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --border-color: #e2e8f0;
-        --success-color: #059669;
-        --warning-color: #d97706;
-        --danger-color: #dc2626;
-        --info-color: #0891b2;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    .dashboard-container {
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    /* Card Principal */
-    .dashboard-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .dashboard-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
-
-    .dashboard-card-header {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        color: white;
-        padding: 1.5rem 2rem;
-        position: relative;
-        border-bottom: none;
-    }
-
-    .dashboard-card-header::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    }
-
-    .dashboard-card-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        text-transform: none;
-    }
-
-    .dashboard-card-title i {
-        font-size: 1.25rem;
-    }
-
-    .dashboard-card-body {
-        padding: 1.5rem;
-    }
-
-    /* Sección de Filtros */
-    .filters-section {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-    }
-
-    .filters-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--info-color), #0e7490);
-        border-radius: 0.75rem 0.75rem 0 0;
-    }
-
-    .filters-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .filters-title i {
-        color: var(--info-color);
-    }
-
-    /* Form Controls */
-    .form-label {
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-    }
-
-    .form-select {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        padding: 0.75rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        background: var(--surface-color);
-    }
-
-    .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-        outline: none;
-    }
-
-    .form-control {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        padding: 0.75rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        background: var(--surface-color);
-    }
-
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-        outline: none;
-    }
-
-    /* Botón de Filtrar */
-    .btn-filter {
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .btn-filter:hover {
-        background: var(--primary-light);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-        color: white;
-    }
-
-    /* Métricas */
-    .metrics-section {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-    }
-
-    .metrics-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--success-color), #047857);
-        border-radius: 0.75rem 0.75rem 0 0;
-    }
-
-    .metrics-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .metrics-title i {
-        color: var(--success-color);
-    }
-
-    /* Cards de Métricas */
-    .metric-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        transition: all 0.3s ease;
-        box-shadow: var(--shadow-sm);
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        transition: all 0.3s ease;
-    }
-
-    .metric-card.primary::before {
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    }
-
-    .metric-card.info::before {
-        background: linear-gradient(90deg, var(--info-color), #0e7490);
-    }
-
-    .metric-card.warning::before {
-        background: linear-gradient(90deg, var(--warning-color), #b45309);
-    }
-
-    .metric-card.success::before {
-        background: linear-gradient(90deg, var(--success-color), #047857);
-    }
-
-    .metric-card.danger::before {
-        background: linear-gradient(90deg, var(--danger-color), #991b1b);
-    }
-
-    .metric-icon {
-        font-size: 2rem;
-        margin-bottom: 0.75rem;
-        display: block;
-    }
-
-    .metric-card.primary .metric-icon {
-        color: var(--primary-color);
-    }
-
-    .metric-card.info .metric-icon {
-        color: var(--info-color);
-    }
-
-    .metric-card.warning .metric-icon {
-        color: var(--warning-color);
-    }
-
-    .metric-card.success .metric-icon {
-        color: var(--success-color);
-    }
-
-    .metric-card.danger .metric-icon {
-        color: var(--danger-color);
-    }
-
-    .metric-label {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-    }
-
-    /* Tabla de Estudiantes */
-    .students-section {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-    }
-
-    .students-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--warning-color), #b45309);
-        border-radius: 0.75rem 0.75rem 0 0;
-    }
-
-    .students-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .students-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .students-title i {
-        color: var(--warning-color);
-    }
-
-    .search-input {
-        max-width: 400px;
-        min-width: 300px;
-    }
-
-    /* Tabla */
+    /* Estilos específicos para componentes de terceros si es necesario */
     .table-container {
-        background: var(--surface-color);
-        border-radius: 0.75rem;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        max-height: 500px;
-        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
     }
-
-    .table {
-        margin: 0;
-        border: none;
-        font-size: 0.9rem;
-        table-layout: fixed;
-        width: 100%;
-    }
-
-    .table thead th {
-        background: linear-gradient(135deg, #1e293b, #334155);
-        color: white;
-        border: none;
-        font-weight: 600;
-        padding: 1rem 0.75rem;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        white-space: nowrap;
-        text-align: center;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    .table tbody td {
-        padding: 0.875rem 0.75rem;
-        border-bottom: 1px solid #f1f5f9;
-        color: var(--text-primary);
-        vertical-align: middle;
-        text-align: center;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s ease;
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(30, 58, 138, 0.02);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Badges de Estado */
-    .status-badge {
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-    }
-
-    .status-badge.success {
-        background: rgba(5, 150, 105, 0.1);
-        color: var(--success-color);
-        border: 1px solid rgba(5, 150, 105, 0.2);
-    }
-
-    .status-badge.warning {
-        background: rgba(217, 119, 6, 0.1);
-        color: var(--warning-color);
-        border: 1px solid rgba(217, 119, 6, 0.2);
-    }
-
-    .status-badge.danger {
-        background: rgba(220, 38, 38, 0.1);
-        color: var(--danger-color);
-        border: 1px solid rgba(220, 38, 38, 0.2);
-    }
-
-    /* Secciones de Gráficos */
-    .chart-section {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-    }
-
-    .chart-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--danger-color), #991b1b);
-        border-radius: 0.75rem 0.75rem 0 0;
-    }
-
-    .chart-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .chart-title i {
-        color: var(--danger-color);
-    }
-
-    .chart-container {
-        position: relative;
-        height: 360px;
-    }
-
-    /* Estado vacío */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: var(--text-secondary);
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        color: var(--border-color);
-        margin-bottom: 1rem;
-        display: block;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .dashboard-card-header {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .dashboard-card-body {
-            padding: 1rem;
-        }
-
-        .filters-section,
-        .metrics-section,
-        .students-section,
-        .chart-section {
-            padding: 1rem;
-        }
-
-        .students-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .search-input {
-            max-width: none;
-            min-width: auto;
-        }
-
-        .table {
-            min-width: 800px;
-        }
-
-        .metric-card {
-            margin-bottom: 1rem;
-        }
-    }
-
-    /* Animaciones */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.3s ease;
-    }
-
-    /* Scroll personalizado */
     .table-container::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
     }
-
     .table-container::-webkit-scrollbar-track {
-        background: var(--background-color);
-        border-radius: 4px;
+        background: transparent;
     }
-
     .table-container::-webkit-scrollbar-thumb {
-        background: var(--border-color);
-        border-radius: 4px;
-        transition: background 0.3s ease;
+        background-color: #cbd5e1;
+        border-radius: 20px;
     }
-
-    .table-container::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-color);
+    .dark .table-container::-webkit-scrollbar-thumb {
+        background-color: #475569;
     }
 </style>
 @endpush
@@ -586,102 +51,205 @@
             />
 
             {{-- Métricas --}}
-            <div class="metrics-section">
-                <h6 class="metrics-title">
-                    <i class="bi bi-graph-up"></i>
-                    Indicadores Generales
-                </h6>
-                <div class="row">
-                    <div class="col-lg col-md-6 mb-3">
-                        <div class="metric-card primary">
-                            <i class="bi bi-people-fill metric-icon"></i>
-                            <div class="metric-label">Total Alumnos</div>
-                            <div class="metric-value">{{ $totalPorEscuelaEnSemestre }}</div>
+            <div class="mb-12" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 100)">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-1.5 h-8 bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-wider">Métricas de Rendimiento</h3>
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Resumen estadístico del periodo actual</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <!-- Total Alumnos -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 100ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Total Alumnos</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight" 
+                                      x-data="{ count: 0, target: {{ $totalPorEscuelaEnSemestre }} }" 
+                                      x-init="setTimeout(() => { let start = 0; const duration = 1000; const startTime = performance.now(); const animate = (currentTime) => { const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1); count = Math.floor(progress * target); if (progress < 1) requestAnimationFrame(animate); else count = target; }; requestAnimationFrame(animate); }, 600)" 
+                                      x-text="count">0</span>
+                                <span class="text-[10px] font-bold text-blue-500 uppercase">Total</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg col-md-6 mb-3">
-                        <div class="metric-card info">
-                            <i class="bi bi-person-check-fill metric-icon"></i>
-                            <div class="metric-label">Matriculados</div>
-                            <div class="metric-value">{{ $totalMatriculados }}</div>
+
+                    <!-- Matriculados -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 200ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-cyan-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-person-check-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Matriculados</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight" 
+                                      x-data="{ count: 0, target: {{ $totalMatriculados }} }" 
+                                      x-init="setTimeout(() => { let start = 0; const duration = 1000; const startTime = performance.now(); const animate = (currentTime) => { const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1); count = Math.floor(progress * target); if (progress < 1) requestAnimationFrame(animate); else count = target; }; requestAnimationFrame(animate); }, 700)" 
+                                      x-text="count">0</span>
+                                <span class="text-[10px] font-bold text-cyan-500 uppercase">Activos</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg col-md-6 mb-3">
-                        <div class="metric-card warning">
-                            <i class="bi bi-person-badge-fill metric-icon"></i>
-                            <div class="metric-label">Supervisores</div>
-                            <div class="metric-value">{{ $totalSupervisores }}</div>
+
+                    <!-- Supervisores -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 300ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-person-badge-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Supervisores</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight" 
+                                      x-data="{ count: 0, target: {{ $totalSupervisores }} }" 
+                                      x-init="setTimeout(() => { let start = 0; const duration = 1000; const startTime = performance.now(); const animate = (currentTime) => { const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1); count = Math.floor(progress * target); if (progress < 1) requestAnimationFrame(animate); else count = target; }; requestAnimationFrame(animate); }, 800)" 
+                                      x-text="count">0</span>
+                                <span class="text-[10px] font-bold text-amber-500 uppercase">Asignados</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg col-md-6 mb-3">
-                        <div class="metric-card success">
-                            <i class="bi bi-file-earmark-check-fill metric-icon"></i>
-                            <div class="metric-label">Fichas Completas</div>
-                            <div class="metric-value">{{ $completos }}</div>
+
+                    <!-- Fichas Completas -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 400ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-file-earmark-check-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Fichas Completas</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight" 
+                                      x-data="{ count: 0, target: {{ $completos }} }" 
+                                      x-init="setTimeout(() => { let start = 0; const duration = 1000; const startTime = performance.now(); const animate = (currentTime) => { const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1); count = Math.floor(progress * target); if (progress < 1) requestAnimationFrame(animate); else count = target; }; requestAnimationFrame(animate); }, 900)" 
+                                      x-text="count">0</span>
+                                <span class="text-[10px] font-bold text-emerald-500 uppercase">Validadas</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg col-md-6 mb-3">
-                        <div class="metric-card danger">
-                            <i class="bi bi-exclamation-circle-fill metric-icon"></i>
-                            <div class="metric-label">Pendientes</div>
-                            <div class="metric-value">{{ $pendientes }}</div>
+
+                    <!-- Pendientes -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-rose-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 500ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-exclamation-circle-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Pendientes</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight" 
+                                      x-data="{ count: 0, target: {{ $pendientes }} }" 
+                                      x-init="setTimeout(() => { let start = 0; const duration = 1000; const startTime = performance.now(); const animate = (currentTime) => { const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1); count = Math.floor(progress * target); if (progress < 1) requestAnimationFrame(animate); else count = target; }; requestAnimationFrame(animate); }, 1000)" 
+                                      x-text="count">0</span>
+                                <span class="text-[10px] font-bold text-rose-500 uppercase">Revisión</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Lista de Estudiantes --}}
-            <div class="students-section">
-                <div class="students-header">
-                    <h6 class="students-title">
-                        <i class="bi bi-list-ul"></i>
-                        Lista de Estudiantes Matriculados
-                    </h6>
-                    <input type="text" id="filtroTabla" class="form-control search-input" 
-                           placeholder="🔍 Buscar estudiantes...">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 mb-12 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold shadow-inner">
+                            <i class="bi bi-list-ul text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-wider">Lista de Estudiantes</h3>
+                            <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Detalle de matriculados en el semestre</p>
+                        </div>
+                    </div>
+                    <div class="relative w-full md:w-96 group">
+                        <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-500"></i>
+                        <input type="text" id="filtroTabla" 
+                               class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-none rounded-2xl text-sm font-semibold text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none border-1 border-slate-100 dark:border-slate-700" 
+                               placeholder="Buscar estudiantes...">
+                    </div>
                 </div>
 
-                <div class="table-container">
-                    <table class="table" id="tablaEstudiantes">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Nombre</th>
-                                <th>Apellido</th>
-                                <th>Facultad</th>
-                                <th>Escuela</th>
-                                <th>Semestre</th>
-                                <th>Ficha</th>
-                                <th>Record</th>
+                <div class="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-700 table-container max-h-[500px]">
+                    <table class="w-full text-left border-collapse" id="tablaEstudiantes">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="bg-slate-50 dark:bg-slate-900 shadow-sm">
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">#</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Nombre</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Apellido</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Facultad</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Escuela</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Ficha</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Record</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                             @foreach($listaEstudiantes as $i => $item)
-                                <tr>
-                                    <td>{{ $i + 1 }}</td>
-                                    <td>{{ $item->asignacion_persona->persona->nombres }}</td>
-                                    <td>{{ $item->asignacion_persona->persona->apellidos }}</td>
-                                    <td>{{ $item->asignacion_persona->seccion_academica->facultad->name }}</td>
-                                    <td>{{ $item->asignacion_persona->seccion_academica->escuela->name }}</td>
-                                    <td>{{ $item->asignacion_persona->semestre->codigo }}</td>
-                                    <td>
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors group/row">
+                                    <td class="px-6 py-4">
+                                        <span class="text-xs font-black text-slate-400">#{{ $i + 1 }}</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ $item->asignacion_persona->persona->nombres }}</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ $item->asignacion_persona->persona->apellidos }}</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                       <span class="text-[10px] font-black uppercase bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-500 dark:text-slate-400">{{ $item->asignacion_persona->seccion_academica->facultad->name }}</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ $item->asignacion_persona->seccion_academica->escuela->name }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
                                         @php $estadoFicha = $item->estado_ficha ?? 'Sin registrar'; @endphp
                                         @if($estadoFicha === 'Completo')
-                                            <span class="status-badge success">Completo</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-100 dark:border-emerald-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Completo
+                                            </span>
                                         @elseif($estadoFicha === 'En proceso')
-                                            <span class="status-badge warning">En proceso</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider border border-amber-100 dark:border-amber-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                En proceso
+                                            </span>
                                         @else
-                                            <span class="status-badge danger">Pendiente</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-wider border border-rose-100 dark:border-rose-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                Pendiente
+                                            </span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="px-6 py-4 text-center">
                                         @php $estadoRecord = $item->estado_record ?? 'Sin registrar'; @endphp
                                         @if($estadoRecord === 'Completo')
-                                            <span class="status-badge success">Completo</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-100 dark:border-emerald-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Completo
+                                            </span>
                                         @elseif($estadoRecord === 'En proceso')
-                                            <span class="status-badge warning">En proceso</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider border border-amber-100 dark:border-amber-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                En proceso
+                                            </span>
                                         @else
-                                            <span class="status-badge danger">Pendiente</span>
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-wider border border-rose-100 dark:border-rose-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                Pendiente
+                                            </span>
                                         @endif
                                     </td>
                                 </tr>
@@ -689,9 +257,13 @@
 
                             @if($listaEstudiantes->isEmpty())
                                 <tr>
-                                    <td colspan="8" class="empty-state">
-                                        <i class="bi bi-people"></i>
-                                        <p class="mb-0">No se encontraron estudiantes registrados.</p>
+                                    <td colspan="7" class="py-20 text-center">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="w-20 h-20 rounded-3xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-300 dark:text-slate-700 border border-slate-100 dark:border-slate-800 shadow-inner">
+                                                <i class="bi bi-people text-4xl"></i>
+                                            </div>
+                                            <p class="text-sm font-bold text-slate-500 dark:text-slate-400 italic">No se encontraron estudiantes registrados.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endif
@@ -700,25 +272,38 @@
                 </div>
             </div>
 
-            {{-- Gráfico de Barras --}}
-            <div class="chart-section">
-                <h6 class="chart-title">
-                    <i class="bi bi-bar-chart"></i>
-                    Estado de Fichas por Escuela
-                </h6>
-                <div class="chart-container">
-                    <canvas id="stackedBarChart"></canvas>
+            {{-- Gráficos --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {{-- Gráfico de Barras --}}
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold shadow-inner border border-rose-100 dark:border-rose-900/20">
+                            <i class="bi bi-bar-chart text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-wider">Estado por Escuela</h3>
+                            <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Distribución de fichas académicas</p>
+                        </div>
+                    </div>
+                    <div class="h-80 w-full">
+                        <canvas id="stackedBarChart"></canvas>
+                    </div>
                 </div>
-            </div>
 
-            {{-- Gráfico de Líneas --}}
-            <div class="chart-section">
-                <h6 class="chart-title">
-                    <i class="bi bi-graph-up"></i>
-                    Fichas Validadas por Mes ({{ date('Y') }})
-                </h6>
-                <div class="chart-container">
-                    <canvas id="lineChart"></canvas>
+                {{-- Gráfico de Líneas --}}
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shadow-inner border border-blue-100 dark:border-blue-900/20">
+                            <i class="bi bi-graph-up-arrow text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-wider">Flujo de Validaciones</h3>
+                            <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Tendencia mensual de fichas ({{ date('Y') }})</p>
+                        </div>
+                    </div>
+                    <div class="h-80 w-full">
+                        <canvas id="lineChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -730,519 +315,134 @@
 
 
 
+@endsection
+
+@push('js')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const ctxLineEl = document.getElementById('lineChart');
-        if (ctxLineEl) {
-            const ctxLine = ctxLineEl.getContext('2d');
-
-            const lineChart = new Chart(ctxLine, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($fichasPorMes->pluck('mes')) !!},
-                    datasets: [{
-                        label: 'Fichas validadas',
-                        data: {!! json_encode($fichasPorMes->pluck('total')) !!},
-                        borderColor: '#1e3a8a',
-                        backgroundColor: 'rgba(30, 58, 138, 0.1)',
-                        pointBackgroundColor: '#1e3a8a',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#1e3a8a',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 3,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#1e293b',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold',
-                                    family: 'Inter'
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#ffffff',
-                            titleColor: '#1e3a8a',
-                            bodyColor: '#64748b',
-                            borderColor: '#e2e8f0',
-                            borderWidth: 2,
-                            cornerRadius: 8,
-                            displayColors: false,
-                            titleFont: {
-                                family: 'Inter',
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                family: 'Inter'
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#64748b',
-                                font: {
-                                    family: 'Inter',
-                                    weight: '500'
-                                }
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#64748b',
-                                stepSize: 1,
-                                font: {
-                                    family: 'Inter',
-                                    weight: '500'
-                                }
-                            },
-                            grid: {
-                                color: '#f1f5f9',
-                                lineWidth: 1
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
-
-<script>
-let chart; // Mantén una referencia global al gráfico
-
-function renderChart(data) {
-    const labels = data.map(item => item.escuela);
-    const completos = data.map(item => item.completos);
-    const enProceso = data.map(item => item.en_proceso);
-    const pendientes = data.map(item => item.pendientes);
-
-    const ctx = document.getElementById('stackedBarChart').getContext('2d');
-
-    if (chart) chart.destroy(); // Borra el gráfico anterior si ya existe
-
-    chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                { 
-                    label: 'Completo', 
-                    data: completos, 
-                    backgroundColor: '#059669',
-                    borderColor: '#047857',
-                    borderWidth: 1,
-                    borderRadius: 4
-                },
-                { 
-                    label: 'En proceso', 
-                    data: enProceso, 
-                    backgroundColor: '#d97706',
-                    borderColor: '#b45309',
-                    borderWidth: 1,
-                    borderRadius: 4
-                },
-                { 
-                    label: 'Pendiente', 
-                    data: pendientes, 
-                    backgroundColor: '#dc2626',
-                    borderColor: '#991b1b',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                title: { 
-                    display: true, 
-                    text: 'Estado de fichas por escuela',
-                    color: '#1e293b',
-                    font: {
-                        size: 16,
-                        weight: 'bold',
-                        family: 'Inter'
-                    }
-                },
-                legend: { 
-                    position: 'top',
-                    labels: {
-                        color: '#1e293b',
-                        font: {
-                            family: 'Inter',
-                            weight: '500'
-                        },
-                        padding: 20
-                    }
-                },
-                tooltip: {
-                    backgroundColor: '#ffffff',
-                    titleColor: '#1e293b',
-                    bodyColor: '#64748b',
-                    borderColor: '#e2e8f0',
-                    borderWidth: 2,
-                    cornerRadius: 8,
-                    titleFont: {
-                        family: 'Inter',
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        family: 'Inter'
-                    }
-                }
-            },
-            scales: {
-                x: { 
-                    stacked: true,
-                    ticks: {
-                        color: '#64748b',
-                        font: {
-                            family: 'Inter',
-                            weight: '500'
-                        }
-                    },
-                    grid: {
-                        display: false
-                    }
-                },
-                y: { 
-                    stacked: true, 
-                    beginAtZero: true,
-                    ticks: {
-                        color: '#64748b',
-                        font: {
-                            family: 'Inter',
-                            weight: '500'
-                        }
-                    },
-                    grid: {
-                        color: '#f1f5f9'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Cargar inicial (si no quieres esperar a un filtro)
-renderChart(@json($fichasPorEscuela));
-
-// Manejar cambios de filtros
-const form = document.querySelector('form');
-form.addEventListener('submit', function(e) {
-
-    
-    //e.preventDefault(); // evita recargar la página
-
-
-    const params = new URLSearchParams(new FormData(this)).toString();
-
-    
-});
-</script>
-
-<script>
-    document.getElementById('filtroTabla').addEventListener('keyup', function () {
-        const valor = this.value.toLowerCase();
-        const filas = document.querySelectorAll('#tablaEstudiantes tbody tr');
-
-        filas.forEach(fila => {
-            const texto = fila.textContent.toLowerCase();
-            fila.style.display = texto.includes(valor) ? '' : 'none';
-        });
-    });
-</script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // 1. Gráfico de Líneas
+    const ctxLineEl = document.getElementById('lineChart');
+    if (ctxLineEl) {
+        new Chart(ctxLineEl.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($fichasPorMes->pluck('mes')) !!},
+                datasets: [{
+                    label: 'Fichas validadas',
+                    data: {!! json_encode($fichasPorMes->pluck('total')) !!},
+                    borderColor: '#1e3a8a',
+                    backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                    pointBackgroundColor: '#1e3a8a',
+                    pointBorderColor: '#fff',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { font: { family: 'Inter', weight: 'bold' } } }
+                },
+                scales: {
+                    x: { ticks: { font: { family: 'Inter' } }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Inter' } } }
+                }
+            }
+        });
+    }
+
+    // 2. Gráfico de Barras
+    let stackedChart;
+    const renderStackedChart = (data) => {
+        const ctx = document.getElementById('stackedBarChart');
+        if (!ctx) return;
+        if (stackedChart) stackedChart.destroy();
+        stackedChart = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: data.map(i => i.escuela),
+                datasets: [
+                    { label: 'Completo', data: data.map(i => i.completos), backgroundColor: '#059669' },
+                    { label: 'En proceso', data: data.map(i => i.en_proceso), backgroundColor: '#d97706' },
+                    { label: 'Pendiente', data: data.map(i => i.pendientes), backgroundColor: '#dc2626' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, beginAtZero: true }
+                }
+            }
+        });
+    };
+    renderStackedChart(@json($fichasPorEscuela));
+
+    // 3. Filtros de Facultad/Escuela/Docente
     const facultadSelect = document.getElementById('facultad');
     const escuelaSelect = document.getElementById('escuela');
     const docenteSelect = document.getElementById('docente');
     const semestreActivoId = {{ session('semestre_actual_id') ?? 'null' }};
 
-    facultadSelect.addEventListener('change', function () {
-        const facultadId = this.value;
-        
-        // Reset dependants
-        escuelaSelect.innerHTML = '<option value="">-- Todas --</option>';
-        docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
-
-        if (!facultadId) {
-            return;
-        }
-
-        escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
-        fetch(`/api/escuelas/${facultadId}`)
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">-- Todas --</option>';
-                data.forEach(e => {
-                    options += `<option value="${e.id}">${e.name}</option>`;
-                });
-                escuelaSelect.innerHTML = options;
-            })
-            .catch(() => {
-                escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
+    if (facultadSelect) {
+        facultadSelect.addEventListener('change', function() {
+            const id = this.value;
+            escuelaSelect.innerHTML = '<option value="">-- Todas --</option>';
+            docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
+            if (!id) return;
+            fetch(`/api/escuelas/${id}`).then(r => r.json()).then(data => {
+                data.forEach(e => escuelaSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`);
             });
-    });
-
-    escuelaSelect.addEventListener('change', function () {
-        const escuelaId = this.value;
-        docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
-
-        if (!escuelaId || !semestreActivoId) {
-            return;
-        }
-
-        docenteSelect.innerHTML = '<option value="">Cargando...</option>';
-        fetch(`/api/secciones/${escuelaId}/${semestreActivoId}`) // <-- Usar semestre activo
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">-- Todos --</option>';
-                data.forEach(d => {
-                    options += `<option value="${d.id}">${d.name}</option>`;
-                });
-                docenteSelect.innerHTML = options;
-            })
-            .catch(() => {
-                docenteSelect.innerHTML = '<option value="">Error al cargar</option>';
-            });
-    });
-});
-</script>
-
-
-
-
-@endsection
-
-@push('js')
-<script>
-$(document).ready(function() {
-    console.log("JS del dashboard administrativo cargado");
-
-    // Animaciones progresivas para las métricas
-    function animateMetrics() {
-        $('.metric-card').each(function(index) {
-            $(this).css({
-                'opacity': '0',
-                'transform': 'translateY(20px)'
-            });
-            
-            setTimeout(() => {
-                $(this).css({
-                    'transition': 'all 0.5s ease',
-                    'opacity': '1',
-                    'transform': 'translateY(0)'
-                });
-            }, index * 100);
         });
     }
 
-    // Efectos hover mejorados para metric cards
-    $('.metric-card').hover(
-        function() {
-            $(this).find('.metric-icon').css({
-                'transform': 'scale(1.1) rotate(5deg)',
-                'transition': 'all 0.3s ease'
+    if (escuelaSelect) {
+        escuelaSelect.addEventListener('change', function() {
+            const id = this.value;
+            docenteSelect.innerHTML = '<option value="">-- Todos --</option>';
+            if (!id || !semestreActivoId) return;
+            fetch(`/api/secciones/${id}/${semestreActivoId}`).then(r => r.json()).then(data => {
+                data.forEach(d => docenteSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`);
             });
-            $(this).find('.metric-value').css({
-                'color': 'var(--primary-color)',
-                'transform': 'scale(1.05)'
-            });
-        },
-        function() {
-            $(this).find('.metric-icon').css({
-                'transform': 'scale(1) rotate(0deg)'
-            });
-            $(this).find('.metric-value').css({
-                'color': 'var(--text-primary)',
-                'transform': 'scale(1)'
-            });
-        }
-    );
+        });
+    }
 
-    // Efectos para la tabla de estudiantes
-    $('#tablaEstudiantes tbody tr').hover(
-        function() {
-            $(this).css({
-                'border-left': '4px solid var(--primary-color)',
-                'transition': 'all 0.3s ease'
+    // 4. Buscador de Tabla
+    const searchInput = document.getElementById('filtroTabla');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#tablaEstudiantes tbody tr:not(.no-results)');
+            let matches = 0;
+            rows.forEach(r => {
+                const match = r.textContent.toLowerCase().includes(q);
+                r.style.display = match ? '' : 'none';
+                if (match) matches++;
             });
-        },
-        function() {
-            $(this).css({
-                'border-left': 'none'
-            });
-        }
-    );
+            const tbody = document.querySelector('#tablaEstudiantes tbody');
+            const old = tbody.querySelector('.no-results');
+            if (old) old.remove();
+            if (matches === 0 && q.length > 0) {
+                const tr = document.createElement('tr');
+                tr.className = 'no-results';
+                tr.innerHTML = `<td colspan="7" class="py-20 text-center text-slate-400 font-medium italic">No se encontraron resultados para "${q}"</td>`;
+                tbody.appendChild(tr);
+            }
+        });
+    }
 
-    // Animación para badges de estado
-    $('.status-badge').hover(
-        function() {
-            $(this).css({
-                'transform': 'scale(1.05)',
-                'box-shadow': 'var(--shadow-sm)'
-            });
-        },
-        function() {
-            $(this).css({
-                'transform': 'scale(1)',
-                'box-shadow': 'none'
-            });
-        }
-    );
-
-    // Efecto loading en formulario de filtros
+    // 5. Efectos de UI
     $('form').on('submit', function() {
-        const button = $(this).find('button[type="submit"]');
-        button.html('<i class="bi bi-hourglass-split"></i> Filtrando...');
-        button.prop('disabled', true);
-        
-        // Mostrar indicador de carga
-        $('.dashboard-card-body').css({
-            'opacity': '0.7',
-            'pointer-events': 'none'
-        });
-    });
-
-    // Contador animado para métricas
-    function animateCounter(element, targetValue) {
-        const startValue = 0;
-        const duration = 1500;
-        const startTime = performance.now();
-        
-        function updateCounter(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
-            
-            element.textContent = currentValue;
-            
-            if (progress < 1) {
-                requestAnimationFrame(updateCounter);
-            }
-        }
-        
-        requestAnimationFrame(updateCounter);
-    }
-
-    // Inicializar contadores animados
-    $('.metric-value').each(function() {
-        const targetValue = parseInt($(this).text());
-        if (!isNaN(targetValue)) {
-            animateCounter(this, targetValue);
+        const btn = $(this).find('button[type="submit"]');
+        if (btn.length) {
+            btn.html('<i class="bi bi-hourglass-split animate-spin mr-2"></i>Filtrando...').prop('disabled', true);
         }
     });
-
-    // Mejorar búsqueda en tabla con highlight
-    $('#filtroTabla').on('input', function() {
-        const searchTerm = $(this).val().toLowerCase();
-        
-        $('#tablaEstudiantes tbody tr').each(function() {
-            const rowText = $(this).text().toLowerCase();
-            const isMatch = rowText.includes(searchTerm);
-            
-            $(this).toggle(isMatch);
-            
-            if (isMatch && searchTerm.length > 0) {
-                $(this).css({
-                    'animation': 'highlight 0.5s ease',
-                    'background-color': 'rgba(30, 58, 138, 0.05)'
-                });
-                
-                setTimeout(() => {
-                    $(this).css({
-                        'background-color': '',
-                        'animation': ''
-                    });
-                }, 500);
-            }
-        });
-        
-        // Mostrar mensaje si no hay resultados
-        const visibleRows = $('#tablaEstudiantes tbody tr:visible').length;
-        if (visibleRows === 0 && searchTerm.length > 0) {
-            if ($('#no-results').length === 0) {
-                $('#tablaEstudiantes tbody').append(`
-                    <tr id="no-results">
-                        <td colspan="8" class="empty-state">
-                            <i class="bi bi-search"></i>
-                            <p class="mb-0">No se encontraron resultados para "${searchTerm}"</p>
-                        </td>
-                    </tr>
-                `);
-            }
-        } else {
-            $('#no-results').remove();
-        }
-    });
-
-    // Efectos para selects de filtros
-    $('.form-select, .form-control').focus(function() {
-        $(this).css({
-            'transform': 'scale(1.02)',
-            'transition': 'all 0.2s ease'
-        });
-    }).blur(function() {
-        $(this).css({
-            'transform': 'scale(1)'
-        });
-    });
-
-    // Ejecutar animaciones al cargar
-    setTimeout(animateMetrics, 300);
-
-    // CSS adicional para animaciones
-    $('head').append(`
-        <style>
-            @keyframes highlight {
-                0% { background-color: rgba(30, 58, 138, 0.2); }
-                50% { background-color: rgba(30, 58, 138, 0.1); }
-                100% { background-color: rgba(30, 58, 138, 0.05); }
-            }
-            
-            .metric-value {
-                transition: all 0.3s ease;
-            }
-            
-            .metric-icon {
-                transition: all 0.3s ease;
-            }
-            
-            .status-badge {
-                transition: all 0.2s ease;
-                cursor: default;
-            }
-            
-            .table tbody tr {
-                transition: all 0.2s ease;
-            }
-            
-            .form-select:focus,
-            .form-control:focus {
-                transform: scale(1.02);
-            }
-        </style>
-    `);
 });
 </script>
 @endpush

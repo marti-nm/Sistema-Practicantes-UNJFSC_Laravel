@@ -57,6 +57,7 @@ class validacionMatriculaController extends Controller
                         ->orderBy('created_at', 'desc');
             },
             'asignacion_persona.seccion_academica.escuela',
+            'asignacion_persona.semestre',
         ])->orderBy('apellidos', 'asc')->get();
 
         $facQuery = Facultad::query();

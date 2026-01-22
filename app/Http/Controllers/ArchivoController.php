@@ -608,75 +608,6 @@ class ArchivoController extends Controller
         // Mapa de tipos por DESTINATARIO (para el select dinámico)
         $mapaTiposDestinatario = $this->getMapTiposPorDestinatario();
 
-        // Query Principal
-        $query = Recurso::activo()
-            ->with(['uploader.persona', 'seccionAcademica.escuela'])
-            ->where('id_semestre', $id_semestre);
-            
-        // 1. Filtrar por Rol Dirigido
-        if (!in_array($myRolId, [1, 2])) {
-            $query->where(function($q) use ($myRolId) {
-                $q->whereNull('id_rol')
-                  ->orWhere('id_rol', $myRolId);
-            });
-        }
-
-        // 2. Filtrar por Nivel Jerárquico
-        if ($myRolId == 1) {
-            // Admin Global: Ve todo
-        } elseif ($myRolId == 2) {
-            // Sub Admin
-            if ($myFacultadId) {
-                 $query->where(function($q) use ($myFacultadId) {
-                    $q->where('nivel', 1) // Global
-                      ->orWhere(function($subQ) use ($myFacultadId) {
-                          $subQ->where('nivel', 2)
-                               ->whereHas('seccionAcademica', function($f) use ($myFacultadId) {
-                                   $f->where('id_facultad', $myFacultadId);
-                               });
-                      })
-                      ->orWhere(function($subQ) use ($myFacultadId) {
-                          $subQ->whereIn('nivel', [3, 4])
-                               ->whereHas('seccionAcademica', function($f) use ($myFacultadId) {
-                                   $f->where('id_facultad', $myFacultadId);
-                               });
-                      });
-                });
-            }
-        } else {
-            // Otros roles
-            $query->where(function($q) use ($myFacultadId, $myEscuelaId, $mySeccionId) {
-                $q->where('nivel', 1); // Global
-                
-                if ($myFacultadId) {
-                    $q->orWhere(function($sub) use ($myFacultadId) {
-                        $sub->where('nivel', 2)
-                            ->whereHas('seccionAcademica', function($f) use ($myFacultadId) {
-                                $f->where('id_facultad', $myFacultadId);
-                            });
-                    });
-                }
-                
-                if ($myEscuelaId) {
-                    $q->orWhere(function($sub) use ($myEscuelaId) {
-                        $sub->where('nivel', 3)
-                            ->whereHas('seccionAcademica', function($e) use ($myEscuelaId) {
-                                $e->where('id_escuela', $myEscuelaId);
-                            });
-                    });
-                }
-                
-                if ($mySeccionId) {
-                    $q->orWhere(function($sub) use ($mySeccionId) {
-                        $sub->where('nivel', 4)
-                            ->where('id_sa', $mySeccionId);
-                    });
-                }
-            });
-        }
-
-        $recursos = $query->orderBy('created_at', 'desc')->get();
-
         $queryFac = Facultad::where('state', 1);
         if($authUser->getRolId() == 2 || $authUser->getRolId() == 3){ 
             if ($myFacultadId) {
@@ -705,22 +636,13 @@ class ArchivoController extends Controller
             'memorandum' => 'Memorándum',
         ];
 
-        $nivelLabels = [
-             1 => 'Global',
-             2 => 'Facultad',
-             3 => 'Escuela',
-             4 => 'Sección'
-        ];
-
         return view('recursos.index', compact(
-            'recursos', 
             'tiposPermitidos', 
             'ap', 
             'facultades', 
             'roles',
             'mapaTiposDestinatario',
-            'tipoLabels',
-            'nivelLabels'
+            'tipoLabels'
         ));
     }
 

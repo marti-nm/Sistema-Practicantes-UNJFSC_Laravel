@@ -4,624 +4,259 @@
 
 @push('css')
 <style>
-    :root {
-        --primary-color: #1e3a8a;
-        --primary-light: #3b82f6;
-        --secondary-color: #64748b;
-        --background-color: #f8fafc;
-        --surface-color: #ffffff;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --border-color: #e2e8f0;
-        --success-color: #059669;
-        --warning-color: #d97706;
-        --danger-color: #dc2626;
-        --info-color: #0891b2;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    }
-
-    .dashboard-container {
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    /* Card Principal */
-    .dashboard-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-        overflow: hidden;
-    }
-
-    .dashboard-card:hover {
-        box-shadow: var(--shadow-lg);
-    }
-
-    .dashboard-card-header {
-        background: linear-gradient(135deg, #7c3aed, #5b21b6);
-        color: white;
-        padding: 1.5rem 2rem;
-        position: relative;
-        border-bottom: none;
-    }
-
-    .dashboard-card-header::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    }
-
-    .dashboard-card-title {
-        font-size: 1.375rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        text-transform: none;
-    }
-
-    .dashboard-card-title i {
-        font-size: 1.25rem;
-    }
-
-    .dashboard-card-body {
-        padding: 1.5rem;
-    }
-
-    /* Sección de Filtros */
-    .filters-section {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-    }
-
-    .filters-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #7c3aed, #5b21b6);
-        border-radius: 0.75rem 0.75rem 0 0;
-    }
-
-    .filters-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .filters-title i {
-        color: #7c3aed;
-    }
-
-    /* Form Controls */
-    .form-label {
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-    }
-
-    .form-select {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        padding: 0.75rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        background: var(--surface-color);
-    }
-
-    .form-select:focus {
-        border-color: #7c3aed;
-        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-        outline: none;
-    }
-
-    .form-control {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        padding: 0.75rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        background: var(--surface-color);
-    }
-
-    .form-control:focus {
-        border-color: #7c3aed;
-        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-        outline: none;
-    }
-
-    .form-control[readonly] {
-        background: #f8fafc;
-        border-color: var(--border-color);
-        color: var(--text-secondary);
-    }
-
-    /* Métricas */
-    .metrics-section {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-    }
-
-    .metrics-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--info-color), #0e7490);
-        border-radius: 0.75rem 0.75rem 0 0;
-    }
-
-    .metrics-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .metrics-title i {
-        color: var(--info-color);
-    }
-
-    /* Cards de Métricas */
-    .metric-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        transition: all 0.3s ease;
-        box-shadow: var(--shadow-sm);
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        transition: all 0.3s ease;
-    }
-
-    .metric-card.primary::before {
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-    }
-
-    .metric-card.info::before {
-        background: linear-gradient(90deg, var(--info-color), #0e7490);
-    }
-
-    .metric-icon {
-        font-size: 2rem;
-        margin-bottom: 0.75rem;
-        display: block;
-    }
-
-    .metric-card.primary .metric-icon {
-        color: var(--primary-color);
-    }
-
-    .metric-card.info .metric-icon {
-        color: var(--info-color);
-    }
-
-    .metric-label {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-    }
-
-    /* Lista de Estudiantes Supervisados */
-    .students-section {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        position: relative;
-    }
-
-    .students-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--success-color), #047857);
-        border-radius: 0.75rem 0.75rem 0 0;
-    }
-
-    .students-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .students-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .students-title i {
-        color: var(--success-color);
-    }
-
-    .search-input {
-        max-width: 400px;
-        min-width: 300px;
-    }
-
-    /* Tabla */
     .table-container {
-        background: var(--surface-color);
-        border-radius: 0.75rem;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        max-height: 500px;
-        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
     }
-
-    .table {
-        margin: 0;
-        border: none;
-        font-size: 0.9rem;
-    }
-
-    .table thead th {
-        background: linear-gradient(135deg, #1e293b, #334155);
-        color: white;
-        border: none;
-        font-weight: 600;
-        padding: 1rem 0.75rem;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        white-space: nowrap;
-        text-align: center;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    .table tbody td {
-        padding: 0.875rem 0.75rem;
-        border-bottom: 1px solid #f1f5f9;
-        color: var(--text-primary);
-        vertical-align: middle;
-        text-align: center;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s ease;
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(124, 58, 237, 0.02);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Botones de Ver PDF */
-    .btn-view-pdf {
-        background: linear-gradient(135deg, var(--success-color), #047857);
-        color: white;
-        border: none;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-    }
-
-    .btn-view-pdf:hover {
-        background: linear-gradient(135deg, #047857, #065f46);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm);
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-view-pdf i {
-        font-size: 0.75rem;
-    }
-
-    /* Badges de Estado */
-    .status-badge {
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-block;
-        transition: all 0.2s ease;
-    }
-
-    .status-badge.not-uploaded {
-        background: rgba(100, 116, 139, 0.1);
-        color: var(--secondary-color);
-        border: 1px solid rgba(100, 116, 139, 0.2);
-    }
-
-    .status-badge:hover {
-        transform: scale(1.05);
-        box-shadow: var(--shadow-sm);
-    }
-
-    /* Estado vacío */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: var(--text-secondary);
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        color: var(--border-color);
-        margin-bottom: 1rem;
-        display: block;
-    }
-
-    /* Botón de filtro */
-    .btn-filter {
-        background: linear-gradient(135deg, #7c3aed, #5b21b6);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-filter:hover {
-        background: linear-gradient(135deg, #5b21b6, #4c1d95);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm);
-        color: white;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .dashboard-card-header {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .dashboard-card-body {
-            padding: 1rem;
-        }
-
-        .filters-section,
-        .metrics-section,
-        .students-section {
-            padding: 1rem;
-        }
-
-        .students-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .search-input {
-            max-width: none;
-            min-width: auto;
-        }
-
-        .table {
-            min-width: 700px;
-        }
-
-        .metric-card {
-            margin-bottom: 1rem;
-        }
-    }
-
-    /* Animaciones */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.3s ease;
-    }
-
-    /* Scroll personalizado */
     .table-container::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
     }
-
     .table-container::-webkit-scrollbar-track {
-        background: var(--background-color);
-        border-radius: 4px;
+        background: transparent;
     }
-
     .table-container::-webkit-scrollbar-thumb {
-        background: var(--border-color);
-        border-radius: 4px;
-        transition: background 0.3s ease;
+        background-color: #cbd5e1;
+        border-radius: 20px;
     }
-
-    .table-container::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-color);
+    .dark .table-container::-webkit-scrollbar-thumb {
+        background-color: #475569;
     }
 </style>
 @endpush
 
 @section('content')
 
-<div class="dashboard-container fade-in">
-    <div class="dashboard-card">
-        <div class="dashboard-card-header">
-            <h5 class="dashboard-card-title">
-                <i class="bi bi-eye"></i>
-                Dashboard Supervisor - Panel de Seguimiento
-            </h5>
-        </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="">
+        <x-header-content
+            title="Panel de Control del Supervisor"
+            subtitle="Supervisión académica y seguimiento empresarial"
+            icon="bi-eye"
+            :enableButton="false"
+        />
 
-        <div class="dashboard-card-body">
+        <div class="">
+            {{-- Indicadores de Supervisión --}}
+            <div class="mb-12" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 100)">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-1.5 h-8 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]"></div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-wider">Indicadores de Supervisión</h3>
+                        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Estado actual de tus grupos asignados</p>
+                    </div>
+                </div>
 
-            {{-- Métricas --}}
-            <div class="metrics-section">
-                <h6 class="metrics-title">
-                    <i class="bi bi-graph-up"></i>
-                    Indicadores de Supervisión
-                </h6>
-                <div class="row">
-                    <div class="col-lg-6 col-md-6 mb-3">
-                        <div class="metric-card primary">
-                            <i class="bi bi-people-fill metric-icon"></i>
-                            <div class="metric-label">Total Estudiantes</div>
-                            <div class="metric-value">{{ $totalFiltrados }}</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <!-- Total Estudiantes -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 100ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Total Estudiantes</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight" 
+                                      x-data="{ count: 0, target: {{ $totalEstudiantes }} }" 
+                                      x-init="setTimeout(() => { let start = 0; const duration = 1000; const startTime = performance.now(); const animate = (currentTime) => { const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1); count = Math.floor(progress * target); if (progress < 1) requestAnimationFrame(animate); else count = target; }; requestAnimationFrame(animate); }, 600)" 
+                                      x-text="count">0</span>
+                                <span class="text-[10px] font-bold text-emerald-500 uppercase">Estudiantes</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-lg-6 col-md-6 mb-3">
-                        <div class="metric-card info">
-                            <i class="bi bi-file-earmark-check-fill metric-icon"></i>
-                            <div class="metric-label">Anexos Completos</div>
-                            <div class="metric-value">{{ $totalCompletos }}</div>
+
+                    <!-- Módulo Actual -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 200ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-layers-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Módulo Actual</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase">{{ $currentModule }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anexo 7 -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 300ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-cyan-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-file-earmark-check-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Anexo 7 Completos</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">{{ $totalAnexo7 }}</span>
+                                <span class="text-[12px] font-black text-slate-400">/ {{ $totalEstudiantes }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anexo 8 -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 400ms;">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-5 group-hover:rotate-6 transition-transform text-2xl font-black">
+                                <i class="bi bi-clipboard2-check-fill"></i>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Anexo 8 Completos</h4>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">{{ $totalAnexo8 }}</span>
+                                <span class="text-[12px] font-black text-slate-400">/ {{ $totalEstudiantes }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progreso General -->
+                    <div class="group relative bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-rose-500/10 transition-all duration-500 hover:-translate-y-1"
+                         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
+                         style="transition-delay: 500ms;">
+                        <div class="relative">
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-speedometer2 text-xl"></i>
+                                </div>
+                                <span class="text-2xl font-black text-rose-600 dark:text-rose-400">{{ $progressGeneral }}%</span>
+                            </div>
+                            <h4 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-3">Progreso General</h4>
+                            <div class="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-rose-500 to-pink-600 transition-all duration-1000 ease-out" 
+                                     :style="loaded ? 'width: {{ $progressGeneral }}%' : 'width: 0%'"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Lista de alumnos supervisados --}}
-            <div class="students-section">
-                <div class="students-header">
-                    <h6 class="students-title">
-                        <i class="bi bi-clipboard-check"></i>
-                        Alumnos Supervisados con Anexos
-                    </h6>
-                    <input type="text" id="buscarAlumnos" class="form-control search-input" 
-                           placeholder="🔍 Buscar estudiantes...">
+            {{-- Lista de Alumnos Supervisados --}}
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 mb-12 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shadow-inner">
+                            <i class="bi bi-person-check text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-wider">Alumnos en Supervisión</h3>
+                            <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Detalle de avance y centro de prácticas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group/search max-w-sm w-full">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="bi bi-search text-slate-400 group-focus-within/search:text-blue-500 transition-colors"></i>
+                        </div>
+                        <input type="text" id="filtroTabla" 
+                               class="block w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-none rounded-2xl text-sm font-medium text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none" 
+                               placeholder="Buscar practicante...">
+                    </div>
                 </div>
 
-                <div class="table-container">
-                    <table class="table" id="tablaAlumnos">
-                        <thead>
-                            <tr>
-                                <th>Nombres</th>
-                                <th>Apellidos</th>
-                                <th>Anexo 7</th>
-                                <th>Anexo 8</th>
+                <div class="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-700 table-container">
+                    <table class="w-full text-left border-collapse" id="tablaAlumnos">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="bg-slate-50 dark:bg-slate-900 shadow-sm">
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Practicante</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Entidad Recceptora</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Módulo</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Estado Anexos</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse($alumnos as $alumno)
-                                <tr>
-                                    <td>{{ $alumno->nombres }}</td>
-                                    <td>{{ $alumno->apellidos }}</td>
-                                    <td>
-                                        @if($alumno->anexo_6)
-                                            <a href="{{ asset('storage/' . $alumno->anexo_6) }}" target="_blank" class="btn-view-pdf">
-                                                <i class="bi bi-file-pdf"></i>
-                                                Ver PDF
-                                            </a>
-                                        @else
-                                            <span class="status-badge not-uploaded">No subido</span>
-                                        @endif
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                            @foreach($alumnos as $alumno)
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors group/row">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            @if($alumno['foto'])
+                                                <img src="{{ asset('storage/' . $alumno['foto']) }}" class="w-10 h-10 rounded-xl object-cover shadow-sm ring-1 ring-slate-100 dark:ring-slate-700">
+                                            @else
+                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-black text-sm shadow-lg uppercase">
+                                                    {{ substr($alumno['nombres'], 0, 1) }}{{ substr($alumno['apellidos'], 0, 1) }}
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ $alumno['nombres'] }} {{ $alumno['apellidos'] }}</p>
+                                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Estudiante de Prácticas</p>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td>
-                                        @if($alumno->anexo_7)
-                                            <a href="{{ asset('storage/' . $alumno->anexo_7) }}" target="_blank" class="btn-view-pdf">
-                                                <i class="bi bi-file-pdf"></i>
-                                                Ver PDF
-                                            </a>
-                                        @else
-                                            <span class="status-badge not-uploaded">No subido</span>
-                                        @endif
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <i class="bi bi-building text-slate-400"></i>
+                                            <span class="text-sm font-semibold text-slate-600 dark:text-slate-400">{{ $alumno['empresa'] }}</span>
+                                        </div>
                                     </td>
-                                    <td>
-                                        @if($alumno->anexo_8)
-                                            <a href="{{ asset('storage/' . $alumno->anexo_8) }}" target="_blank" class="btn-view-pdf">
-                                                <i class="bi bi-file-pdf"></i>
-                                                Ver PDF
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider border border-blue-100 dark:border-blue-800">
+                                            {{ $alumno['modulo'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center justify-center gap-3">
+                                            <div class="flex flex-col items-center gap-1">
+                                                <span class="text-[9px] font-black text-slate-400 uppercase">Anexo 7</span>
+                                                @if($alumno['anexo_7'] === 'Completado')
+                                                    <div class="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                                        <i class="bi bi-check-circle-fill"></i>
+                                                    </div>
+                                                @else
+                                                    <div class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-500">
+                                                        <i class="bi bi-dash"></i>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="flex flex-col items-center gap-1">
+                                                <span class="text-[9px] font-black text-slate-400 uppercase">Anexo 8</span>
+                                                @if($alumno['anexo_8'] === 'Completado')
+                                                    <div class="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                                        <i class="bi bi-check-circle-fill"></i>
+                                                    </div>
+                                                @else
+                                                    <div class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-500">
+                                                        <i class="bi bi-dash"></i>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            @if($alumno['anexo_7_pdf'] || $alumno['anexo_8_pdf'] || $alumno['anexo_6_pdf'])
+                                                <button class="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all border border-slate-100 dark:border-slate-800" title="Ver Documentos">
+                                                    <i class="bi bi-file-earmark-pdf"></i>
+                                                </button>
+                                            @endif
+                                            <a href="#" class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20" title="Detalle del Practicante">
+                                                <i class="bi bi-arrow-right"></i>
                                             </a>
-                                        @else
-                                            <span class="status-badge not-uploaded">No subido</span>
-                                        @endif
+                                        </div>
                                     </td>
                                 </tr>
-                            @empty
+                            @endforeach
+
+                            @if($alumnos->isEmpty())
                                 <tr>
-                                    <td colspan="5" class="empty-state">
-                                        <i class="bi bi-people"></i>
-                                        <p class="mb-0">No hay estudiantes supervisados registrados.</p>
+                                    <td colspan="5" class="py-20 text-center">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="w-20 h-20 rounded-3xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-300 dark:text-slate-700 border border-slate-100 dark:border-slate-800 shadow-inner">
+                                                <i class="bi bi-people text-4xl"></i>
+                                            </div>
+                                            <p class="text-sm font-bold text-slate-500 dark:text-slate-400 italic">No tienes practicantes asignados actualmente.</p>
+                                        </div>
                                     </td>
                                 </tr>
-                            @endforelse
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -634,320 +269,21 @@
 @endsection
 
 @push('js')
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const facultadSelect = document.getElementById('facultad_id');
-    const escuelaSelect = document.getElementById('escuela_id');
-    const semestreSelect = document.getElementById('semestre_codigo');
+    // Buscador en tabla
+    const filtroInput = document.getElementById('filtroTabla');
+    if (filtroInput) {
+        filtroInput.addEventListener('input', function () {
+            const valor = this.value.toLowerCase();
+            const filas = document.querySelectorAll('#tablaAlumnos tbody tr');
 
-    const selectedEscuela = "{{ request('escuela_id') }}";
-    const selectedSemestre = "{{ request('semestre_codigo') }}";
-
-    function cargarEscuelas(facultadId, callback) {
-        fetch(`/api/escuelas/${facultadId}`)
-            .then(res => res.json())
-            .then(data => {
-                let options = '<option value="">-- Seleccione --</option>';
-                data.forEach(e => {
-                    const selected = e.id == selectedEscuela ? 'selected' : '';
-                    options += `<option value="${e.id}" ${selected}>${e.name}</option>`;
-                });
-                escuelaSelect.innerHTML = options;
-
-                if (selectedEscuela && callback) callback(selectedEscuela);
-            })
-            .catch(() => {
-                escuelaSelect.innerHTML = '<option value="">Error al cargar</option>';
+            filas.forEach(fila => {
+                const texto = fila.innerText.toLowerCase();
+                fila.style.display = texto.includes(valor) ? '' : 'none';
             });
-    }
-
-    // El componente semestre-selector maneja automáticamente la carga de semestres
-    // No necesitamos esta función
-
-    // Eventos
-    facultadSelect.addEventListener('change', function () {
-        const facultadId = this.value;
-        escuelaSelect.innerHTML = '<option value="">Cargando...</option>';
-
-        if (facultadId) {
-            cargarEscuelas(facultadId);
-        } else {
-            escuelaSelect.innerHTML = '<option value="">-- Seleccione --</option>';
-        }
-    });
-
-    // El componente semestre-selector maneja automáticamente la carga de semestres
-    // No necesitamos este evento
-
-    // Carga inicial si viene con datos filtrados
-    if (facultadSelect.value && selectedEscuela) {
-        cargarEscuelas(facultadSelect.value);
-    }
-
-    // Animaciones progresivas para las métricas
-    function animateMetrics() {
-        $('.metric-card').each(function(index) {
-            $(this).css({
-                'opacity': '0',
-                'transform': 'translateY(20px)'
-            });
-            
-            setTimeout(() => {
-                $(this).css({
-                    'transition': 'all 0.5s ease',
-                    'opacity': '1',
-                    'transform': 'translateY(0)'
-                });
-            }, index * 150);
         });
     }
-
-    // Efectos hover mejorados para metric cards
-    $('.metric-card').hover(
-        function() {
-            $(this).find('.metric-icon').css({
-                'transform': 'scale(1.2) rotate(5deg)',
-                'transition': 'all 0.3s ease'
-            });
-            $(this).find('.metric-value').css({
-                'color': '#7c3aed',
-                'transform': 'scale(1.1)'
-            });
-        },
-        function() {
-            $(this).find('.metric-icon').css({
-                'transform': 'scale(1) rotate(0deg)'
-            });
-            $(this).find('.metric-value').css({
-                'color': 'var(--text-primary)',
-                'transform': 'scale(1)'
-            });
-        }
-    );
-
-    // Efectos para la tabla de estudiantes supervisados
-    $('#tablaAlumnos tbody tr').hover(
-        function() {
-            $(this).css({
-                'border-left': '4px solid #7c3aed',
-                'transition': 'all 0.3s ease'
-            });
-        },
-        function() {
-            $(this).css({
-                'border-left': 'none'
-            });
-        }
-    );
-
-    // Animación para botones PDF
-    $('.btn-view-pdf').hover(
-        function() {
-            $(this).find('i').css({
-                'transform': 'scale(1.2) rotate(5deg)',
-                'transition': 'all 0.3s ease'
-            });
-        },
-        function() {
-            $(this).find('i').css({
-                'transform': 'scale(1) rotate(0deg)'
-            });
-        }
-    );
-
-    // Animación para badges de estado
-    $('.status-badge').hover(
-        function() {
-            $(this).css({
-                'transform': 'scale(1.1) rotate(2deg)',
-                'box-shadow': 'var(--shadow-sm)'
-            });
-        },
-        function() {
-            $(this).css({
-                'transform': 'scale(1) rotate(0deg)',
-                'box-shadow': 'none'
-            });
-        }
-    );
-
-    // Contador animado para métricas
-    function animateCounter(element, targetValue) {
-        const startValue = 0;
-        const duration = 1500;
-        const startTime = performance.now();
-        
-        function updateCounter(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
-            
-            element.textContent = currentValue;
-            
-            if (progress < 1) {
-                requestAnimationFrame(updateCounter);
-            }
-        }
-        
-        requestAnimationFrame(updateCounter);
-    }
-
-    // Inicializar contadores animados
-    $('.metric-value').each(function() {
-        const targetValue = parseInt($(this).text());
-        if (!isNaN(targetValue)) {
-            animateCounter(this, targetValue);
-        }
-    });
-
-    // Función de búsqueda mejorada
-    $('#buscarAlumnos').on('input', function() {
-        const searchTerm = $(this).val().toLowerCase();
-        
-        $('#tablaAlumnos tbody tr').each(function() {
-            const rowText = $(this).text().toLowerCase();
-            const isMatch = rowText.includes(searchTerm);
-            
-            $(this).toggle(isMatch);
-            
-            if (isMatch && searchTerm.length > 0) {
-                $(this).css({
-                    'animation': 'highlight 0.5s ease',
-                    'background-color': 'rgba(124, 58, 237, 0.05)'
-                });
-                
-                setTimeout(() => {
-                    $(this).css({
-                        'background-color': '',
-                        'animation': ''
-                    });
-                }, 500);
-            }
-        });
-        
-        // Mostrar mensaje si no hay resultados
-        const visibleRows = $('#tablaAlumnos tbody tr:visible').length;
-        if (visibleRows === 0 && searchTerm.length > 0) {
-            if ($('#no-results').length === 0) {
-                $('#tablaAlumnos tbody').append(`
-                    <tr id="no-results">
-                        <td colspan="5" class="empty-state">
-                            <i class="bi bi-search"></i>
-                            <p class="mb-0">No se encontraron resultados para "${searchTerm}"</p>
-                        </td>
-                    </tr>
-                `);
-            }
-        } else {
-            $('#no-results').remove();
-        }
-    });
-
-    // Efectos para selects de filtros
-    $('.form-select, .form-control').focus(function() {
-        $(this).css({
-            'transform': 'scale(1.02)',
-            'transition': 'all 0.2s ease'
-        });
-    }).blur(function() {
-        $(this).css({
-            'transform': 'scale(1)'
-        });
-    });
-
-    // Efecto loading en formulario de filtros
-    $('form').on('submit', function() {
-        $('.dashboard-card-body').css({
-            'opacity': '0.7',
-            'pointer-events': 'none'
-        });
-        
-        // Mostrar indicador de carga
-        $('.filters-section').append(`
-            <div class="loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                <i class="bi bi-hourglass-split" style="font-size: 2rem; color: #7c3aed; animation: spin 1s linear infinite;"></i>
-            </div>
-        `);
-    });
-
-    // Animación de entrada progresiva para filas
-    function animateTableRows() {
-        const rows = $('#tablaAlumnos tbody tr');
-        rows.each(function(index) {
-            $(this).css({
-                'opacity': '0',
-                'transform': 'translateX(-20px)'
-            });
-            
-            setTimeout(() => {
-                $(this).css({
-                    'transition': 'all 0.4s ease',
-                    'opacity': '1',
-                    'transform': 'translateX(0)'
-                });
-            }, index * 100 + 700);
-        });
-    }
-
-    // Ejecutar animaciones al cargar
-    setTimeout(animateMetrics, 300);
-    if ($('#tablaAlumnos tbody tr').length > 0) {
-        setTimeout(animateTableRows, 500);
-    }
-
-    // CSS adicional para animaciones
-    $('head').append(`
-        <style>
-            @keyframes highlight {
-                0% { background-color: rgba(124, 58, 237, 0.2); }
-                50% { background-color: rgba(124, 58, 237, 0.1); }
-                100% { background-color: rgba(124, 58, 237, 0.05); }
-            }
-            
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            
-            .metric-value {
-                transition: all 0.3s ease;
-            }
-            
-            .metric-icon {
-                transition: all 0.3s ease;
-            }
-            
-            .status-badge {
-                transition: all 0.2s ease;
-                cursor: default;
-            }
-            
-            .btn-view-pdf {
-                transition: all 0.3s ease;
-            }
-            
-            .btn-view-pdf i {
-                transition: all 0.3s ease;
-            }
-            
-            .table tbody tr {
-                transition: all 0.2s ease;
-            }
-            
-            .form-select:focus,
-            .form-control:focus {
-                transform: scale(1.02);
-            }
-            
-            .loading-indicator {
-                z-index: 100;
-            }
-        </style>
-    `);
 });
 </script>
-
-@push('js')
 @endpush
-

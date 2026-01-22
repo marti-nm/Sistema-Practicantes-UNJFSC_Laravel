@@ -131,7 +131,7 @@
                         <div class="text-sm font-black text-slate-800 dark:text-slate-200 leading-tight tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $item->apellidos ?? 'Sin estudiante' }} {{ $item->nombres ?? '' }}</div>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <button class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border-1 {{ $class_ficha }} font-bold text-xs transition-all hover:scale-105 active:scale-95"
+                        <button class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border {{ $class_ficha }} font-bold text-xs transition-all hover:scale-105 active:scale-95"
                             @click="openMatriculaModal({
                                 id_ap: {{ $item->asignacion_persona->id }},
                                 type: 'ficha',
@@ -144,7 +144,7 @@
                         </button>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <button class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border-1 {{ $class_record }} font-bold text-xs transition-all hover:scale-105 active:scale-95" 
+                        <button class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border {{ $class_record }} font-bold text-xs transition-all hover:scale-105 active:scale-95" 
                             @click="openMatriculaModal({
                                 id_ap: {{ $item->asignacion_persona->id }},
                                 type: 'record',
@@ -170,11 +170,11 @@
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            class="relative bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-1 border-slate-100 dark:border-slate-800">
+            class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-blue-950 to-blue-900 px-6 py-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md text-white border-1 border-white/20 dark:border-slate-700">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md text-white border border-white/20 dark:border-slate-700">
                             <i class="bi bi-clipboard-data-fill text-xl"></i>
                         </div>
                         <div>
@@ -195,7 +195,7 @@
                     </div>
                 </template>
                 <template x-if="!loading && !ldata">
-                    <div class="bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center">
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center">
                         <div class="text-slate-300 mb-2">
                             <i class="bi bi-file-earmark-x text-3xl"></i>
                         </div>
@@ -205,7 +205,7 @@
                 </template>
                 <template x-if="ldata">
                     <div>
-                        <div class="dark:bg-slate-800 border-1 dark:border-slate-800 rounded-xl p-4 text-center mb-4 shadow-sm"
+                        <div class="dark:bg-slate-800 border dark:border-slate-800 rounded-xl p-4 text-center mb-4 shadow-sm"
                             :class="{ 
                                 'bg-green-50 border-green-100': ldata.estado_archivo === 'Aprobado',
                                 'bg-red-50 border-red-100': ldata.estado_archivo === 'Corregir',
@@ -241,11 +241,11 @@
                             </p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-2">
-                            <div class="md:col-span-12 flex flex-column gap-2">
+                            <div class="md:col-span-12 flex flex-col gap-2">
                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                     <i class="bi bi-paperclip"></i> Archivo
                                 </label>
-                                <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-between align-items-center shadow-sm">
+                                <div class="bg-white dark:bg-slate-800 border dark:border-slate-800 border-slate-200 p-2.5 rounded-xl flex justify-between items-center shadow-sm">
                                     <div class="flex items-center min-w-0 pr-4">
                                         <i class="bi bi-file-earmark-pdf text-xl me-2" :class="{
                                             'text-green-500': ldata.estado_archivo === 'Aprobado',
@@ -254,7 +254,7 @@
                                         }"></i>
                                         <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">Archivo.pdf</span>
                                     </div>
-                                    <a :href="ldata.ruta" target="_blank" class="px-3 py-1 border-1 text-[10px] font-bold rounded-lg hover:text-white transition-all flex items-center gap-2 shrink-0 uppercase"
+                                    <a :href="ldata.ruta" target="_blank" class="px-3 py-1 border text-[10px] font-bold rounded-lg hover:text-white transition-all flex items-center gap-2 shrink-0 uppercase"
                                         :class="{
                                             'border-green-600 text-green-600 hover:bg-green-600': ldata.estado_archivo === 'Aprobado',
                                             'border-red-600 text-red-600 hover:bg-red-600': ldata.estado_archivo === 'Corregir',
@@ -278,13 +278,13 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="estado" value="Aprobado" class="hidden peer" checked>
-                                    <div class="flex items-center justify-center gap-2 py-2 rounded-xl border-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-xs transition-all peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-transparent peer-checked:shadow-md group-hover:border-emerald-300">
+                                    <div class="flex items-center justify-center gap-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-xs transition-all peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-transparent peer-checked:shadow-md group-hover:border-emerald-300">
                                         <i class="bi bi-check-lg"></i> Aprobar
                                     </div>
                                 </label>
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="estado" value="Corregir" class="hidden peer">
-                                    <div class="flex items-center justify-center gap-2 py-2 rounded-xl border-1 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-xs transition-all peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-transparent peer-checked:shadow-md group-hover:border-rose-300">
+                                    <div class="flex items-center justify-center gap-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold text-xs transition-all peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-transparent peer-checked:shadow-md group-hover:border-rose-300">
                                         <i class="bi bi-exclamation-triangle"></i> Corregir
                                     </div>
                                 </label>
@@ -295,7 +295,7 @@
                                 <i class="bi bi-chat-dots-fill "></i> Observaciones (Requerido para Corregir)
                             </label>
                             <textarea name="comentario" rows="3"
-                                class="w-full bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-medium text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300"
+                                class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-medium text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-300"
                                 placeholder="Detalle los motivos..."></textarea>
                         </div>
                         <div class="flex items-center justify-end gap-3 pt-2">
@@ -322,7 +322,7 @@
                             x-transition:enter-end="opacity-100 translate-y-0"
                             class="mt-3 space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                             <template x-for="(item, index) in hdata" :key="index">
-                                <div x-show="index > 0" class="bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border-1 border-slate-100 dark:border-slate-700 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                                <div x-show="index > 0" class="bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center hover:bg-slate-50 transition-colors">
                                     <div>
                                         <div class="flex items-center gap-2 mb-1">
                                             <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
@@ -500,61 +500,6 @@
                         </div>
                     </div>
                 </template>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalVMatricula">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Validar Matrícula</h5>
-                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="approved-file-container" class="">
-                    <div class="alert alert-success d-flex justify-content-between align-items-center" style="display: none;">
-                        <div>
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            <strong>Estado:</strong> Completo
-                        </div>
-                        <a id="approved-file-link" href="#" class="btn btn-outline-success file-link" target="_blank">
-                            <i class="bi bi-file-earmark-pdf"></i> Ver PDF
-                        </a>
-                    </div>
-                </div>
-                <div id="not-file-container" class="alert alert-warning text-center">
-                    <i class="bi bi-file-earmark-x" style="font-size: 2rem;"></i>
-                    <p class="mb-0 mt-2"><strong>Documento no disponible para revisión</strong></p>
-                    <small>El docente debe enviar o corregir el archivo.</small>
-                </div>
-                <form id="form-file-container" action="{{ route('actualizar.estado.archivo.mat') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="id" id="id">
-                    <div class="col-md-12 d-flex flex-column">
-                        <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
-                        <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
-                            <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
-                            <a id="file-send-link" href="#" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2 file-link" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="estado"><i class="bi bi-gear"></i> Estado del Documento</label>
-                        <select class="form-control" id="estado" name="estado">
-                            <option value="">Seleccione un estado</option>
-                            <option value="Aprobado">Aprobado</option>
-                            <option value="Corregir">Corregir</option>
-                        </select>
-                    </div>
-                    <div class="form-group mt-3">
-                        <label for="comentario"><i class="bi bi-chat-dots"></i> Comentario (Requerido si se marca para corregir)</label>
-                        <textarea class="form-control" id="comentario" name="comentario" rows="3"></textarea>
-                    </div>
-                </form>       
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary" form="form-file-container">Validar</button>
             </div>
         </div>
     </div>

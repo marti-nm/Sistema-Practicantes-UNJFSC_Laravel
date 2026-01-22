@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Escuela;
 use App\Models\grupo_estudiante;
-use App\Models\grupos_practica;
+use App\Models\grupo_practica;
 use App\Models\Persona;
 use App\Models\Practica;
 use App\Models\Semestre;
@@ -87,7 +87,7 @@ class homeController extends Controller
         $total_modulos = 5; // Total de módulos en el sistema
         
         if ($grupo_estudiante) {
-            $grupo_practica = grupos_practica::with(['modulo', 'docente.persona', 'supervisor.persona'])
+            $grupo_practica = grupo_practica::with(['modulo', 'docente.persona', 'supervisor.persona'])
                 ->find($grupo_estudiante->id_grupo_practica);
             
             if ($grupo_practica && $grupo_practica->modulo) {

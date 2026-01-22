@@ -32,11 +32,30 @@ class AcreditarController extends Controller
         }
         $facultades = $queryFac->get();
 
-        // debe reunir los datos de la tabla
-        // los datos de la persona
-        $acreditar = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
+        // Filtros dinámicos
+        $facultad_id = $request->input('facultad');
+        $escuela_id = $request->input('escuela');
+        $seccion_id = $request->input('seccion');
+
+        $usuarios = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre, $facultad_id, $escuela_id, $seccion_id) {
             $query->where('id_semestre', $id_semestre);
-            $query->where('id_rol', 3); // Rol de Supervisor
+            $query->where('id_rol', 3); // Rol de Titular
+
+            if ($facultad_id) {
+                $query->whereHas('seccion_academica.escuela', function($q) use ($facultad_id) {
+                    $q->where('id_facultad', $facultad_id);
+                });
+            }
+            if ($escuela_id) {
+                $query->whereHas('seccion_academica', function($q) use ($escuela_id) {
+                    $q->where('id_escuela', $escuela_id);
+                });
+            }
+            if ($seccion_id) {
+                $query->whereHas('seccion_academica', function($q) use ($seccion_id) {
+                    $q->where('id', $seccion_id);
+                });
+            }
         })->with([
             'asignacion_persona' => function($query) {
                 $query->where('id_semestre', session('semestre_actual_id'));
@@ -51,16 +70,16 @@ class AcreditarController extends Controller
 
         $option = 1;
 
-        if (!$acreditar) {
-            $acreditar = collect();
+        if (!$usuarios) {
+            $usuarios = collect();
         }
 
         $msj = 'Docente';
 
-        return view('ValidacionAcreditacion.ValidacionDocente', compact('msj', 'facultades','acreditar', 'option'));
+        return view('ValidacionAcreditacion.ValidacionDocente', compact('msj', 'facultades','usuarios', 'option'));
     }
 
-    public function ADSupervisor() {
+    public function ADSupervisor(Request $request) {
         $id_semestre = session('semestre_actual_id');
         $authUser = auth()->user();
 
@@ -72,12 +91,30 @@ class AcreditarController extends Controller
         }
         $facultades = $queryFac->get();
     
-        // Obtener las acreditaciones de los supervisores para el semestre actual
-        // enviar los estados de los archivos
-        // Pero revertir empresar por Persona -> Asignacion Persona -> Acreditacion
-        $acreditar = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
+        // Filtros dinámicos
+        $facultad_id = $request->input('facultad');
+        $escuela_id = $request->input('escuela');
+        $seccion_id = $request->input('seccion');
+
+        $usuarios = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre, $facultad_id, $escuela_id, $seccion_id) {
             $query->where('id_semestre', $id_semestre);
             $query->where('id_rol', 4); // Rol de Supervisor
+
+            if ($facultad_id) {
+                $query->whereHas('seccion_academica.escuela', function($q) use ($facultad_id) {
+                    $q->where('id_facultad', $facultad_id);
+                });
+            }
+            if ($escuela_id) {
+                $query->whereHas('seccion_academica', function($q) use ($escuela_id) {
+                    $q->where('id_escuela', $escuela_id);
+                });
+            }
+            if ($seccion_id) {
+                $query->whereHas('seccion_academica', function($q) use ($seccion_id) {
+                    $q->where('id', $seccion_id);
+                });
+            }
         })->with([
             'asignacion_persona', 
             'asignacion_persona.semestre', 
@@ -90,13 +127,13 @@ class AcreditarController extends Controller
 
         $option = 2;
 
-        if (!$acreditar) {
-            $acreditar = collect();
+        if (!$usuarios) {
+            $usuarios = collect();
         }
 
         $msj = 'Supervisor';
     
-        return view('ValidacionAcreditacion.ValidacionDocente', compact('msj', 'facultades', 'acreditar', 'option'));
+        return view('acreditacion.validacionDocente', compact('msj', 'facultades', 'usuarios', 'option'));
     }
 
     public function acreditar() {
@@ -169,11 +206,37 @@ class AcreditarController extends Controller
                 ->where('tipo', $tipo)
                 ->latest()
                 ->get();
+
+            // Agregar metadata adicional (peso y extensión)
+            $archivos->transform(function($archivo) {
+                // Si la ruta es una URL completa, obtener el path relativo
+                // Ej: http://127.0.0.1:8000/storage/pdf.pdf -> storage/pdf.pdf
+                $relativePath = str_replace(url('/'), '', $archivo->ruta);
+                $relativePath = ltrim($relativePath, '/');
+
+                $fullPath = public_path($relativePath);
+                
+                $archivo->peso = (file_exists($fullPath) && !is_dir($fullPath)) 
+                    ? $this->formatBytes(filesize($fullPath)) 
+                    : 'N/A';
+                $archivo->extension = strtoupper(pathinfo($archivo->ruta, PATHINFO_EXTENSION));
+                return $archivo;
+            });
+
             return response()->json($archivos);
         } catch (\Exception $e) {
             Log::error('Error obteniendo documentos de acreditación: ' . $e->getMessage());
             return response()->json(['error' => 'Error interno al obtener documentos'], 500);
         }
+    }
+
+    private function formatBytes($bytes, $precision = 2) {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
     public function actualizarEstadoArchivo(Request $request) {

@@ -12,6 +12,8 @@ use App\Models\Facultad;
 use App\Models\Escuela;
 use App\Models\Semestre;
 use App\Models\asignacion_persona;
+use App\Models\grupo_estudiante;
+use App\Models\grupo_practica;
 use App\Models\solicitud_baja;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -227,20 +229,45 @@ class PersonaController extends Controller
     public function lista_grupos_estudiantes(){
         $id_semestre = session('semestre_actual_id');
         $authUser = auth()->user();
-
         $ap_now = $authUser->persona->asignacion_persona;
 
-        $grupo = DB::table('grupo_practica')
-            ->where('id_supervisor', $ap_now->id)
-            ->select('grupo_practica.name', 'grupo_practica.id')
+        // Intentar obtener el grupo asociado al supervisor en el semestre actual
+        $grupo = grupo_practica::where('id_supervisor', $ap_now->id)
+            ->where('id_sa', $ap_now->id_sa)
             ->first();
 
-        $grupo_estudiante = DB::table('grupo_estudiante as ge')
-            ->join('personas as p', 'ge.id_estudiante', '=', 'p.id')
-            ->join('grupo_practica as gp', 'ge.id_gp', '=', 'gp.id')
-            ->where('gp.id_supervisor', $ap_now->id)
-            ->select('ge.*', 'p.nombres', 'p.apellidos', 'gp.name as grupo_nombre')
-            ->get();
+        // Obtener estudiantes asignados a grupos de este supervisor
+        $grupo_estudiante = asignacion_persona::with(['persona', 'practicas.empresa'])
+            ->whereHas('grupo_estudiante', function($q) use ($ap_now) {
+                $q->whereHas('grupo_practica', function($q2) use ($ap_now) {
+                    $q2->where('id_supervisor', $ap_now->id);
+                });
+            })
+            ->get()
+            ->map(function($ap) {
+                $practica = $ap->practicas->sortByDesc('id')->first();
+                
+                $etapaMapping = [
+                    1 => 'Registro Iniciado',
+                    2 => 'Doc. Inicial Enviada',
+                    3 => 'Carta de Aceptación',
+                    4 => 'En Ejecución',
+                    5 => 'Informe Final',
+                    6 => 'Completado',
+                    7 => 'Rectificación'
+                ];
+
+                return (object)[
+                    'id' => $ap->id,
+                    'codigo' => $ap->persona->codigo,
+                    'nombres' => $ap->persona->nombres,
+                    'apellidos' => $ap->persona->apellidos,
+                    'ruta_foto' => $ap->persona->ruta_foto,
+                    'empresa' => ($practica && $practica->empresa) ? $practica->empresa->razon_social : 'Sin Empresa',
+                    'etapa' => $practica ? ($etapaMapping[$practica->state] ?? 'Etapa ' . $practica->state) : 'Sin Práctica',
+                    'state_practica' => $practica->state ?? 0,
+                ];
+            });
 
         return view('list_users.grupo_estudiante', compact('grupo', 'grupo_estudiante'));
     }

@@ -6,6 +6,16 @@
 @section('content')
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ 
+    detailModalOpen: false,
+    finishModalOpen: false,
+
+    rdFinish: { id: null, name: null },
+
+    openFinishModal(id, name) {
+        this.rdFinish = { id: id, name: name };
+        this.finishModalOpen = true;
+    },
+
     newModal: false, 
     viewModalId: null,
     editModalId: null, 
@@ -41,7 +51,7 @@
                             <span class="text-xs font-bold text-slate-400 dark:text-slate-500">#{{ str_pad($semestre->id, 3, '0', STR_PAD_LEFT) }}</span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <span class="px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-black border border-blue-100 dark:border-blue-800/50">
+                            <span class="px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-black border-1 border-blue-100 dark:border-blue-800/50">
                                 {{ $semestre->codigo }}
                             </span>
                         </td>
@@ -52,34 +62,37 @@
                         </td>
                         <td class="px-6 py-4 text-center">
                             @if($semestre->state == 1)
-                                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800">Activo</span>
+                                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border-1 border-emerald-200 dark:border-emerald-800">Activo</span>
                             @elseif($semestre->state == 2)
-                                <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider border border-amber-200 dark:border-amber-800">Registrado</span>
+                                <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider border-1 border-amber-200 dark:border-amber-800">Registrado</span>
                             @else
-                                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider border border-slate-200 dark:border-slate-700">Finalizado</span>
+                                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider border-1 border-slate-200 dark:border-slate-700">Finalizado</span>
                             @endif
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
                                 @if($semestre->state == 1)
                                     {{-- Botón Finalizar --}}
-                                    <button @click="finishModalId = {{ $semestre->id }}" class="px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-100 dark:border-rose-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 text-[10px] font-black uppercase tracking-wider" title="Finalizar Semestre">
+                                    <button @click="finishModalId = {{ $semestre->id }}" class="px-3 py-2 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 border-1 border-rose-100 dark:border-rose-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 text-[10px] font-black uppercase tracking-wider" title="Finalizar Semestre">
                                         Finalizar
+                                    </button>
+                                    <button @click="openFinishModal({{ $semestre->id }}, '{{ $semestre->codigo }}')" class="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border-1 border-blue-100 dark:border-blue-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 text-[10px] font-black uppercase tracking-wider" title="Finalizar Semestre">
+                                        <i class="bi bi-check-circle mr-1"></i> Finalizar
                                     </button>
                                     
                                     {{-- Botón Editar --}}
-                                    <button @click="editModalId = {{ $semestre->id }}" class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-100 dark:border-amber-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" title="Editar Ciclo">
+                                    <button @click="editModalId = {{ $semestre->id }}" class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 border-1 border-amber-100 dark:border-amber-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" title="Editar Ciclo">
                                         <i class="bi bi-pencil-square"></i> 
                                     </button>
 
                                     {{-- Botón Retroceder --}}
-                                    <button @click="backModalId = {{ $semestre->id }}" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" title="Retroceder al anterior">
+                                    <button @click="backModalId = {{ $semestre->id }}" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 border-1 border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" title="Retroceder al anterior">
                                         <i class="bi bi-arrow-counterclockwise"></i>
                                     </button>
                                 @elseif($semestre->state == 0)
-                                    <button @click="viewModalId = {{ $semestre->id }}" class="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-100 dark:border-blue-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 text-[10px] font-black uppercase tracking-wider" title="Ver Detalle">
+                                    <button @click="viewModalId = {{ $semestre->id }}" class="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border-1 border-blue-100 dark:border-blue-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 text-[10px] font-black uppercase tracking-wider" title="Ver Detalle">
                                         <i class="bi bi-eye mr-1"></i> Detalle
-                                    </button>
+                                    </button>                            
                                 @endif
                             </div>
                         </td>
@@ -129,6 +142,61 @@
                     <button type="submit" class="flex-[2] px-6 py-4 bg-[#111c44] text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-800 shadow-lg shadow-blue-500/20 transition-all active:scale-95">
                         Guardar Periodo
                     </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div x-show="detailModalOpen"
+        class="fixed inset-0 z-[1060] flex items-center justify-center px-4"
+        x-cloak>
+    </div>
+
+    <div x-show="finishModalOpen"
+        class="fixed inset-0 z-[1060] flex items-center justify-center px-4"
+        x-cloak>
+        <x-backdrop-modal name="finishModalOpen" />
+        <div x-show="finishModalOpen"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="relative bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-1 border-slate-100 dark:border-slate-800">
+            <div class="bg-gradient-to-r from-rose-500 to-rose-700 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md text-white border-1 border-white/20 dark:border-rose-700">
+                            <i class="bi bi-flag-fill text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white text-lg font-black tracking-tight leading-none">Finalizar Semestre</h3>
+                            <p class="text-blue-100/60 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Gestionar Semestre</p>
+                        </div>
+                    </div>
+                    <button @click="finishModalOpen = false" class="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <form :action="'/semestre/' + rdFinish.id + '/finalizar'" method="POST" class="p-8">
+                @csrf
+                @method('PUT')
+                <div class="space-y-6">
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border-1 border-amber-100 dark:border-amber-800/50 rounded-2xl p-6 flex gap-4">
+                        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                            <i class="bi bi-exclamation-triangle-fill text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-amber-800 dark:text-amber-400 font-black text-sm mb-1 uppercase tracking-tight">Acción Irreversible</h4>
+                            <p class="text-amber-700 dark:text-amber-500 text-xs font-semibold leading-relaxed">
+                                Al finalizar el periodo <strong class="text-rose-600" x-text="rdFinish.name"></strong>, este pasará a histórico y se <strong class="underline">creará automáticamente el siguiente semestre</strong>.
+                            </p>
+                        </div>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-400 font-bold text-center">¿Estás seguro de finalizar el ciclo académico actual?</p>
+                </div>
+                <div class="flex gap-3 mt-10">
+                    <button type="button" @click="finishModalOpen = false" class="flex-1 px-6 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Cancelar</button>
+                    <button type="submit" class="flex-[2] px-6 py-2 bg-rose-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all">Confirmar Finalización</button>
                 </div>
             </form>
         </div>

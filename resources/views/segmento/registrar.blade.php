@@ -515,7 +515,7 @@
     }">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
         <!-- Añadir Usuario Card -->
-        <div class="group relative bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border-1 border-slate-100 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center text-center hover:-translate-y-2"
+        <div class="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border-1 border-slate-100 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center text-center hover:-translate-y-2"
             @click="openIndividualModal">
             
             <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-indigo-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
@@ -538,7 +538,7 @@
         </div>
 
         <!-- Carga Masiva Card -->
-        <div class="group relative bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border-1 border-slate-100 dark:border-slate-800 hover:border-emerald-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center text-center hover:-translate-y-2"
+        <div class="group relative bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border-1 border-slate-100 dark:border-slate-800 hover:border-emerald-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col items-center text-center hover:-translate-y-2"
              @click="openMassModal">
             
             <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
@@ -569,7 +569,7 @@
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            class="relative bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border-1 border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
+            class="relative bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border-1 border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
             
             <div class="bg-gradient-to-r from-blue-950 to-blue-900 px-6 py-4 shrink-0">
                 <div class="flex items-center justify-between">
@@ -590,7 +590,7 @@
 
             <div class="p-4 space-y-4 overflow-y-auto custom-scrollbar">
                 <!-- PASO 1: VERIFICACIÓN -->
-                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border-1 border-slate-100 dark:border-slate-700/50 shadow-sm">
+                <div class="bg-white dark:bg-slate-800/50 rounded-xl p-4 border-1 border-slate-100 dark:border-slate-700/50 shadow-sm">
                     <h6 class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                         <span class="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[9px]">1</span>
                         Verificar Usuario Existente
@@ -611,7 +611,7 @@
                             <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Correo Institucional / Código</label>
                             <div class="relative group">
                                 <input type="text" x-model="formData.searchValue" placeholder="Eje: 2020112233 o jperez" 
-                                    class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-28 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
+                                    class="w-full bg-white dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg pl-3 pr-28 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none">
                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase">
                                     @unjfsc.edu.pe
                                 </div>
@@ -766,7 +766,7 @@
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            class="relative bg-slate-50 dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border-1 border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
+            class="relative bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border-1 border-slate-100 dark:border-slate-800 flex flex-col max-h-[90vh]">
             
             <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 shrink-0">
                 <div class="flex items-center justify-between">
@@ -791,11 +791,11 @@
                     @csrf
                     @method('POST')
                     
-                    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border-1 border-slate-100 dark:border-slate-700/50 shadow-sm">
+                    <div class="bg-white dark:bg-slate-800/50 rounded-xl p-4 border-1 border-slate-100 dark:border-slate-700/50 shadow-sm">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Tipo de Usuario</label>
-                                <select x-model="massFormData.rol" id="rolMasivo" name="rol" required class="w-full bg-slate-50 dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none appearance-none">
+                                <select x-model="massFormData.rol" id="rolMasivo" name="rol" required class="w-full bg-white dark:bg-slate-900 border-1 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none appearance-none">
                                     <option value="">Seleccionar tipo</option>
                                     @foreach($roles as $rol)
                                         <option value="{{ $rol->id }}">{{ $rol->name }}</option>
@@ -805,7 +805,7 @@
                             <div class="space-y-1">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Archivo CSV</label>
                                 <div class="relative group cursor-pointer" onclick="document.getElementById('archivo').click()">
-                                    <div class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 flex items-center justify-between group-hover:border-emerald-500 transition-all">
+                                    <div class="w-full bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 flex items-center justify-between group-hover:border-emerald-500 transition-all">
                                         <div class="flex items-center gap-2 overflow-hidden">
                                             <div class="w-6 h-6 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
                                                 <i class="bi bi-file-earmark-spreadsheet text-xs"></i>
@@ -914,211 +914,6 @@
     </div>
 </div>
 </div>
-
-@php
-    $id_semestre = session('semestre_actual_id');
-@endphp
-
-<!--Carga_Masiva-->
-
-<!--Fin Carga_Masiva-->
-
-<!--Registro-->
-<div class="modal fade" id="modalRegistro" tabindex="-1" role="dialog" aria-labelledby="modalRegistroLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalRegistroLabel">
-                    <i class="bi bi-person-plus me-2"></i>
-                    Añadir Usuario
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Sección de BÚSQUEDA (Siempre Visible) -->
-                <div id="search-input-container">
-                        <h6 class="mb-3 text-primary"><i class="bi bi-search me-1"></i> 1. Verificar Usuario Existente</h6>
-                        <div class="row g-2 align-items-end">
-                            <!-- Rol -->
-                            <div class="col-md-3">
-                                <label for="rolRegistro" class="form-label">Tipo de Usuario (Rol)</label>
-                                <select class="form-control" id="rolRegistro" name="rol" required onchange="toggleFacultadEscuela('facultadEscuelaContainerRegistro'); completarCorreo();">
-                                    <option value="">Seleccione un tipo de usuario</option>
-                                    @foreach($roles as $rol)
-                                        <option value="{{ $rol->id }}">{{ $rol->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <!-- Campo de Búsqueda por Correo -->
-                            <div class="col-md-7">
-                                <label for="searchValue" class="form-label">Correo Institucional</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="searchValue" placeholder="2020112233 o j_perez" required>
-                                    <span class="input-group-text">@unjfsc.edu.pe</span>
-                                </div>
-                            </div>
-
-                            <!-- Botón de Verificación -->
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-success p-3 w-100" id="btnVerify" onclick="verifyUser()">
-                                    <i class="bi bi-check-circle-fill me-2"></i>
-                                    Verificar
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Mensaje de Resultado de Búsqueda -->
-                        <div id="searchResult" class="mt-3"></div>
-                </div>
-                <form id="formRegistro" action="{{ route('personas.store') }}" method="POST" class="mt-4">
-                    @csrf
-                    <!-- Campo Oculto para el ID del Semestre -->
-                    <input type="hidden" name="id_semestre" value="{{ $id_semestre }}">
-                    
-                    <!-- CAMPO CLAVE: ID de Persona. Será llenado por JS si la persona existe. -->
-                    <input type="hidden" id="personaId" name="persona_id">
-                    <!-- El rol se toma del select 'rolRegistro' que ahora está dentro del form -->
-                    <input type="hidden" id="rolHidden" name="rol">
-
-
-                    <!-- Sección de DATOS PERSONALES (Oculta por defecto) -->
-                    <div id="personalDataContainer" style="display: none;" class="section-box">
-                        <h6 class="mb-3 text-secondary"><i class="bi bi-person-lines-fill me-1"></i> 2. Datos Personales</h6>
-                        
-                        <!-- Campos solo lectura para existentes / Editables para nuevos -->
-                        <div class="row g-3">
-                            <!-- El campo de código ahora es solo para estudiantes -->
-                            <div class="col-md-6">
-                                <label for="codigo" class="form-label">Código</label>
-                                <input type="tel" class="form-control" id="codigo" name="codigo" maxlength="10" disabled>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="correo_inst" class="form-label">Correo Institucional</label>
-                                <input type="email" class="form-control" id="correo_inst" name="correo_inst" placeholder="ejemplo@unjfsc.edu.pe" required disabled>
-                            </div>                        
-                            <div class="col-md-4">
-                                <label for="apellidos" class="form-label">Apellidos</label>
-                                <input type="text" class="form-control" id="apellidos" name="apellidos" required disabled>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="nombres" class="form-label">Nombres</label>
-                                <input type="text" class="form-control" id="nombres" name="nombres" required disabled>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="sexo" class="form-label">Género</label>
-                                <select class="form-control" id="sexo" name="sexo" required disabled>
-                                    <option value="">Seleccione su género</option>
-                                    <option value="M">Masculino</option>
-                                    <option value="F">Femenino</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mb-3 text-secondary d-flex align-items-center justify-content-between">
-                            <h6>Datos Adicionales (Opcional)</h6>
-                            <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#miContenido" aria-expanded="false" aria-controls="miContenido">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                        </div>
-                        <div class="collapse row g-3" id="miContenido">
-                            <div class="col-md-6">
-                                <label for="dni" class="form-label">DNI</label>
-                                <input type="tel" class="form-control" id="dni" name="dni" maxlength="8" disabled>
-                            </div> 
-                            <div class="col-md-6">
-                                <label for="celular" class="form-label">Celular</label>
-                                <input type="tel" class="form-control" id="celular" name="celular" disabled maxlength="9">
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="provincia">Provincia</label>
-                                    <select class="form-control" id="provincia" name="provincia">
-                                        <option value="">Seleccione una provincia</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="distrito">Distrito</label>
-                                    <select class="form-control" id="distrito" name="distrito" disabled>
-                                        <option value="">Seleccione un distrito</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    <!-- Sección de ASIGNACIÓN (Habilitada en ambos casos, pero con lógica) -->
-                    <div id="assignmentContainer" class="section-box mt-4">
-                        <h6 class="mb-3 text-secondary"><i class="bi bi-clipboard-check-fill me-1"></i> 3. Asignación y Rol</h6>
-                        @if(Auth::user()->hasAnyRoles([3]))
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label for="facultad_registro_fixed" class="form-label">Facultad</label>
-                                    <select class="form-control" id="facultad_registro_fixed" name="facultad" required>
-                                        <option value="{{ $ap->seccion_academica->facultad->id }}">{{ $ap->seccion_academica->facultad->name }}</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="escuela_registro_fixed" class="form-label">Escuela</label>
-                                    <select class="form-control" id="escuela_registro_fixed" name="escuela" required>
-                                        <option value="{{ $ap->seccion_academica->escuela->id }}">{{ $ap->seccion_academica->escuela->name }}</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="seccion_registro_fixed" class="form-label">Sección</label>
-                                    <select class="form-control" id="seccion_registro_fixed" name="seccion" required>
-                                        <option value="{{ $ap->seccion_academica->id }}">{{ $ap->seccion_academica->seccion }}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        @else
-                        <div class="row g-3">
-                            <!-- Facultad -->
-                            <div class="col-md-4">
-                                <label for="facultad" class="form-label">Facultad</label>
-                                <select class="form-control" id="facultad_registro" name="facultad" required>
-                                    <option value="">Seleccione una facultad</option>
-                                    @foreach($facultades as $facultad)
-                                        @foreach($facultades as $fac)
-                                            <option value="{{ $fac->id }}">{{ $fac->name }}</option>
-                                        @endforeach
-                                    @endforeach
-                                </select>
-                            </div>
-                            <!-- Escuela -->
-                            <div class="col-md-4">
-                                <label for="escuela" class="form-label">Escuela</label>
-                                <select class="form-control" id="escuela_registro" name="escuela" required disabled>
-                                    <option value="">Seleccione una escuela</option>
-                                </select>
-                            </div>
-                            <!-- Seccion -->
-                            <div class="col-md-4">
-                                <label for="seccion" class="form-label">Sección</label>
-                                <select class="form-control" id="seccion_registro" name="seccion" disabled>
-                                    <option value="">Seleccione una sección</option>
-                                </select>
-                            </div>
-                        </div>
-                        @endif
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>
-                    Cerrar
-                </button>
-                <button type="submit" form="formRegistro" class="btn btn-primary">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Registrar Usuario
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-<!--Fin Registro-->
 
 @endsection
 

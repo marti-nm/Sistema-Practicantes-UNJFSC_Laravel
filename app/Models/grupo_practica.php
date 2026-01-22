@@ -15,8 +15,10 @@ class grupo_practica extends Model
         'id_docente',
         'id_supervisor',
         'id_sa',
+        'id_modulo',
         'state',
     ];
+
 
     public function docente()
     {
@@ -35,6 +37,11 @@ class grupo_practica extends Model
 
     public function grupo_estudiante()
     {
-        return $this->hasMany(grupo_estudiante::class, 'id');
+        return $this->hasMany(grupo_estudiante::class, 'id_gp');
+    }
+
+    public function modulo()
+    {
+        return $this->belongsTo(Modulo::class, 'id_modulo');
     }
 }

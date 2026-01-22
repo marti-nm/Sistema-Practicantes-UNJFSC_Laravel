@@ -1,8 +1,27 @@
 <div id="wrapper" class="flex min-h-screen" 
      x-data="{ 
         sidebarOpen: false, 
+        sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
         scrolled: false,
-        openMenu: '{{ (request()->routeIs('usuarios') || request()->routeIs('usuarios.*') || request()->routeIs('docente') || request()->routeIs('docente.*') || request()->routeIs('supervisor') || request()->routeIs('supervisor.*') || request()->routeIs('estudiante') || request()->routeIs('estudiante.*') || request()->routeIs('registrar') || request()->routeIs('subadmin')) ? 'usuarios' : (request()->routeIs('Acreditar.*') || request()->routeIs('Validacion.Matricula') ? 'acreditar' : (request()->routeIs('semestre.*') || request()->routeIs('facultad.*') || request()->routeIs('escuela.*') || request()->routeIs('seccion.*') ? 'academico' : (request()->routeIs('asignacion_index') || request()->routeIs('estudiante_index') ? 'asignaciones' : (request()->routeIs('supervision') || request()->routeIs('Validacion.Matricula') || request()->routeIs('revisar.index') || request()->routeIs('evaluacionPractica.index') ? 'seguimiento' : '')))) }}' 
+        openMenu: '{{ 
+            (request()->routeIs('usuarios') || 
+            request()->routeIs('usuarios.*') || 
+            request()->routeIs('docente') || 
+            request()->routeIs('docente.*') || 
+            request()->routeIs('supervisor') || 
+            request()->routeIs('supervisor.*') || 
+            request()->routeIs('estudiante') || 
+            request()->routeIs('estudiante.*') || 
+            request()->routeIs('registrar') || 
+            request()->routeIs('subadmin')) ? 'usuarios' : (request()->routeIs('Acreditar.*') || 
+            request()->routeIs('Validacion.Matricula') ? 'acreditar' : (request()->routeIs('semestre.*') || 
+            request()->routeIs('facultad.*') || 
+            request()->routeIs('escuela.*') || 
+            request()->routeIs('seccion.*') ? 'academico' : (request()->routeIs('asignacion_index') || 
+            request()->routeIs('estudiante_index') ? 'asignaciones' : (request()->routeIs('supervision') || 
+            request()->routeIs('Validacion.Matricula') || 
+            request()->routeIs('revisar.index') || 
+            request()->routeIs('evaluacionPractica.index') ? 'seguimiento' : '')))) }}' 
      }"
      @scroll.window="scrolled = (window.pageYOffset > 10)">
     
@@ -21,27 +40,37 @@
          x-cloak></div>
 
     <!-- Sidebar - Estructura Flex para Scroll Interno -->
-    <nav class="fixed inset-y-0 left-0 w-[260px] max-w-[80vw] bg-gradient-to-b from-[#1e3a8a] via-[#1e3a8a] to-[#1e40af] dark:from-[#0f172a] dark:via-[#0f172a] dark:to-[#020617] text-white z-[1030] transition-all duration-300 md:translate-x-0 -translate-x-full border-r flex flex-col" 
+    <nav class="fixed inset-y-0 left-0 max-w-[80vw] bg-gradient-to-b from-primary-dark via-[#1e3a8a] to-[#1e40af] dark:from-[#0f172a] dark:via-[#0f172a] dark:to-[#020617] text-white z-[1030] transition-all duration-300 md:translate-x-0 -translate-x-full border-r flex flex-col md:w-[260px]" 
          :class="{ 
             'translate-x-0': sidebarOpen, 
             '-translate-x-full': !sidebarOpen,
+            'md:w-[260px]': !sidebarCollapsed,
+            'md:w-[80px]': sidebarCollapsed,
+            'w-[260px]': !sidebarOpen, /* width for mobile when drawer is active is usually fixed or max-w */
             'border-white/10 dark:border-white/5 shadow-[10px_0_30px_rgba(0,0,0,0.1)] dark:shadow-[10px_0_30px_rgba(0,0,0,0.3)]': scrolled,
             'border-transparent shadow-none': !scrolled
          }"
          id="sidebar">
         
         <!-- 1. Header Fijo (Logo) -->
-        <div class="flex-none px-6 pt-8 pb-4 relative z-20">
+        <div class="flex-none pt-8 pb-4 relative z-20 transition-all duration-300" :class="sidebarCollapsed ? 'px-0' : 'px-4'">
             <!-- Close Button (Mobile Only) -->
             <button @click="sidebarOpen = false" class="md:hidden absolute right-4 top-6 text-white/50 hover:text-white transition-colors">
                 <i class="bi bi-x-lg text-lg"></i>
             </button>
 
-            <div class="flex items-center gap-3.5 group">
+            <!-- Toggle Button (Desktop Only) -->
+            <button @click="sidebarCollapsed = !sidebarCollapsed; localStorage.setItem('sidebarCollapsed', sidebarCollapsed)" 
+                    class="hidden md:flex absolute -right-3 top-10 w-6 h-6 bg-white dark:bg-slate-800 text-primary dark:text-blue-400 rounded-full items-center justify-center border border-slate-200 dark:border-white/10 shadow-sm hover:scale-110 transition-all z-30">
+                <i class="bi" :class="sidebarCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+            </button>
+
+            <div class="flex items-center group" :class="sidebarCollapsed ? 'justify-center' : 'gap-3.5'">
                 <div class="w-10 h-10 rounded-xl bg-white/5 p-2 flex items-center justify-center border-1 border-white/5 shadow-[inner_0_0_15px_rgba(255,255,255,0.05)] shrink-0 transition-transform group-hover:scale-105 backdrop-blur-sm">
                     <img src="{{ asset('img/ins-UNJFSC.png') }}" alt="Logo" class="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
                 </div>
-                <div class="overflow-hidden">
+                <div class="overflow-hidden transition-all duration-300" 
+                     :class="sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'">
                     <a href="{{ route('panel') }}" class="text-[15px] font-black text-white tracking-tight decoration-none hover:text-blue-300 transition-colors block leading-tight">
                         UNJFSC
                     </a>
@@ -50,41 +79,122 @@
             </div>
         </div>
 
-        <!-- 2. Área Scrollable (Menú + Semestre) -->
-        <div class="flex-1 overflow-y-auto sidebar px-2 pb-8 space-y-6">
+        <div class="flex-1 sidebar pb-8 space-y-6 transition-all duration-300" 
+             :class="sidebarCollapsed ? 'overflow-visible px-0' : 'overflow-y-auto px-2'">
+            
+            <!-- Sidebar Skeleton (Navigation) -->
+            <div id="sidebar-skeleton" class="space-y-6 p-4 animate-pulse">
+                <div class="space-y-3">
+                    <div class="h-10 w-full bg-white/5 rounded-xl"></div>
+                    <div class="h-10 w-full bg-white/5 rounded-xl"></div>
+                    <div class="h-10 w-full bg-white/5 rounded-xl"></div>
+                </div>
+                <div class="pt-6 border-t border-white/5 space-y-3">
+                    <div class="h-10 w-full bg-white/5 rounded-xl"></div>
+                    <div class="h-10 w-full bg-white/5 rounded-xl"></div>
+                </div>
+            </div>
+
+            <style>
+                #sidebar-skeleton { display: none; }
+                .preload #sidebar-skeleton { display: block; }
+                .preload .nav-real-content { display: none !important; }
+            </style>
+
+            <div class="nav-real-content space-y-6">
             <!-- Navegación Refinada -->
             <div class="space-y-2">
-                <div class="px-3 mb-3"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Navegación</span></div>
+                <div class="px-3 mb-3" :class="sidebarCollapsed ? 'hidden' : ''"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Navegación</span></div>
                 
                 @if (Auth::user()->hasAnyRoles([1, 2, 3, 4, 5]))
-                    <a href="{{ route('panel') }}" class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all group {{ request()->routeIs('panel') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }}">
-                        <i class="bi bi-grid-fill text-xl {{ request()->routeIs('panel') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
-                        <span class="text-[15px]">Dashboard</span>
+                    <a href="{{ route('panel') }}" class="relative w-full flex items-center transition-all group {{ request()->routeIs('panel') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }} rounded-xl py-2.5"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-3.5'">
+                        <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                            <i class="bi bi-grid-fill text-xl {{ request()->routeIs('panel') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
+                        </div>
+                        <span class="text-[15px]" x-show="!sidebarCollapsed" x-cloak>Dashboard</span>
+
+                        <!-- Tooltip Mejorado -->
+                        <div x-show="sidebarCollapsed" 
+                             class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                             x-cloak>
+                            <!-- Flecha -->
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Dashboard
+                        </div>
                     </a>
                 @endif
 
                 <!-- Sección: Mi Espacio (Personal) -->
                 @if(Auth::user()->hasAnyRoles([4]))
-                    <a href="{{ route('grupo_estudiante') }}" class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all group {{ request()->routeIs('grupo_estudiante') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }}">
-                        <i class="bi bi-people-fill text-xl {{ request()->routeIs('grupo_estudiante') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
-                        <span class="text-[15px]">Mi Grupo</span>
+                    <a href="{{ route('grupo_estudiante') }}" class="relative w-full flex items-center transition-all group {{ request()->routeIs('grupo_estudiante') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }} rounded-xl py-2.5"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-3.5'">
+                        <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                            <i class="bi bi-people-fill text-xl {{ request()->routeIs('grupo_estudiante') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
+                        </div>
+                        <span class="text-[15px]" x-show="!sidebarCollapsed" x-cloak>Mi Grupo</span>
+
+                        <!-- Tooltip Mejorado -->
+                        <div x-show="sidebarCollapsed" 
+                             class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                             x-cloak>
+                            <!-- Flecha -->
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Mi Grupo
+                        </div>
                     </a>
                 @endif
+
                 @if(Auth::user()->hasAnyRoles([5]))
-                     <a href="{{ route('matricula.estudiante') }}" class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all group {{ request()->routeIs('matricula.estudiante') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }}">
-                        <i class="bi bi-file-earmark-check-fill text-xl {{ request()->routeIs('matricula.estudiante') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
-                        <span class="text-[15px]">Mi Matrícula</span>
+                     <a href="{{ route('matricula.estudiante') }}" class="relative w-full flex items-center transition-all group {{ request()->routeIs('matricula.estudiante') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }} rounded-xl py-2.5"
+                        :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-3.5'">
+                        <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                            <i class="bi bi-file-earmark-check-fill text-xl {{ request()->routeIs('matricula.estudiante') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
+                        </div>
+                        <span class="text-[15px]" x-show="!sidebarCollapsed" x-cloak>Mi Matrícula</span>
+                        <!-- Tooltip Improved -->
+                        <div x-show="sidebarCollapsed" 
+                            class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                            x-cloak>
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Mi Matrícula
+                        </div>
                     </a>
-                    <a href="{{ route('practicas.estudiante') }}" class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all group {{ request()->routeIs('practicas.estudiante') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }}">
-                        <i class="bi bi-briefcase-fill text-xl {{ request()->routeIs('practicas.estudiante') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
-                        <span class="text-[15px]">Mis Prácticas</span>
+                    <a href="{{ route('practicas.estudiante') }}" class="relative w-full flex items-center transition-all group {{ request()->routeIs('practicas.estudiante') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }} rounded-xl py-2.5"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-3.5'">
+                        <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                            <i class="bi bi-briefcase-fill text-xl {{ request()->routeIs('practicas.estudiante') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
+                        </div>
+                        <span class="text-[15px]" x-show="!sidebarCollapsed" x-cloak>Mis Prácticas</span>
+                        <!-- Tooltip Improved -->
+                        <div x-show="sidebarCollapsed" 
+                            class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                            x-cloak>
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Mis Prácticas
+                        </div>
                     </a>
                 @endif
                 <!-- Formatos (Accesible para Estudiantes/Admins) -->
                 @if (Auth::user()->getRolId() == 4)
-                    <a href="{{ route('evaluacionPractica.index') }}" class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all group {{ request()->routeIs('evaluacionPractica.index') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }}">
-                        <i class="bi bi-file-text-fill text-xl {{ request()->routeIs('evaluacionPractica.index') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
-                        <span class="text-[15px]">Fichas de Práctica</span>
+                    <a href="{{ route('evaluacionPractica.index') }}" class="relative w-full flex items-center transition-all group {{ request()->routeIs('evaluacionPractica.index') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }} rounded-xl py-2.5"
+                       :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-3.5'">
+                        <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                            <i class="bi bi-file-text-fill text-xl {{ request()->routeIs('evaluacionPractica.index') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
+                        </div>
+                        <span class="text-[15px]" x-show="!sidebarCollapsed" x-cloak>Fichas de Práctica</span>
+                        <!-- Tooltip Improved -->
+                        <div x-show="sidebarCollapsed" 
+                            class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                            x-cloak>
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Fichas de Práctica
+                        </div>
                     </a>
                 @endif
             </div>
@@ -92,18 +202,31 @@
             <!-- Sección: Supervisión (Docentes/Supervisores/Admins) -->
             @if (Auth::user()->hasAnyRoles([1, 2, 3]))
                 <div class="space-y-1 pt-6 border-t border-white/5">
-                    <div class="px-2 mb-3"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Supervisión</span></div>
+                    <div class="px-2 mb-3" :class="sidebarCollapsed ? 'hidden' : ''"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Supervisión</span></div>
                     
                     <!-- Validaciones Accordion -->
-                    <button @click="openMenu = (openMenu === 'acreditar' ? '' : 'acreditar')" 
-                             class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none">
-                        <div class="flex items-center gap-3.5">
-                            <i class="bi bi-patch-check-fill text-xl text-white/70 group-hover:text-white"></i>
-                            <span class="text-[15px] font-semibold">Validaciones</span>
+                    <button @click="sidebarCollapsed ? (sidebarCollapsed = false, openMenu = 'acreditar') : (openMenu = (openMenu === 'acreditar' ? '' : 'acreditar'))" 
+                             class="relative w-full flex items-center rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none py-2.5"
+                             :class="sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3.5'">
+                        <div class="flex items-center" :class="sidebarCollapsed ? '' : 'gap-3.5'">
+                            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                                <i class="bi bi-patch-check-fill text-xl text-white/70 group-hover:text-white"></i>
+                            </div>
+                            <span class="text-[15px] font-semibold" x-show="!sidebarCollapsed" x-cloak>Validaciones</span>
                         </div>
-                        <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50 px-2" :class="{ 'rotate-180': openMenu === 'acreditar' }"></i>
+                        <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50 px-2" :class="{ 'rotate-180': openMenu === 'acreditar' }" x-show="!sidebarCollapsed" x-cloak></i>
+
+                        <!-- Tooltip Mejorado -->
+                        <div x-show="sidebarCollapsed" 
+                             class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                             x-cloak>
+                            <!-- Flecha -->
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Validaciones
+                        </div>
                     </button>
-                    <div x-show="openMenu === 'acreditar'" x-cloak class="pl-11 pr-2 space-y-1">
+                    <div x-show="openMenu === 'acreditar' && !sidebarCollapsed" x-cloak class="pl-11 pr-2 space-y-1">
                         @if(Auth::user()->getRolId() == 4)
                              <a href="{{ route('acreditar') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('acreditar') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Mi Acreditación</a>
                         @endif
@@ -116,30 +239,54 @@
                     
                     <!-- Grupos Accordion -->
                     @if (Auth::user()->getRolId() == 1 || Auth::user()->hasAnyRoles([1, 2, 3]))
-                        <button @click="openMenu = (openMenu === 'asignaciones' ? '' : 'asignaciones')" 
-                                class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none">
-                            <div class="flex items-center gap-3.5">
-                                <i class="bi bi-people-fill text-xl text-white/70 group-hover:text-white"></i>
-                                <span class="text-[15px] font-semibold">Grupos</span>
+                        <button @click="sidebarCollapsed ? (sidebarCollapsed = false, openMenu = 'asignaciones') : (openMenu = (openMenu === 'asignaciones' ? '' : 'asignaciones'))" 
+                                class="relative w-full flex items-center rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none py-2.5"
+                                :class="sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3.5'">
+                            <div class="flex items-center" :class="sidebarCollapsed ? '' : 'gap-3.5'">
+                                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                                    <i class="bi bi-people-fill text-xl text-white/70 group-hover:text-white"></i>
+                                </div>
+                                <span class="text-[15px] font-semibold" x-show="!sidebarCollapsed" x-cloak>Grupos</span>
                             </div>
-                            <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'asignaciones' }"></i>
+                            <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'asignaciones' }" x-show="!sidebarCollapsed" x-cloak></i>
+                            <!-- Tooltip Mejorado -->
+                            <div x-show="sidebarCollapsed" 
+                                class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                                x-cloak>
+                                <!-- Flecha -->
+                                <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                                Grupos
+                            </div>
                         </button>
-                        <div x-show="openMenu === 'asignaciones'" x-cloak class="pl-11 pr-2 space-y-1">
+                        <div x-show="openMenu === 'asignaciones' && !sidebarCollapsed" x-cloak class="pl-11 pr-2 space-y-1">
                             <a href="{{ route('asignacion_index') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('asignacion_index') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Por Práctica</a>
                             <a href="{{ route('estudiante_index') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('estudiante_index') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Por Estudiante</a>
                         </div>
                     @endif
 
                     <!-- Seguimiento Accordion -->
-                    <button @click="openMenu = (openMenu === 'seguimiento' ? '' : 'seguimiento')" 
-                            class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none">
-                        <div class="flex items-center gap-3.5">
-                            <i class="bi bi-clipboard-data-fill text-xl text-white/70 group-hover:text-white"></i>
-                            <span class="text-[15px] font-semibold">Seguimiento</span>
+                    <button @click="sidebarCollapsed ? (sidebarCollapsed = false, openMenu = 'seguimiento') : (openMenu = (openMenu === 'seguimiento' ? '' : 'seguimiento'))" 
+                            class="relative w-full flex items-center rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none py-2.5"
+                            :class="sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3.5'">
+                        <div class="flex items-center" :class="sidebarCollapsed ? '' : 'gap-3.5'">
+                            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                                <i class="bi bi-clipboard-data-fill text-xl text-white/70 group-hover:text-white"></i>
+                            </div>
+                            <span class="text-[15px] font-semibold" x-show="!sidebarCollapsed" x-cloak>Seguimiento</span>
                         </div>
-                        <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'seguimiento' }"></i>
+                        <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'seguimiento' }" x-show="!sidebarCollapsed" x-cloak></i>
+                        <!-- Tooltip Mejorado -->
+                        <div x-show="sidebarCollapsed" 
+                            class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                            x-cloak>
+                            <!-- Flecha -->
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Seguimiento
+                        </div>
                     </button>
-                    <div x-show="openMenu === 'seguimiento'" x-cloak class="pl-11 pr-2 space-y-1">
+                    <div x-show="openMenu === 'seguimiento' && !sidebarCollapsed" x-cloak class="pl-11 pr-2 space-y-1">
                          <a href="{{ route('supervision') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('supervision') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Prácticas</a>
                         <a href="{{ route('evaluacionPractica.index') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('evaluacionPractica.index') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Evaluación Prácticas</a>
                         <a href="{{ route('revisar.index') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('revisar.index') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Revisión Prácticas</a>
@@ -150,17 +297,29 @@
             <!-- Sección: Administración (Gestión Global) -->
             @if (Auth::user()->hasAnyRoles([1, 2, 3]))
                 <div class="space-y-1 pt-6 border-t border-white/5">
-                    <div class="px-2 mb-3"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Gestión</span></div>
+                    <div class="px-2 mb-3" :class="sidebarCollapsed ? 'hidden' : ''"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Gestión</span></div>
 
-                    <button @click="openMenu = (openMenu === 'usuarios' ? '' : 'usuarios')" 
-                            class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none">
-                        <div class="flex items-center gap-3.5">
-                            <i class="bi bi-person-badge-fill text-xl text-white/70 group-hover:text-white"></i>
-                            <span class="text-[15px] font-semibold">Usuarios</span>
+                    <button @click="sidebarCollapsed ? (sidebarCollapsed = false, openMenu = 'usuarios') : (openMenu = (openMenu === 'usuarios' ? '' : 'usuarios'))" 
+                            class="relative w-full flex items-center rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none py-2.5"
+                            :class="sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3.5'">
+                        <div class="flex items-center" :class="sidebarCollapsed ? '' : 'gap-3.5'">
+                            <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                                <i class="bi bi-person-badge-fill text-xl text-white/70 group-hover:text-white"></i>
+                            </div>
+                            <span class="text-[15px] font-semibold" x-show="!sidebarCollapsed" x-cloak>Usuarios</span>
                         </div>
-                        <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'usuarios' }"></i>
+                        <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'usuarios' }" x-show="!sidebarCollapsed" x-cloak></i>
+                        <!-- Tooltip Mejorado -->
+                        <div x-show="sidebarCollapsed" 
+                            class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                            x-cloak>
+                            <!-- Flecha -->
+                            <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                            <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                            Usuarios
+                        </div>
                     </button>
-                    <div x-show="openMenu === 'usuarios'" x-cloak class="pl-11 pr-2 space-y-1">
+                    <div x-show="openMenu === 'usuarios' && !sidebarCollapsed" x-cloak class="pl-11 pr-2 space-y-1">
                         @if (Auth::user()->hasAnyRoles([1, 2, 3]))
                             <a href="{{ route('registrar') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('registrar') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Nuevo Usuario</a>
                         @endif
@@ -174,15 +333,27 @@
                     </div>
 
                     @if (Auth::user()->getRolId() == 1)
-                        <button @click="openMenu = (openMenu === 'academico' ? '' : 'academico')" 
-                                class="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none">
-                            <div class="flex items-center gap-3.5">
-                                <i class="bi bi-building-fill text-xl text-white/70 group-hover:text-white"></i>
-                                <span class="text-[15px] font-semibold">Académico</span>
+                        <button @click="sidebarCollapsed ? (sidebarCollapsed = false, openMenu = 'academico') : (openMenu = (openMenu === 'academico' ? '' : 'academico'))" 
+                                class="relative w-full flex items-center rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all group outline-none py-2.5"
+                                :class="sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-4 gap-3.5'">
+                            <div class="flex items-center" :class="sidebarCollapsed ? '' : 'gap-3.5'">
+                                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                                    <i class="bi bi-building-fill text-xl text-white/70 group-hover:text-white"></i>
+                                </div>
+                                <span class="text-[15px] font-semibold" x-show="!sidebarCollapsed" x-cloak>Académico</span>
                             </div>
-                            <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'academico' }"></i>
+                            <i class="bi bi-chevron-down text-[10px] transition-transform duration-300 opacity-50" :class="{ 'rotate-180': openMenu === 'academico' }" x-show="!sidebarCollapsed" x-cloak></i>
+                            <!-- Tooltip Mejorado -->
+                            <div x-show="sidebarCollapsed" 
+                                class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                                x-cloak>
+                                <!-- Flecha -->
+                                <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                                Académico
+                            </div>
                         </button>
-                        <div x-show="openMenu === 'academico'" x-cloak class="pl-11 pr-2 space-y-1">
+                        <div x-show="openMenu === 'academico' && !sidebarCollapsed" x-cloak class="pl-11 pr-2 space-y-1">
                             <a href="{{ route('semestre.index') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('semestre.index') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Semestres</a>
                             <a href="{{ route('facultad.index') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('facultad.index') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Facultades</a>
                             <a href="{{ route('escuela.index') }}" class="block py-2 px-3 transition-all {{ request()->routeIs('escuela.index') ? 'bg-white text-primary rounded-lg font-bold shadow-sm' : 'text-white/50 hover:text-white text-[12.5px]' }}">Escuelas</a>
@@ -192,17 +363,30 @@
                 </div>
             @endif
             <div class="space-y-2">
-                <div class="px-3 mb-3"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Recursos</span></div>
-                 <a href="{{ route('recursos') }}" class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all group {{ request()->routeIs('recursos') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }}">
-                    <i class="bi bi-folder-fill text-xl {{ request()->routeIs('recursos') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
-                    <span class="text-[15px]">Recursos</span>
+                <div class="px-3 mb-3" :class="sidebarCollapsed ? 'hidden' : ''"><span class="text-[11px] font-black text-white/30 uppercase tracking-[0.15em]">Recursos</span></div>
+                 <a href="{{ route('recursos') }}" class="relative w-full flex items-center transition-all group {{ request()->routeIs('recursos') ? 'bg-white text-primary shadow-lg shadow-white/5 font-bold' : 'hover:bg-white/5 text-white/70 hover:text-white' }} rounded-xl py-2.5"
+                    :class="sidebarCollapsed ? 'justify-center px-0' : 'px-4 gap-3.5'">
+                    <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                        <i class="bi bi-folder-fill text-xl {{ request()->routeIs('recursos') ? 'text-primary' : 'text-white/70 group-hover:text-white' }}"></i>
+                    </div>
+                    <span class="text-[15px]" x-show="!sidebarCollapsed" x-cloak>Recursos</span>
+                    <!-- Tooltip Mejorado -->
+                            <div x-show="sidebarCollapsed" 
+                                class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-primary-dark dark:bg-slate-800 text-white text-xs font-bold rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-1 transition-all duration-200 whitespace-nowrap z-[100] shadow-2xl pointer-events-none flex items-center gap-2 border border-white/10"
+                                x-cloak>
+                                <!-- Flecha -->
+                                <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary-dark dark:border-r-slate-800"></div>
+                                <div class="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                                Recursos
+                            </div>
                 </a>
-            </div>
-        </div>
+            </div> <!-- Close nav-real-content -->
+        </div> <!-- Close scrollable area -->
     </nav>
 
     <!-- Content Wrapper -->
-    <div id="content-wrapper" class="flex-1 min-w-0 transition-all duration-300 md:pl-[260px] flex flex-col">
+    <div id="content-wrapper" class="flex-1 min-w-0 transition-all duration-300 flex flex-col md:pl-[260px]"
+         :class="sidebarCollapsed ? 'md:pl-[80px]' : 'md:pl-[260px]'">
             <!-- Topbar - Full Tailwind & Alpine.js -->
             <header class="sticky top-0 z-[1029] px-4 md:px-6 py-2.5 flex items-center justify-between min-h-[70px] transition-all duration-300 border-b border-transparent"
                     :class="scrolled ? 'navbar-scrolled shadow-sm' : 'bg-transparent border-transparent'">

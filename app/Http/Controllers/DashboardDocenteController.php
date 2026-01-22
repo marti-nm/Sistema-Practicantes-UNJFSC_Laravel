@@ -61,7 +61,6 @@ class DashboardDocenteController extends Controller
     }*/
 
     $totalEstudiantes = (clone $baseQuery)->where('id_rol', 5)->count();
-    //$totalGrupos = (clone $baseQuery)->distinct('gp.id')->count('gp.id');
     $asignacionesIds = (clone $baseQuery)->pluck('asignacion_persona.id');
 
     $totalFichasValidadas = Matricula::whereIn('id_ap', $asignacionesIds)
@@ -70,6 +69,16 @@ class DashboardDocenteController extends Controller
     $totalSupervisores = asignacion_persona::where('id_rol', 4)
                 ->where('id_semestre', $id_semestre)
                 ->count('id_persona');
+
+    // Métricas de matrícula por estado
+    $matriculaStats = Matricula::whereIn('id_ap', $asignacionesIds)
+        ->select('estado_matricula', DB::raw('COUNT(*) as total'))
+        ->groupBy('estado_matricula')
+        ->get()
+        ->pluck('total', 'estado_matricula');
+
+    $totalMatriculados = $matriculaStats->get('Completo', 0);
+    $totalNoMatriculados = $asignacionesIds->count() - $totalMatriculados;
 
     // 2. Clona y añade los joins faltantes y selecciona
     $estudiantesPorEscuela = (clone $baseQuery)
@@ -84,19 +93,27 @@ class DashboardDocenteController extends Controller
         ->groupBy('m.estado_matricula')
         ->get();
 
-    $groupsData = (clone $baseQuery)
-    ->join('semestres as sem', 'asignacion_persona.id_semestre', '=', 'sem.id')
-    // Cambiamos el join para usar 'sa.id_escuela' en lugar de 'asignacion_persona.id_escuela'
-    ->join('escuelas as e', 'sa.id_escuela', '=', 'e.id') 
-    ->select(
-        'asignacion_persona.id as name',
-        'e.name as school',
-        'sem.codigo as semester',
-        DB::raw('COUNT(asignacion_persona.id) as students'),
-        DB::raw('IF(asignacion_persona.state = 1, "Activo", "Inactivo") as status')
-    )
-    ->groupBy('asignacion_persona.id', 'e.name', 'sem.codigo', 'asignacion_persona.state')
-    ->get();
+    // Grupos de práctica con información de módulo y supervisor
+    $groupsData = grupo_practica::with(['supervisor.persona', 'seccion_academica.escuela', 'modulo'])
+        ->whereHas('seccion_academica', function($q) use ($id_escuela) {
+            $q->where('id_escuela', $id_escuela);
+        })
+        ->withCount('grupo_estudiante')
+        ->get()
+        ->map(function($group) {
+            return [
+                'id' => $group->id,
+                'name' => $group->name,
+                'school' => $group->seccion_academica->escuela->name ?? 'N/A',
+                'supervisor' => ($group->supervisor && $group->supervisor->persona) 
+                    ? $group->supervisor->persona->nombres . ' ' . $group->supervisor->persona->apellidos 
+                    : 'Sin asignar',
+                'students' => $group->grupo_estudiante_count,
+                'modulo' => $group->modulo->name ?? 'Módulo 1',
+                'modulo_numero' => $group->id_modulo ?? 1,
+                'status' => $group->state == 1 ? 'Activo' : 'Inactivo'
+            ];
+        });
 
 
     $fichasPorMes = Archivo::select(
@@ -148,6 +165,7 @@ class DashboardDocenteController extends Controller
 
     return view('dashboard.dashboardDocente', compact(
         'totalEstudiantes', 'totalFichasValidadas', 'totalSupervisores',
+        'totalMatriculados', 'totalNoMatriculados', 'matriculaStats',
         'estudiantesPorEscuela', 'estadoFichas', 'groupsData', 'fichasPorMes',
         'supervisoresRanking', 'escuelas','chartData','listaEstudiantes', 'facultades', 'escuelaIdDocente'
     ));

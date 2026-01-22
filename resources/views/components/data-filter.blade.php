@@ -27,7 +27,7 @@
         });
     }
 }" 
-     class="relative dark:bg-[#0f172a] rounded-2xl shadow-sm mb-6 transition-all duration-300 overflow-hidden">
+     class="relative bg-white dark:bg-[#0f172a] rounded-2xl shadow-sm mb-6 transition-all duration-300 overflow-hidden">
     
     {{-- Header / Toggle Button for Mobile --}}
     <div @click="if (window.innerWidth < 768) showFilters = !showFilters" 

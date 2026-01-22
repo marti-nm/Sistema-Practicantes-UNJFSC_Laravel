@@ -5,84 +5,91 @@ namespace App\Http\Controllers;
 use App\Models\Escuela;
 use App\Models\Facultad;
 use App\Models\grupo_estudiante;
-use App\Models\grupos_practica;
+use App\Models\grupo_practica;
+use App\Models\asignacion_persona;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class supervisorDashboardController extends Controller
 {
     public function indexsupervisor(Request $request)
-{
-    $facultades = Facultad::all();
-    $escuelas = collect();
-    $semestres = collect();
+    {
+        $id_semestre = session('semestre_actual_id');
+        $authUser = auth()->user();
+        $ap_now = $authUser->persona->asignacion_persona;
+        
+        $facultades = Facultad::all();
+        $escuelas = collect();
+        $semestres = collect();
 
-    $facultadId = $request->facultad_id;
-    $escuelaId = $request->escuela_id;
-    $semestreCodigo = $request->semestre_codigo;
+        $facultadId = $request->facultad_id;
+        $escuelaId = $request->escuela_id;
+        $semestreCodigo = $request->semestre_codigo;
 
-    if ($facultadId) {
-        $escuelas = Escuela::where('facultad_id', $facultadId)->get();
-    }
+        if ($facultadId) {
+            $escuelas = Escuela::where('facultad_id', $facultadId)->get();
+        }
 
-    if ($escuelaId) {
-        $semestres = DB::table('grupo_practica')
-            ->where('id_escuela', $escuelaId)
-            ->join('semestres', 'grupo_practica.id_semestre', '=', 'semestres.id')
-            ->select('semestres.codigo')
-            ->distinct()
+        if ($escuelaId) {
+            $semestres = DB::table('grupo_practica')
+                ->where('id_escuela', $escuelaId)
+                ->join('semestres', 'grupo_practica.id_semestre', '=', 'semestres.id')
+                ->select('semestres.codigo')
+                ->distinct()
+                ->get();
+        }
+
+        // Obtener grupos del supervisor
+        $grupos = grupo_practica::with(['modulo', 'seccion_academica.escuela'])
+            ->where('id_supervisor', $ap_now ? $ap_now->id : null)
+            ->where('id_sa', $ap_now->id_sa)
             ->get();
-    }
 
-    $supervisorId = auth()->user()->id;
+        $ids_grupos = $grupos->pluck('id');
 
-    $baseQuery = DB::table('grupo_estudiante as ge')
-        ->join('grupo_practica as gp', 'ge.id_grupo_practica', '=', 'gp.id')
-        ->join('personas as p', 'ge.id_estudiante', '=', 'p.id')
-        ->join('escuelas as e', 'gp.id_escuela', '=', 'e.id')
-        ->leftJoin('evaluaciones as ev', 'ge.id_estudiante', '=', 'ev.alumno_id')
-        ->join('facultades as f', 'e.facultad_id', '=', 'f.id')
-        ->join('semestres as s', 'gp.id_semestre', '=', 's.id')
-        ->where('ge.id_supervisor', $supervisorId);
+        // Alumnos supervisados
+        $alumnos = asignacion_persona::with(['persona', 'evaluaciones', 'practicas.empresa', 'evaluacion_practica.modulo'])
+            ->whereHas('grupo_estudiante', function($q) use ($ids_grupos) {
+                $q->whereIn('id_gp', $ids_grupos);
+            })
+            ->get()
+            ->map(function($ap) {
+                $eval = $ap->evaluaciones->first();
+                $practica = $ap->practicas->first();
+                $evalPractica = $ap->evaluacion_practica->sortByDesc('id_modulo')->first();
+                
+                return [
+                    'id' => $ap->id,
+                    'nombres' => $ap->persona->nombres,
+                    'apellidos' => $ap->persona->apellidos,
+                    'foto' => $ap->persona->ruta_foto,
+                    'empresa' => $practica->empresa->razon_social ?? 'No registrada',
+                    'modulo' => $evalPractica->modulo->name ?? 'Módulo 1',
+                    'anexo_7' => ($eval && $eval->anexo_7) ? 'Completado' : 'Pendiente',
+                    'anexo_8' => ($eval && $eval->anexo_8) ? 'Completado' : 'Pendiente',
+                    'anexo_7_pdf' => $eval->anexo_7 ?? null,
+                    'anexo_8_pdf' => $eval->anexo_8 ?? null,
+                    'anexo_6_pdf' => $eval->anexo_6 ?? null,
+                ];
+            });
 
-    if ($facultadId) {
-        $baseQuery->where('f.id', $facultadId);
-    }
-
-    if ($escuelaId) {
-        $baseQuery->where('e.id', $escuelaId);
-    }
-
-    if ($semestreCodigo) {
-        $baseQuery->where('s.codigo', $semestreCodigo);
-    }
-
-    $alumnos = DB::table('evaluaciones as ev')
-    ->join('asignacion_persona as ap', 'ev.id_alumno', '=', 'ap.id')
-    ->join('personas as p', 'ap.id_persona', '=', 'p.id')
-    ->join('grupo_estudiante as ge', 'ev.id_alumno', '=', 'ge.id_estudiante')
-    ->select(
-        'p.nombres',
-        'p.apellidos',
-        'ev.anexo_6',
-        'ev.anexo_7',
-        'ev.anexo_8',
-        DB::raw("CASE WHEN ev.anexo_7 IS NOT NULL AND ev.anexo_7 != '' THEN 'Registrado' ELSE 'Sin registrar' END as estado_anexo_7"),
-        DB::raw("CASE WHEN ev.anexo_8 IS NOT NULL AND ev.anexo_8 != '' THEN 'Registrado' ELSE 'Sin registrar' END as estado_anexo_8")
-    )
-    ->get();
-
-
-    $totalFiltrados = $alumnos->count();
-
-    $totalCompletos = $alumnos->filter(function ($alumno) {
-        return  $alumno->estado_anexo_7 === 'Registrado'
-            && $alumno->estado_anexo_8 === 'Registrado';
-    })->count();
+        $totalEstudiantes = $alumnos->count();
+        $totalAnexo7 = $alumnos->where('anexo_7', 'Completado')->count();
+        $totalAnexo8 = $alumnos->where('anexo_8', 'Completado')->count();
+        
+        // Módulo actual (promedio o el más común de los grupos)
+        $currentModule = $grupos->first()->modulo->name ?? 'N/A';
+        
+        // Progreso general (anexo 7 y 8 completados)
+        $totalItems = $totalEstudiantes * 2; // 2 anexos clave: 7 y 8
+        $totalCompletados = $totalAnexo7 + $totalAnexo8;
+        $progressGeneral = $totalItems > 0 ? round(($totalCompletados / $totalItems) * 100) : 0;
 
         return view('dashboard.dashboardSupervisor', compact(
             'facultades', 'escuelas', 'semestres',
-            'facultadId', 'escuelaId', 'semestreCodigo', 'alumnos','totalFiltrados','totalCompletos'
+            'facultadId', 'escuelaId', 'semestreCodigo', 
+            'alumnos', 'totalEstudiantes', 'totalAnexo7', 'totalAnexo8',
+            'currentModule', 'progressGeneral', 'grupos'
         ));
     }
 

@@ -13,14 +13,19 @@
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
 
     <!-- AQUÍ ESTÁ LA REGLA CONFLICTIVA: Bootstrap incluye .bg-white { ... !important }. Si comentas esta línea, solucionarás el conflicto de colores, pero perderás los estilos de Bootstrap restantes. -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    {{--<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">--}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Theme Checker (Prevent Flash of Unstyled Theme) -->
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark')
         } else {
             document.documentElement.classList.remove('dark')
+        }
+        
+        // Anti-flash/jump for sidebar
+        document.documentElement.classList.add('preload');
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            document.documentElement.classList.add('sidebar-collapsed-init');
         }
     </script>
 
@@ -34,6 +39,7 @@
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     @stack('css')
+    @livewireStyles
 </head>
 <style>
     [x-cloak] { display: none !important; }
@@ -41,7 +47,7 @@
         --primary-color: #2563eb;
         --primary-light: #3b82f6;
         --secondary-color: #64748b;
-        --background-color: #f8fafc;
+        --background-color: #ffffff;
         --surface-color: #ffffff;
         --text-primary: #1e293b;
         --text-secondary: #64748b;
@@ -90,8 +96,18 @@
         transition: background-color 0.3s ease, color 0.3s ease;
     }
     
-    body.preload {
+    .preload, .preload * {
         transition: none !important;
+    }
+
+    /* Global Placeholder Logic */
+    #main-placeholder { display: none; }
+    .preload #main-placeholder { display: block; }
+    .preload .main-content { display: none !important; }
+
+    @media (min-width: 768px) {
+        .sidebar-collapsed-init #sidebar { width: 80px !important; }
+        .sidebar-collapsed-init #content-wrapper { padding-left: 80px !important; }
     }
 
 
@@ -326,186 +342,6 @@
         display: flex;
         align-items: center;
         gap: 1.5rem;
-    }
-
-    /* Área de Contenido */
-    .main-content {
-        flex: 1;
-        padding: 2rem;
-        max-width: 100%;
-        transition: background-color 0.3s ease, color 0.3s ease;
-        position: relative;
-        background-color: transparent;
-    }
-
-    #wrapper {
-        background: radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.03) 0%, transparent 50%),
-                    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
-                    var(--background-color);
-        transition: background 0.3s ease;
-    }
-
-    .dark #wrapper {
-        background: radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.08) 0%, transparent 40%),
-                    radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
-                    var(--background-color);
-    }
-
-    /* Tarjetas Modernas */
-    .card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.2s ease;
-    }
-
-    .card:hover {
-        box-shadow: var(--shadow-md);
-    }
-
-    .card-header {
-        background: transparent;
-        border-bottom: 1px solid var(--border-color);
-        padding: 1.5rem;
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    /* Botones Mejorados */
-    .btn {
-        font-family: inherit;
-        font-weight: 500;
-        border-radius: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-primary {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: var(--primary-light);
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-secondary {
-        background: var(--secondary-color);
-        color: white;
-    }
-
-    .btn-success {
-        background: var(--success-color);
-        color: white;
-    }
-
-    .btn-warning {
-        background: var(--warning-color);
-        color: white;
-    }
-
-    .btn-danger {
-        background: var(--danger-color);
-        color: white;
-    }
-
-    /* Formularios Accesibles */
-    .form-control {
-        font-family: inherit;
-        font-size: 1rem;
-        padding: 0.875rem 1rem;
-        border: 2px solid var(--border-color);
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        background: var(--surface-color);
-    }
-
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-        outline: none;
-    }
-
-    .form-label {
-        font-weight: 500;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-    }
-
-    /* Estados y Badges */
-    .badge {
-        font-weight: 500;
-        padding: 0.375rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    /* Usuario Dropdown */
-    .user-dropdown {
-        position: relative;
-    }
-
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        border: 1px solid var(--border-color);
-    }
-
-    .user-info:hover {
-        background: var(--background-color);
-    }
-
-    .user-avatar {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background: var(--primary-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 1rem;
-    }
-
-    .user-details {
-        text-align: right;
-    }
-
-    .user-name {
-        font-weight: 600;
-        color: var(--text-primary);
-        font-size: 0.875rem;
-        margin: 0;
-    }
-
-    .user-role {
-        color: var(--text-secondary);
-        font-size: 0.75rem;
-        margin: 0;
     }
 
     /* Responsive Adjustments */
@@ -794,6 +630,24 @@
     @endif
 
     <!-- Main Content -->
+    <!-- Global Page Placeholder (Skeleton) -->
+    <div id="main-placeholder" class="p-4 md:p-8 space-y-8 animate-pulse transition-none">
+        <div class="flex items-center justify-between">
+            <div class="space-y-4">
+                <div class="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+                <div class="h-4 w-48 bg-slate-100 dark:bg-slate-800/50 rounded-lg"></div>
+            </div>
+            <div class="hidden md:block h-12 w-40 bg-slate-200 dark:bg-slate-800 rounded-2xl"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="h-32 bg-slate-100 dark:bg-slate-800/40 rounded-3xl"></div>
+            <div class="h-32 bg-slate-100 dark:bg-slate-800/40 rounded-3xl"></div>
+            <div class="h-32 bg-slate-100 dark:bg-slate-800/40 rounded-3xl"></div>
+            <div class="h-32 bg-slate-100 dark:bg-slate-800/40 rounded-3xl"></div>
+        </div>
+        <div class="h-96 bg-white dark:bg-slate-900/40 rounded-3xl border border-slate-100 dark:border-white/5"></div>
+    </div>
+
     <main class="main-content fade-in">
         <!-- Persistent Warning for Bloqueado (Mode Only Read) -->
         @if(session('warning_semestre'))
@@ -861,11 +715,41 @@
             });
         </script>
     @endif
+
     <script>
-        document.body.classList.add('preload');
-        setTimeout(() => {
-            document.body.classList.remove('preload');
-        }, 300);
+        // Remove preload and init classes after initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.documentElement.classList.remove('preload');
+                document.documentElement.classList.remove('sidebar-collapsed-init');
+            }, 100);
+        });
+
+        // Global Livewire Listeners
+        window.livewire.on('swal:success', message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        });
+
+        window.livewire.on('swal:error', message => {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: message,
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+            });
+        });
     </script>
+    @livewireScripts
 </body>
 </html>
