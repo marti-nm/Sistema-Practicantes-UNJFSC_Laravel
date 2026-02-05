@@ -18,7 +18,7 @@
     </div>
     @if(Auth::user()->hasAnyRoles([1, 2]))
         <x-data-filter
-            route="supervision"
+            route="seguimiento.ppp"
             :facultades="$facultades"
         />
     @endif
@@ -72,7 +72,7 @@
                     </td>
                     <td class="px-6 py-4">
                         @if($practica)
-                        <a href="{{ route('supervision.detalle', $practica->id) }}" 
+                        <a href="{{ route('supervision.detalle', $practica->id) }}"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-cyan-600/20">
                             <i class="bi bi-list-check text-sm"></i>
                             Supervisar

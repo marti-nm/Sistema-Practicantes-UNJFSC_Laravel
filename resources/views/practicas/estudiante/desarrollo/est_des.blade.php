@@ -27,7 +27,7 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
-     x-data="studentPracticeLogic({{ $practicas->state ?? 1 }}, {{ $practicas->id }}, {{ $practicas->calificacion ?? 'null' }})">
+     x-data="studentPracticeLogic({{ $practicas->state ?? 1 }}, {{ $practicas->id_ap ?? 'null' }}, {{ $practicas->id }}, {{ $practicas->calificacion ?? 'null' }})">
 
     <!-- Header info -->
     <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
@@ -65,7 +65,7 @@
             
             <!-- Steps -->
             <template x-for="(step, index) in steps" :key="index">
-                <div class="relative flex flex-col items-center group cursor-pointer"
+                <div class="relative flex flex-col items-center group cursor-pointer py-4"
                      @click="setStage(index + 1)">
                     
                     <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-4 transition-all duration-300 z-10"
@@ -82,7 +82,7 @@
                          </template>
                     </div>
                     
-                    <span class="absolute top-12 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors duration-300"
+                    <span class="absolute top-12 mt-4 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors duration-300"
                           :class="{
                             'text-blue-600 dark:text-blue-400': currentStage === index + 1,
                             'text-green-500': currentStage > index + 1,
@@ -547,7 +547,7 @@
 </div>
 
 <script>
-    function studentPracticeLogic(initialState, practicaId, initialGrade) {
+    function studentPracticeLogic(initialState, id_ap, practicaId, initialGrade) {
         return {
             currentStage: initialState > 5 ? 5 : initialState, 
             practicaState: initialState,
@@ -662,7 +662,7 @@
                      
                      if(stage >= 2) {
                         const loadDoc = async (type, key) => {
-                             const r = await fetch(`/api/documento/${practicaId}/${type}`);
+                             const r = await fetch(`/api/documento/${id_ap}/${type}`);
                              if(r.ok) {
                                  const d = await r.json();
                                  if(d && d.length > 0) this.docs[key] = d[0];

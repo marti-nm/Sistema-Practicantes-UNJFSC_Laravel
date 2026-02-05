@@ -144,7 +144,7 @@
         gap: 0.25rem; /* Ligero espacio entre ícono y texto */
         margin: 0 0.125rem;
         min-width: 30px;  /* Opcional: controla el ancho mínimo */
-        height: 30px;     
+        height: 30px;
     }
 
     .btn-info {
@@ -766,14 +766,14 @@
             this.editData = {};
             this.selectedProvincia = '';
             this.selectedDistrito = '';
-            
+
             try {
                 // Load locations and data in parallel if possible, but we need locations to set selected
                 await this.initLocations();
-                
+
                 const response = await fetch(`/api/persona/${personaId}`);
                 this.editData = await response.json();
-                
+
                 // Logic to match Province (ID or Name)
                 if (this.editData.provincia) {
                     let prov = this.provincias.find(p => p.id == this.editData.provincia);
@@ -783,7 +783,7 @@
                     if (prov) {
                         this.selectedProvincia = prov.id;
                         this.updateDistritos();
-                        
+
                         // Logic to match District
                         if (this.editData.distrito) {
                             let dist = this.distritos_options.find(d => d.id == this.editData.distrito);
@@ -824,7 +824,7 @@
             this.requireData = data;
             this.solicitudAPModalOpen = true;
         },
-        
+
         openManagementModal(data) {
             this.requireData = data;
             this.managementAPModalOpen = true;
@@ -838,7 +838,7 @@
         :enableButton="true"
         msj="Registrar {{ $cargo }}"
         icon_msj="bi-person-badge-fill"
-        route="registrar"
+        route="usuario.registrar"
     />
 
     @if(Auth::user()->hasAnyRoles([1, 2]))
@@ -889,7 +889,7 @@
                     @endif
                     <td class="px-6 py-2 text-center">
                         @if($persona->asignacion_persona->state == 1 || $persona->asignacion_persona->state == 2)
-                        <button type="button" class="btn btn-info" 
+                        <button type="button" class="btn btn-info"
                             @click="openEditModal({
                                 id_ap: {{ $persona->id }},
                                 id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},
@@ -902,7 +902,7 @@
                             <i class="bi bi-pencil-fill"></i>
                         </button>
                         @if(!$semestre_bloqueado)
-                        <button type="button" class="btn btn-danger" 
+                        <button type="button" class="btn btn-danger"
                             @click="openSolicitudModal({
                                 id_ap: {{ $persona->asignacion_persona->id }},
                                 id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},
@@ -913,7 +913,7 @@
                         </button>
                         @endif
                         @elseif($persona->asignacion_persona->state == 3 && Auth::user()->hasAnyRoles([1,2]))
-                        <button type="button" class="btn btn-secondary" 
+                        <button type="button" class="btn btn-secondary"
                             @click="openManagementModal({
                                 id_ap: {{ $persona->asignacion_persona->id }},
                                 id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},
@@ -925,7 +925,7 @@
                             <label class="badge badge-warning text-black">Pendiente</label>
                         @elseif($persona->asignacion_persona->state == 4)
                             <!-- button para habilitar -->
-                            <button type="button" class="btn btn-warning" 
+                            <button type="button" class="btn btn-warning"
                                 @click="openSolicitudModal({
                                     id_ap: {{ $persona->asignacion_persona->id }},
                                     id_sa: {{ $persona->asignacion_persona->seccion_academica->id }},

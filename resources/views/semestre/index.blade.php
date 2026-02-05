@@ -5,7 +5,7 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{
     detailModalOpen: false,
     finishModalOpen: false,
 
@@ -16,9 +16,9 @@
         this.finishModalOpen = true;
     },
 
-    newModal: false, 
+    newModal: false,
     viewModalId: null,
-    editModalId: null, 
+    editModalId: null,
     finishModalId: null,
     backModalId: null
 }">
@@ -79,10 +79,10 @@
                                     <button @click="openFinishModal({{ $semestre->id }}, '{{ $semestre->codigo }}')" class="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border-1 border-blue-100 dark:border-blue-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 text-[10px] font-black uppercase tracking-wider" title="Finalizar Semestre">
                                         <i class="bi bi-check-circle mr-1"></i> Finalizar
                                     </button>
-                                    
+
                                     {{-- Botón Editar --}}
                                     <button @click="editModalId = {{ $semestre->id }}" class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 border-1 border-amber-100 dark:border-amber-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5" title="Editar Ciclo">
-                                        <i class="bi bi-pencil-square"></i> 
+                                        <i class="bi bi-pencil-square"></i>
                                     </button>
 
                                     {{-- Botón Retroceder --}}
@@ -92,7 +92,7 @@
                                 @elseif($semestre->state == 0)
                                     <button @click="viewModalId = {{ $semestre->id }}" class="px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border-1 border-blue-100 dark:border-blue-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 text-[10px] font-black uppercase tracking-wider" title="Ver Detalle">
                                         <i class="bi bi-eye mr-1"></i> Detalle
-                                    </button>                            
+                                    </button>
                                 @endif
                             </div>
                         </td>
@@ -106,7 +106,7 @@
     <!-- Modal Nuevo Semestre -->
     <div x-show="newModal" class="fixed inset-0 z-[1060] flex items-center justify-center px-4" x-cloak>
         <div x-show="newModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" @click="newModal = false"></div>
-        
+
         <div x-show="newModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="relative bg-white dark:bg-slate-900 rounded-[1rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-[#111c44] to-blue-900 px-8 py-6">
                 <h3 class="text-white text-xl font-black tracking-tight flex items-center gap-3">
@@ -114,8 +114,8 @@
                     Nuevo Semestre
                 </h3>
             </div>
-            
-            <form action="{{ route('semestre.store') }}" method="POST" class="p-8">
+
+            <form action="{{ route('academico.semestre.store') }}" method="POST" class="p-8">
                 @csrf
                 <div class="space-y-6">
                     <div class="space-y-2">
@@ -252,7 +252,7 @@
                         Editar Semestre
                     </h3>
                 </div>
-                <form action="{{ route('semestre.update', $semestre->id) }}" method="POST" class="p-8">
+                <form action="{{ route('academico.semestre.update', $semestre->id) }}" method="POST" class="p-8">
                     @csrf
                     @method('PUT')
                     <div class="space-y-6">

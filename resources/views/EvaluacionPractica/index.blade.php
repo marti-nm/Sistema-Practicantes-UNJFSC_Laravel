@@ -41,20 +41,20 @@
             try {
                 const ANEXO = 'anexo_' + anexo;
                 const ID_MODULO = {{ $id_modulo }};
-                const r = await fetch(`/api/evaluacion_practica/${id}/${ID_MODULO}/${ANEXO}`); 
+                const r = await fetch(`/api/evaluacion_practica/${id}/${ID_MODULO}/${ANEXO}`);
                 const result = await r.json();
                 const data = result.length > 0 ? result[0] : null;
-                
+
                 if (data) {
                     this.hdata = data;
                     if (data.evaluacion_archivo && data.evaluacion_archivo.length > 0) {
                         this.ldata = data.evaluacion_archivo[0];
                     }
                 }
-            } catch(e) { console.error(e); } 
+            } catch(e) { console.error(e); }
             finally { this.loading = false; }
         },
-        
+
         openSuperviseModal(id, anexo, student) {
             this.requireData.id = id;
             this.requireData.anexo = anexo;
@@ -71,12 +71,12 @@
     />
     @if(Auth::user()->hasAnyRoles([1, 2]))
         <x-data-filter
-            route="evaluacionPractica.index"
+            route="seguimiento.evaluation"
             :facultades="$facultades"
         />
     @endif
-        
-        <form method="GET" action="{{ route('evaluacionPractica.index') }}" class="relative z-10">
+
+        <form method="GET" action="{{ route('seguimiento.evaluation') }}" class="relative z-10">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
                 <div class="md:col-span-5">
                     <label for="grupo" class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">
@@ -86,7 +86,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="bi bi-collection-fill text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
                         </div>
-                        <select class="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm cursor-pointer appearance-none" 
+                        <select class="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-1 border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm cursor-pointer appearance-none"
                             id="grupo" name="grupo" onchange="this.form.submit()">
                             <option value="">-- Seleccione un grupo --</option>
                             @foreach ($grupos_practica as $gp)
@@ -126,7 +126,7 @@
             </div>
         </form>
 
-        <form id="form-modulo" method="GET" action="{{ route('evaluacionPractica.index') }}" class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 relative z-10">
+        <form id="form-modulo" method="GET" action="{{ route('seguimiento.evaluation') }}" class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 relative z-10">
             <input type="hidden" name="grupo" value="{{ $selected_grupo_id }}">
             <input type="hidden" name="modulo" id="selected_modulo" value="{{ $id_modulo ?? 1 }}">
 
@@ -150,11 +150,11 @@
                     <div class="relative">
                         <div
                             class="module-selector-cell group relative w-full p-3 rounded-xl border-1 transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer
-                            {{ $isActive 
-                                ? 'bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white shadow-lg shadow-blue-500/30 transform scale-[1.02]' 
-                                : ($locked 
-                                    ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed' 
-                                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-300 hover:shadow-md') 
+                            {{ $isActive
+                                ? 'bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white shadow-lg shadow-blue-500/30 transform scale-[1.02]'
+                                : ($locked
+                                    ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-300 hover:shadow-md')
                             }}"
                             role="button"
                             tabindex="{{ $locked ? '-1' : '0' }}"
@@ -162,12 +162,12 @@
                             @click="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})"
                             @keydown.enter.prevent="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})"
                             @keydown.space.prevent="selectModule({{ $m }}, {{ $locked ? 'true' : 'false' }})">
-                            
+
                             <div class="flex flex-col items-center">
                                 <span class="text-[10px] font-black uppercase tracking-widest opacity-70">Módulo</span>
                                 <span class="text-xl font-black">{{ $m }}</span>
                             </div>
-                            
+
                             @if($locked)
                                 <div class="absolute top-2 right-2">
                                     <i class="bi bi-lock-fill text-xs opacity-50"></i>
@@ -201,13 +201,13 @@
                     @php
                         $getStatusInfo = function ($state) {
                             $base = "w-full px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 border-1 shadow-sm hover:shadow-md";
-                            
+
                             if (is_null($state)) return [
-                                'classes' => "$base bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-300", 
+                                'classes' => "$base bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500 dark:hover:text-slate-300",
                                 'label' => 'Sin envío',
                                 'icon' => 'bi-cloud-upload'
                             ];
-                            
+
                             // state 1: Enviado, 5: Aprobado, 2,3,4: Corregir
                             switch ($state) {
                                 case 5: return ['classes' => "$base bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400", 'label' => 'Aprobado', 'icon' => 'bi-check-circle-fill'];
@@ -229,7 +229,7 @@
                         <td>
                             <div class="d-flex flex-column">
                                 <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}</span>
-                                <small class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">Estado Gral: 
+                                <small class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">Estado Gral:
                                     @if($item->state == 2)
                                         <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-400 rounded-lg text-xs font-bold uppercase tracking-wider">Aprobado</span>
                                     @else
@@ -239,13 +239,13 @@
                             </div>
                         </td>
                         <td>
-                            <button class="{{ $status7['classes'] }}" 
+                            <button class="{{ $status7['classes'] }}"
                                 @click="openSuperviseModal({{ $item->id_ap }}, 7, '{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}')">
                                 <i class="bi {{ $status7['icon'] }} text-sm"></i> <span>Anexo 7 ({{ $status7['label'] }})</span>
                             </button>
                         </td>
                         <td>
-                            <button class="{{ $status8['classes'] }}" 
+                            <button class="{{ $status8['classes'] }}"
                                 @click="openSuperviseModal({{ $item->id_ap }}, 8, '{{ $item->asignacion_persona->persona->nombres }} {{ $item->asignacion_persona->persona->apellidos }}')">
                                 <i class="bi {{ $status8['icon'] }} text-sm"></i> <span>Anexo 8 ({{ $status8['label'] }})</span>
                             </button>
@@ -258,13 +258,13 @@
             </table>
         </div>
     <div x-show="superviseModalOpen"
-        class="fixed inset-0 z-[1100] flex items-center justify-center px-4" 
+        class="fixed inset-0 z-[1100] flex items-center justify-center px-4"
         x-cloak>
         <x-backdrop-modal name="superviseModalOpen" />
 
-        <div x-show="superviseModalOpen" 
-            x-transition:enter="transition ease-out duration-300" 
-            x-transition:enter-start="opacity-0 scale-95 translate-y-4" 
+        <div x-show="superviseModalOpen"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
             class="relative bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] shadow-2xl w-full max-w-md overflow-hidden border-1 border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-[#111c44] to-blue-900 px-6 py-4">
@@ -289,7 +289,7 @@
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                     </div>
                 </template>
-                
+
                 <!-- Estado 1: Enviado / Pendiente de Revisión -->
                 <template x-if="!loading && ldata && ldata.state == 1">
                     <div>
@@ -305,13 +305,13 @@
                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                     <i class="bi bi-paperclip"></i> Archivo enviado
                                 </label>
-                                
+
                                 <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-between align-items-center shadow-sm hover:border-blue-300 transition-colors">
                                     <div class="flex items-center min-w-0 pr-4">
                                         <i class="bi bi-file-earmark-pdf text-red-500 text-xl me-2"></i>
                                         <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">Anexo_7_Estudiante.pdf</span>
                                     </div>
-                                    <a :href="ldata.archivos[0].ruta" target="_blank" 
+                                    <a :href="ldata.archivos[0].ruta" target="_blank"
                                     class="px-3 py-1 border-1 border-blue-600 text-blue-600 text-[10px] font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-all active:scale-95 flex items-center gap-2 shrink-0 uppercase">
                                         <i class="bi bi-box-arrow-up-right"></i> Ver
                                     </a>
@@ -322,7 +322,7 @@
                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                     <i class="bi bi-clipboard-data"></i> Nota
                                 </label>
-                                
+
                                 <div class="bg-slate-50 dark:bg-slate-800 border-1 dark:border-slate-800 border-slate-200 p-2.5 rounded-xl d-flex justify-content-center align-items-center shadow-sm min-h-[46px]">
                                     <span class="text-lg font-black text-blue-700 dark:text-green-500" x-text="ldata.nota">--</span>
                                 </div>
@@ -368,14 +368,14 @@
 
                 <!-- Formulario: Nuevo (null), Corregir Archivo (2), Corregir Nota (3), Corregir Todo (4) -->
                 <template x-if="!loading && (!ldata || [2, 3, 4].includes(ldata.state))">
-                    <form id="submission-form" 
-                        action="{{ route('subir.anexo') }}" 
-                        method="POST" 
+                    <form id="submission-form"
+                        action="{{ route('subir.anexo') }}"
+                        method="POST"
                         enctype="multipart/form-data"
                         x-data="{ hasFile: false, fileName: 'Nuevo_Anexo.pdf' }"
                         class="space-y-4">
                         @csrf
-                        
+
                         <input type="hidden" id="ap_id" name="ap_id" :value="requireData.id">
                         <input type="hidden" id="number" name="number" :value="requireData.anexo">
                         <input type="hidden" id="modulo" name="modulo" value="{{ $id_modulo_now }}">
@@ -404,15 +404,15 @@
                                 <i class="bi bi-file-pdf-fill text-red-500"></i>
                                 Subir Anexo (PDF)
                             </label>
-                            
+
                             <div class="relative group">
-                                <input type="file" 
-                                    name="anexo" 
+                                <input type="file"
+                                    name="anexo"
                                     accept="application/pdf"
                                     onchange="validateFileSize(this, 10)"
                                     :required="!ldata || [2, 4].includes(ldata.state)"
-                                    class="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 
-                                            file:rounded-xl file:border-0 file:text-xs file:font-black 
+                                    class="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3
+                                            file:rounded-xl file:border-0 file:text-xs file:font-black
                                             file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100
                                             border-1 border-slate-200 dark:border-slate-800 rounded-2xl p-1 focus-within:border-blue-400 transition-all">
                             </div>
@@ -420,15 +420,15 @@
                         </div>
 
                         <!-- Archivo Existente: Visible solo si es estado 3 (Corregir Nota) -->
-                        <div x-show="ldata && ldata.state == 3" 
+                        <div x-show="ldata && ldata.state == 3"
                             class="bg-slate-50 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-3">
-                            
+
                             <input type="hidden" name="rutaAnexo" :value="ldata ? ldata.archivos[0].ruta : ''">
-                            
+
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-2 block">
                                 Archivo actualmente en el sistema:
                             </label>
-                            
+
                             <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-100 shadow-sm">
                                 <div class="flex items-center min-w-0 pr-2">
                                     <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center mr-3 shrink-0">
@@ -449,10 +449,10 @@
                                 <i class="bi bi-star-fill mr-1"></i> Nota Final (0-20)
                             </label>
                             <div class="relative">
-                                <input type="number" 
-                                    name="nota" 
-                                    id="finalScore" 
-                                    min="0" 
+                                <input type="number"
+                                    name="nota"
+                                    id="finalScore"
+                                    min="0"
                                     max="20"
                                     placeholder="00"
                                     :value="ldata ? ldata.nota : ''"
@@ -468,16 +468,16 @@
                         </div>
 
                         <div class="flex items-center justify-between gap-3 pt-2">
-                            <button type="button" 
+                            <button type="button"
                                     @click="superviseModalOpen = false"
                                     class="px-5 py-1.5 bg-gray-400 text-slate-500 text-xs font-bold hover:text-slate-700 rounded-xl transition-colors uppercase tracking-widest">
                                 Cancelar
                             </button>
-                            
-                            <button type="submit" 
+
+                            <button type="submit"
                                     id="saveEvaluation"
-                                    class="px-5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-xs font-black rounded-xl 
-                                        hover:from-blue-700 hover:to-indigo-800 shadow-lg shadow-blue-500/30 
+                                    class="px-5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-xs font-black rounded-xl
+                                        hover:from-blue-700 hover:to-indigo-800 shadow-lg shadow-blue-500/30
                                         transition-all active:scale-95 uppercase tracking-widest flex items-center gap-2">
                                 <i class="bi bi-check-lg text-base"></i>
                                 Subir
@@ -493,15 +493,15 @@
                             <span class="flex items-center gap-2"><i class="bi bi-clock-history"></i> Historial de Envíos</span>
                             <i class="bi transition-transform duration-300" :class="showHistory ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                         </button>
-                        
-                        <div x-show="showHistory" 
+
+                        <div x-show="showHistory"
                              x-transition:enter="transition ease-out duration-200"
                              x-transition:enter-start="opacity-0 -translate-y-2"
                              x-transition:enter-end="opacity-100 translate-y-0"
                              class="mt-3 space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                            
+
                             <template x-for="(item, index) in hdata.evaluacion_archivo" :key="index">
-                                <!-- Ignorar el índice 0 si es el que se muestra arriba, o mostrar todos si se prefiere log completo. 
+                                <!-- Ignorar el índice 0 si es el que se muestra arriba, o mostrar todos si se prefiere log completo.
                                      La lógica bootstrap saltaba el index 0 si state == 1. Aquí mostraremos del 1 en adelante para no duplicar el actual. -->
                                 <div x-show="index > 0" class="bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border-1 border-slate-100 dark:border-slate-700 flex justify-between items-center hover:bg-slate-50 transition-colors">
                                     <div>
@@ -535,114 +535,6 @@
                         </div>
                     </div>
                 </template>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="evaluationModal" tabindex="-1" aria-labelledby="evaluationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Calificar Estudiante</h5>
-                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <div id="approved-file-container" style="display: none;">
-                    <div class="alert alert-info text-center">
-                        <i class="bi bi-clipboard-check" style="font-size: 2rem;"></i>
-                        <h5 class="alert-heading mt-2">Aprobado el Archivo</h5>
-                        <p>El docente ya revisó y ha aprobado este anexo. No es posible modificarlo.</p>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-8 d-flex flex-column">
-                            <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
-                            <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
-                                <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
-                                <a href="#" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
-                            </div>
-                        </div>
-                        <div class="col-md-4 d-flex flex-column">
-                            <label class="font-weight-bold"><i class="bi bi-clipboard-data"></i> Nota:</label>
-                            <div class="alert alert-light p-2 d-flex justify-content-center align-items-center border flex-grow-1">
-                                <span class="fw-bold fs-5 text-primary">13</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="pending-review-container" style="display: none;">
-                    <div class="alert alert-info text-center">
-                        <i class="bi bi-hourglass-split" style="font-size: 2rem;"></i>
-                        <h5 class="alert-heading mt-2">Enviado para Revisión</h5>
-                        <p>Ya has enviado este anexo. El docente lo está revisando.</p>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-8 d-flex flex-column">
-                            <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
-                            <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
-                                <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
-                                <a href="#" id="pending-ruta" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
-                            </div>
-                        </div>
-                        <div class="col-md-4 d-flex flex-column">
-                            <label class="font-weight-bold"><i class="bi bi-clipboard-data"></i> Nota:</label>
-                            <div class="alert alert-light p-2 d-flex justify-content-center align-items-center border flex-grow-1">
-                                <span class="fw-bold fs-5 text-primary" id="pending-nota"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Formulario de subida (con el ID que el JS necesita) -->
-                <form id="submission-form" action="{{ route('subir.anexo') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" id="ap_id" name="ap_id">
-                    <input type="hidden" id="number" name="number">
-                    <input type="hidden" id="modulo" name="modulo">
-                    <div class="mb-3" id="archivoAnexo">
-                        <label class="form-label">
-                            <i class="bi bi-file-pdf"></i>
-                            Anexo # (PDF)
-                        </label>
-                        <input type="file" name="anexo" class="form-control" accept="application/pdf"
-                            onchange="validateFileSize(this, 10)">
-                        <small class="text-muted">Archivo PDF, máximo 10MB</small>
-                    </div>
-                    <div class="row mb-3" id="archivoLatest" style="display: none;">
-                        <input type="hidden" id="rutaAnexo" name="rutaAnexo">
-                        <div class="col-md-12 d-flex flex-column" id="#">
-                            <label class="font-weight-bold"><i class="bi bi-paperclip"></i> Archivo enviado:</label>
-                            <div class="alert alert-light p-2 d-flex justify-content-between align-items-center border flex-grow-1">
-                                <span class="text-truncate"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Anexo_7_Estudiante.pdf</span>
-                                <a href="#" id="pending-ruta-form" class="btn btn-sm btn-outline-primary flex-shrink-0 ms-2" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Ver</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="finalScore" class="form-label">Nota Final (0-20)</label>
-                        <input type="number" name="nota" class="form-control" id="finalScore" min="0" max="20">
-                    </div>
-                    <div class="d-flex justify-content-between gap-2">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary" id="saveEvaluation">Guardar y Aprobar</button>
-                    </div>
-                </form>
-                <div id="historyContainer" class="history-container mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mt-4">Documentos enviados (Historial)</h6>
-                        <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                            Ver historial
-                        </button>
-                    </div>
-                    <div class="collapse" id="collapseExample">
-                        <div class="card card-body">
-                            <ul class="list-group history-list" id="archivosEnviadosList">
-                                <!-- Los elementos de la lista se agregarán dinámicamente aquí -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
             </div>
         </div>
     </div>

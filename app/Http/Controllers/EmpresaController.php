@@ -92,8 +92,7 @@ class EmpresaController extends Controller
             'correo' => $validated['email'],
             'sitio_web' => $validated['sitio_web'] ?? null,
             'id_practica' => $practicas_id,
-            'state' => 1,
-            
+            'state' => 2,
         ]);
 
         return redirect()->back()->with('success', 'Empresa registrada exitosamente');
@@ -134,7 +133,7 @@ class EmpresaController extends Controller
             'telefono' => $validated['telefono'],
             'correo' => $validated['email'],
             'sitio_web' => $validated['sitio_web'] ?? null,
-            'state' => 1,
+            'state' => 2,
         ]);
 
         /*$practica->update([
@@ -161,16 +160,18 @@ class EmpresaController extends Controller
         try {
             $empresa = Empresa::findOrFail($request->id);
             $empresa->comentario = $request->comentario;
-            $empresa->state = ($request->estado == 'Aprobado') ? 2 : 3;
+            $empresa->state = ($request->estado == 'Aprobado') ? 1 : 3;
             $empresa->save();
 
             if($request->estado == 'Aprobado') {
                 $jefe = JefeInmediato::where('id_practica', $empresa->id_practica)->first();
                 
-                if($jefe && $jefe->state == 2) {
-                    $practica = Practica::findOrFail($empresa->id_practica);
+                $practica = Practica::findOrFail($empresa->id_practica);
+                if($jefe && $jefe->state == 1 && $practica->state == 1) {
                     $practica->state++;
                     $practica->save();
+                } else {
+                    return back()->with('error', 'Error al actualizar estado de empresa');
                 }
             }
         } catch (\Throwable $th) {

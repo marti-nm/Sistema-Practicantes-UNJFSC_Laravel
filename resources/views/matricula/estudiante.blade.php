@@ -125,7 +125,7 @@
                 @if(!$ficha || $ficha->estado_archivo == 'Corregir')
                 <form action="{{ route('subir.ficha') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                     @csrf
-                    <input type="hidden" name="ap_id" value="{{ auth()->user()->persona->asignacion_persona->id }}">
+                    <input type="hidden" name="ap_id" value="{{ $ap->id }}">
                     
                     <div>
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
@@ -226,7 +226,7 @@
                 @if(!$record || $record->estado_archivo == 'Corregir')
                 <form action="{{ route('subir.record') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                     @csrf
-                    <input type="hidden" name="ap_id" value="{{ auth()->user()->persona->asignacion_persona->id }}">
+                    <input type="hidden" name="ap_id" value="{{ $ap->id }}">
                     
                     <div>
                         <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">

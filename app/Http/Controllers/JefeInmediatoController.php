@@ -92,7 +92,7 @@ class JefeInmediatoController extends Controller
             'correo' => $validated['email'],
             'web' => $validated['sitio_web'] ?? null,
             'id_practica' => $practicas_id,
-            'state' => 1,
+            'state' => 2,
         ]);
 
         return redirect()->back()->with('success', 'Jefe Inmediato registrado exitosamente');
@@ -131,7 +131,7 @@ class JefeInmediatoController extends Controller
             'telefono' => $validated['telefono'],
             'correo' => $validated['email'],
             'web' => $validated['sitio_web'] ?? null,
-            'state' => 1,
+            'state' => 2,
         ]);
 
         /*$practica->update([
@@ -157,15 +157,23 @@ class JefeInmediatoController extends Controller
     public function actualizarEstadoJefeInmediato(Request $request) {
         Log::emergency('ENTRANDO A actualizarEstadoJefeInmediato - Request: '.json_encode($request->all()));
         try {
-            $jefe = JefeInmediato::findOrFail($request->id);
-            $jefe->comentario = $request->comentario;
-            $jefe->state = ($request->estado == 'Aprobado') ? 2 : 3;
-            $jefe->save();
+            $option = $request->option;
+            if($option == 1) {
+                $empresa = Empresa::findOrFail($request->id);
+                $empresa->comentario = $request->comentario;
+                $empresa->state = ($request->estado == 'Aprobado') ? 1 : 3;
+                $empresa->save();
+            } else if($option == 2) {
+                $jefe = JefeInmediato::findOrFail($request->id);
+                $jefe->comentario = $request->comentario;
+                $jefe->state = ($request->estado == 'Aprobado') ? 1 : 3;
+                $jefe->save();
+            }
 
             if($request->estado == 'Aprobado') {
                 $empresa = Empresa::where('id_practica', $jefe->id_practica)->first();
                 
-                if($empresa && $empresa->state == 2) {
+                if($empresa && $empresa->state == 1) {
                     $practica = Practica::findOrFail($jefe->id_practica);
                     $practica->state++;
                     $practica->save();

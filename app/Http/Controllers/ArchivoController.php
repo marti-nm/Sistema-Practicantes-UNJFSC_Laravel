@@ -317,14 +317,11 @@ class ArchivoController extends Controller
     }
 
     public function actualizarEstadoArchivo(Request $request) {
-        // Array to string conversion
-        //Log::info('Actualizando estado de archivo: ' . json_encode($request->all()));
 
         $archivo = Archivo::findOrFail($request->id);
         $archivo->estado_archivo = $request->estado;
         $archivo->state = ($request->estado === 'Aprobado') ? 2 : 0;
         $archivo->save();
-        //Log::info('Archivo encontrado: ' . json_encode($archivo));
 
         // --- Lógica para avanzar de etapa automáticamente ---
         if ($request->estado === 'Aprobado' && $archivo->archivo_type === Practica::class) {
@@ -454,6 +451,43 @@ class ArchivoController extends Controller
 
         return back()->with('success', 'Anexo actualizado correctamente.');
         
+    }
+
+    public function getArchivosPorTipo($id_ap, $tipo) {
+        Log::info('ID de la práctica: ' . $id_ap);
+        Log::info('Tipo de archivo: ' . $tipo);
+        try {
+            $practica = Practica::where('id_ap', $id_ap)->first();
+            Log::info('Practica encontrada: ' . $practica);
+            $archivos = Archivo::where('archivo_type', Practica::class)
+                ->where('archivo_id', $practica->id)
+                ->where('tipo', $tipo)
+                ->latest()
+                ->get();
+
+            Log::info('Archivos encontrados: ' . $archivos);
+
+            // Agregar metadata adicional (peso y extensión)
+            $archivos->transform(function($archivo) {
+                // Si la ruta es una URL completa, obtener el path relativo
+                // Ej: http://127.0.0.1:8000/storage/pdf.pdf -> storage/pdf.pdf
+                $relativePath = str_replace(url('/'), '', $archivo->ruta);
+                $relativePath = ltrim($relativePath, '/');
+
+                $fullPath = public_path($relativePath);
+                
+                $archivo->peso = (file_exists($fullPath) && !is_dir($fullPath)) 
+                    ? $this->formatBytes(filesize($fullPath)) 
+                    : 'N/A';
+                $archivo->extension = strtoupper(pathinfo($archivo->ruta, PATHINFO_EXTENSION));
+                return $archivo;
+            });
+
+            return response()->json($archivos);
+        } catch (\Exception $e) {
+            Log::error('Error obteniendo documentos de práctica: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno al obtener documentos'], 500);
+        }
     }
 
     public function getDocumentoPractica($practica, $type) {
@@ -765,5 +799,14 @@ class ArchivoController extends Controller
         $recurso->save();
 
         return back()->with('success', 'Recurso eliminado correctamente.');
+    }
+
+    private function formatBytes($bytes, $precision = 2) {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= pow(1024, $pow);
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

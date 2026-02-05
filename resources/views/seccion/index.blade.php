@@ -4,10 +4,10 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ 
-    newModal: false, 
-    editModalId: null, 
-    deleteModalId: null 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{
+    newModal: false,
+    editModalId: null,
+    deleteModalId: null
 }">
     <x-header-content
         title="Lista de Secciones"
@@ -81,11 +81,11 @@
 
     <!-- Modales Agregar Sección y Gestionar/Eliminar -->
     @foreach($escuelas as $escuela)
-    
+
     <!-- Modal Agregar Sección (Originalmente "Editar") -->
     <div x-show="editModalId === {{ $escuela->id }}" class="fixed inset-0 z-[1060] flex items-center justify-center px-4" x-cloak>
         <div x-show="editModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" @click="editModalId = null"></div>
-        
+
         <div x-show="editModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="relative bg-white dark:bg-slate-900 rounded-[1rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6">
                 <h3 class="text-white text-xl font-black tracking-tight flex items-center gap-3">
@@ -93,12 +93,12 @@
                     Agregar Nueva Sección
                 </h3>
             </div>
-            
-            <form action="{{ route('seccion.store') }}" method="POST" class="p-8">
+
+            <form action="{{ route('academico.seccion.store') }}" method="POST" class="p-8">
                 @csrf
                 <input type="hidden" name="facultad_id" value="{{ $escuela->facultad->id }}">
                 <input type="hidden" name="escuela_id" value="{{ $escuela->id }}">
-                
+
                 <div class="space-y-6">
                     <div class="space-y-2 text-left">
                         <label class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Escuela</label>
@@ -135,7 +135,7 @@
     <!-- Modal Gestionar/Eliminar Secciones -->
     <div x-show="deleteModalId === {{ $escuela->id }}" class="fixed inset-0 z-[1060] flex items-center justify-center px-4" x-cloak>
         <div x-show="deleteModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" @click="deleteModalId = null"></div>
-        
+
         <div x-show="deleteModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="relative bg-white dark:bg-slate-900 rounded-[1rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-rose-500 to-red-600 px-8 py-6">
                 <h3 class="text-white text-xl font-black tracking-tight flex items-center gap-3">
@@ -147,7 +147,7 @@
                 <div class="mb-6 pb-2 border-b border-slate-100 dark:border-slate-800">
                     <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">Escuela: <span class="text-slate-700 dark:text-slate-300 font-black">{{ $escuela->name }}</span></p>
                 </div>
-                
+
                 <div class="max-h-[300px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                     @if($escuela->sa->isEmpty())
                         <div class="py-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -163,7 +163,7 @@
                                     </span>
                                     <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Sección Activa</span>
                                 </div>
-                                <form action="{{ route('seccion.destroy', $seccion->id) }}" method="POST">
+                                <form action="{{ route('academico.seccion.destroy', $seccion->id) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all" title="Eliminar Sección">

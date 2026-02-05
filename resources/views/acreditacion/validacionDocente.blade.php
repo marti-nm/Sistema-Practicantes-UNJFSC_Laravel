@@ -1,14 +1,14 @@
 @extends('template')
 
-@section('title', 'Acreditación del Docente')
-@section('subtitle', 'Gestionar acreditación del oficial')
+@section('title', $config['view_title'])
+@section('subtitle', $config['view_subtitle'])
 
 @section('content')
-<div class="h-[calc(100vh-120px)] flex flex-col overflow-hidden" 
-     x-data="{ 
-        viewMode: 'list', 
+<div class="h-[calc(100vh-120px)] flex flex-col overflow-hidden"
+     x-data="{
+        viewMode: 'list',
         selectedItem: false,
-        requireData: { id:null, type:null, people:null, escuela:null, seccion:null, semestre:null, tipo:null},
+        requireData: { id:null, people:null, escuela:null, seccion:null, semestre:null, archivos:{}, avatar:''},
         ldata: null,
         hdata: null,
         loading: false,
@@ -19,21 +19,11 @@
         searchQuery: '',
         showFilter: {{ request('facultad') || request('escuela') || request('seccion') ? 'true' : 'false' }},
         activeType: 'init',
-        // Inyectamos la data fresca de Laravel para reconstrucción
-        userList: [
-            @foreach($usuarios as $item)
-            @php $acr = $item->asignacion_persona->acreditacion->first(); @endphp
-            {
-                id: {{ $acr->id ?? 'null' }},
-                estado: '{{ $acr->estado_acreditacion ?? 'Pendiente' }}',
-                people: '{{ $item->apellidos.', '.$item->nombres }}',
-                escuela: '{{ $item->asignacion_persona->seccion_academica->escuela->name }}',
-                facultad: '{{ $item->asignacion_persona->seccion_academica->escuela->facultad->name }}',
-                seccion: '{{ $item->asignacion_persona->seccion_academica->seccion }}',
-                semestre: '{{ $item->asignacion_persona->semestre->codigo }}'
-            },
-            @endforeach
-        ],
+        apiEndpoint: '{{ $config['api_endpoint'] }}',
+
+        // Inyectamos la data fresca estandarizada
+        userList: {{ json_encode($rows) }},
+        storageKey: 'val_nav_{{ md5($config['api_endpoint']) }}',
 
         init() {
             this.restoreState();
@@ -41,7 +31,7 @@
 
         saveState() {
             if (this.selectedItem && this.requireData.id) {
-                localStorage.setItem('val_nav_keys', JSON.stringify({
+                localStorage.setItem(this.storageKey, JSON.stringify({
                     id: this.requireData.id,
                     type: this.activeType,
                     opt: this.selectedOption
@@ -50,7 +40,7 @@
         },
 
         restoreState() {
-            const saved = localStorage.getItem('val_nav_keys');
+            const saved = localStorage.getItem(this.storageKey);
             if (!saved) return;
 
             const keys = JSON.parse(saved);
@@ -75,10 +65,10 @@
         },
 
         clearState() {
-            localStorage.removeItem('val_nav_keys');
+            localStorage.removeItem(this.storageKey);
             this.selectedItem = false;
             this.viewMode = 'list';
-            this.requireData = { id:null, type:null, people:null, escuela:null, seccion:null, semestre:null, tipo:null};
+            this.requireData = { id:null, people:null, escuela:null, seccion:null, semestre:null, archivos:{}, avatar:''};
             this.activeType = 'init';
         },
 
@@ -89,14 +79,16 @@
             this.hdata = null;
 
             try {
-                const r = await fetch(`/api/acreditacion/archivos/${id}/${type}`);
+                // Endpoint genérico
+                const r = await fetch(`${this.apiEndpoint}/${id}/${type}`);
                 const result = await r.json();
+                console.log('Dara rd: ', result);
                 if(result && result.length > 0) {
                     this.hdata = result;
                     this.ldata = result[0];
                     this.urlFile = result[0].ruta;
                 }
-            } finally { 
+            } finally {
                 this.loading = false;
                 this.saveState();
             }
@@ -123,8 +115,8 @@
         get filteredUsers() {
             if (!this.searchQuery) return this.userList;
             const query = this.searchQuery.toLowerCase();
-            return this.userList.filter(user => 
-                user.people.toLowerCase().includes(query) || 
+            return this.userList.filter(user =>
+                user.people.toLowerCase().includes(query) ||
                 user.escuela.toLowerCase().includes(query)
             );
         },
@@ -147,11 +139,11 @@
         }
      }" x-init="init()">
     <div class="flex flex-1 overflow-hidden gap-4 p-2">
-        
+
         <!-- ASIDE: LISTA DE ESTUDIANTES -->
         <aside class="flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm transition-all duration-300 h-full overflow-hidden"
                :class="viewMode === 'evaluate' ? 'w-80 hidden xl:flex' : 'w-full lg:w-1/3 flex'">
-            
+
             <div class="p-4 space-y-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -160,9 +152,14 @@
                     <input type="text" x-model="searchQuery" @input="currentPage = 1" placeholder="Buscar usuario..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 dark:border-slate-800 dark:bg-slate-900/50 rounded-lg focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
                 </div>
                 <div class="flex justify-between items-center px-1">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Usuarios ({{$usuarios->count()}}+)</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Registros ({{$rows->count()}}+)</span>
                     <div class="flex gap-1 relative">
-                        <button @click="showFilter = !showFilter" 
+                        @if(!empty($config['msj_button']))
+                        <a href="{{ route($config['route_button'] ?? '') }}" class="p-1 rounded hover:bg-slate-100 text-indigo-600" title="{{ $config['msj_button'] }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </a>
+                        @endif
+                        <button @click="showFilter = !showFilter"
                                 class="p-1 rounded transition-colors relative"
                                 :class="showFilter ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-slate-200 text-slate-500'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4.5h18m-18 5h18m-18 5h18m-18 5h18"></path></svg>
@@ -183,11 +180,11 @@
                                     <option value="{{ $fac->id }}" {{ request('facultad') == $fac->id ? 'selected' : '' }}>{{ $fac->name }}</option>
                                 @endforeach
                             </select>
-                            
+
                             <select name="escuela" id="escuelaSelect" class="w-full text-xs p-2 rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-1 focus:ring-indigo-500 outline-none">
                                 <option value="">Todas las Escuelas</option>
                             </select>
-                            
+
                             <select name="seccion" id="seccionSelect" class="w-full text-xs p-2 rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-1 focus:ring-indigo-500 outline-none">
                                 <option value="">Todas las Secciones</option>
                             </select>
@@ -204,33 +201,37 @@
             <!-- Listado -->
             <div class="flex-1 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800 custom-scrollbar">
                 {{-- usar userList con Template para la lista --}}
+                {{-- Template Lista Universal --}}
                 <template x-for="user in pagedUsers" :key="user.id">
-                    <button @click="openItem({
-                        id: user.id,
-                        type: 'carga_lectiva',
-                        people: user.people,
-                        escuela: user.escuela,
-                        seccion: user.seccion,
-                        semestre: user.semestre,
-                        tipo: 'Carga Lectiva'
-                    })" class="w-full p-4 flex items-start gap-3 hover:bg-indigo-50/30 transition-all text-left relative"
+                    <button @click="openItem(user)" class="w-full p-4 flex items-start gap-3 hover:bg-indigo-50/30 transition-all text-left relative"
                         :class="selectedItem && requireData.id === user.id ? 'bg-indigo-50/50 dark:bg-slate-800' : ''">
                         <div x-show="selectedItem && requireData.id === user.id" class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600"></div>
-                        <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center font-bold text-slate-500 text-xs">AP</div>
+
+                        <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center font-bold text-slate-500 text-xs" x-text="user.avatar"></div>
+
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between items-start">
                                 <p class="text-sm font-bold text-slate-700 dark:text-slate-400 truncate" x-text="user.people"></p>
-                                <span class="text-[9px] px-1.5 py-0.5 rounded font-black uppercase"
-                                    :class="{
-                                        'bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-200': user.estado === 'Aprobado',
-                                        'bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-200': user.estado === 'Pendiente'
-                                    }"
-                                    x-text="user.estado"></span>
+                                {{-- Podemos mostrar estado global si calculamos uno, o nada --}}
                             </div>
                             <p class="text-[10px] text-slate-400 font-medium" x-text="user.escuela"></p>
-                            <div class="mt-2 flex gap-2">
+                            <div class="mt-2 flex flex-wrap gap-2">
                                 <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-1 rounded" x-text="'Semestre '+user.semestre"></span>
                                 <span class="text-[9px] bg-slate-100 text-slate-500 px-1 rounded" x-text="'Sección '+user.seccion"></span>
+                            </div>
+
+                            {{-- Indicadores de estado de documentos (Mini pills en la lista) --}}
+                            <div class="mt-2 flex flex-wrap gap-1">
+                                @foreach($config['columns'] as $col)
+                                    <span class="w-2 h-2 rounded-full"
+                                          :class="{
+                                              'bg-green-500': user.archivos['{{ $col['key'] }}'].estado === 'Aprobado',
+                                              'bg-red-500': user.archivos['{{ $col['key'] }}'].estado === 'Corregir',
+                                              'bg-yellow-500': user.archivos['{{ $col['key'] }}'].estado === 'Enviado',
+                                              'bg-slate-200': user.archivos['{{ $col['key'] }}'].estado === 'Falta'
+                                          }"
+                                          title="{{ $col['label'] }}"></span>
+                                @endforeach
                             </div>
                         </div>
                     </button>
@@ -239,7 +240,7 @@
 
             <!-- Paginación -->
             <div class="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                <button @click="prevPage()" 
+                <button @click="prevPage()"
                         :disabled="currentPage === 1"
                         class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                     Ant.
@@ -249,7 +250,7 @@
                     <span class="text-slate-300">/</span>
                     <span x-text="totalPages"></span>
                 </div>
-                <button @click="nextPage()" 
+                <button @click="nextPage()"
                         :disabled="currentPage === totalPages"
                         class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                     Sig.
@@ -279,7 +280,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     {{-- icono para cerrar X --}}
                     <button @click="clearState()" class="hidden xl:block p-2 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all text-slate-400 group relative">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -290,31 +291,31 @@
                 <!-- Tabs Modernas al ras del borde, scroll horizontal -->
                 <div class="flex gap-1 mt-auto overflow-x-auto overflow-y-hidden no-scrollbar w-full items-end pb-[1px]">
                     <!-- Tab Inicial / Aviso -->
-                    <button @click="activeType = 'init'; ldata = null; hdata = null" 
+                    <button @click="activeType = 'init'; ldata = null; hdata = null"
                             class="group relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 rounded-t-xl"
                             :class="activeType === 'init' ? 'bg-gray-500 text-white shadow-[0_-4px_12px_rgba(245,158,11,0.25)] translate-y-0' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50 translate-y-1 hover:translate-y-0'">
                         <i class="bi-info-circle text-sm" :class="activeType === 'init' ? 'text-gray-200' : 'text-slate-300'"></i>
                         Pendiente
                     </button>
 
-                    <button @click="openContentFiles('carga_lectiva')" 
+                    @foreach($config['columns'] as $col)
+                    <button @click="openContentFiles('{{ $col['key'] }}')"
                             class="group relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 rounded-t-xl"
-                            :class="activeType === 'carga_lectiva' ? 'bg-lime-500 text-white shadow-[0_-4px_12px_rgba(79,70,229,0.25)] translate-y-0' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50 translate-y-1 hover:translate-y-0'">
-                        <i class="bi-file-earmark-text text-sm" :class="activeType === 'carga_lectiva' ? 'text-lime-200' : 'text-slate-300'"></i>
-                        Carga Lectiva
+                            :class="activeType === '{{ $col['key'] }}' ? 'bg-indigo-600 text-white shadow-[0_-4px_12px_rgba(79,70,229,0.25)] translate-y-0' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50 translate-y-1 hover:translate-y-0'">
+                        <i class="{{ $col['icon'] }} text-sm" :class="activeType === '{{ $col['key'] }}' ? 'text-indigo-200' : 'text-slate-300'"></i>
+                        {{ $col['label'] }}
+
+                        {{-- Indicador de estado en la tab --}}
+                        <template x-if="requireData.archivos && requireData.archivos['{{ $col['key'] }}']">
+                             <span class="w-1.5 h-1.5 rounded-full ml-1"
+                                   :class="{
+                                       'bg-green-400': requireData.archivos['{{ $col['key'] }}'].estado === 'Aprobado',
+                                       'bg-red-400': requireData.archivos['{{ $col['key'] }}'].estado === 'Corregir',
+                                       'bg-yellow-400': requireData.archivos['{{ $col['key'] }}'].estado === 'Enviado'
+                                   }"></span>
+                        </template>
                     </button>
-                    <button @click="openContentFiles('horario')" 
-                            class="group relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 rounded-t-xl"
-                            :class="activeType === 'horario' ? 'bg-indigo-600 text-white shadow-[0_-4px_12px_rgba(79,70,229,0.25)] translate-y-0' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50 translate-y-1 hover:translate-y-0'">
-                        <i class="bi-calendar3 text-sm" :class="activeType === 'horario' ? 'text-indigo-200' : 'text-slate-300'"></i>
-                        Horario
-                    </button>
-                    <button @click="openContentFiles('resolucion')" 
-                            class="group relative px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 rounded-t-xl"
-                            :class="activeType === 'resolucion' ? 'bg-pink-600 text-white shadow-[0_-4px_12px_rgba(79,70,229,0.25)] translate-y-0' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50 translate-y-1 hover:translate-y-0'">
-                        <i class="bi-calendar3 text-sm" :class="activeType === 'resolucion' ? 'text-pink-200' : 'text-slate-300'"></i>
-                        Resolución
-                    </button>
+                    @endforeach
                 </div>
             </div>
             <!-- Content init option -->
@@ -329,7 +330,7 @@
                     <h3 class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
                         Visor de Documentos
                     </h3>
-                    
+
                     <p class="text-[10px] font-medium text-slate-400/80 max-w-[180px] leading-relaxed">
                         Selecciona un archivo de la lista superior para visualizar su contenido
                     </p>
@@ -356,10 +357,10 @@
                     <h3 class="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">
                         Sin archivos enviados
                     </h3>
-                    
+
                     <div class="space-y-1">
                         <p class="text-[10px] font-medium text-slate-400 leading-relaxed">
-                            El usuario aún no ha cargado el documento 
+                            El usuario aún no ha cargado el documento
                         </p>
                         <p class="text-[9px] font-bold text-indigo-400/70 uppercase">
                             Esperando acción del usuario
@@ -417,9 +418,9 @@
                                     </div>
                                 </div>
                                 <div class="flex-1 bg-slate-500/10 flex justify-center overflow-y-auto custom-scrollbar">
-                                    <iframe 
-                                        :src="`${urlFile}#view=FitH`" 
-                                        class="w-full h-full min-h-[300px] border-none" 
+                                    <iframe
+                                        :src="'/' + urlFile"
+                                        class="w-full h-full min-h-[300px] border-none"
                                         frameborder="0">
                                     </iframe>
                                 </div>
@@ -459,36 +460,36 @@
                             <div class="flex-1 flex flex-col overflow-hidden">
                                     <div class="mt-3.5">
                                         <div class="flex items-center border-b border-slate-200">
-                                            <button @click="selectedOption = true, urlFile = ldata.ruta" 
+                                            <button @click="selectedOption = true, urlFile = ldata.ruta"
                                                 class="flex-1 py-2 text-[10px] font-black uppercase tracking-wider transition-all relative"
                                                 :class="selectedOption === true ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'">
                                                 Archivo Actual
-                                                <div x-show="selectedOption === true" 
+                                                <div x-show="selectedOption === true"
                                                     class="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-t-full">
                                                 </div>
                                             </button>
 
-                                            <button @click="selectedOption = false, urlFile = null" 
+                                            <button @click="selectedOption = false, urlFile = null"
                                                 class="flex-1 py-2 text-[10px] font-black uppercase tracking-wider transition-all relative"
                                                 :class="selectedOption === false ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'">
                                                 Historial
-                                                <div x-show="selectedOption === false" 
+                                                <div x-show="selectedOption === false"
                                                     class="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-t-full">
                                                 </div>
                                             </button>
                                         </div>
-                                    </div>                
+                                    </div>
                                 <div x-show="selectedOption" class="flex-1 overflow-y-auto custom-scrollbar">
                                     <template x-if="!loading && ldata">
                                         <div class="flex flex-col gap-3 p-4">
                                             <!-- State file -->
                                             <div class="flex items-center gap-3 p-3 rounded-xl border shadow-sm dark:bg-slate-800 dark:border-slate-800"
-                                                :class="{ 
+                                                :class="{
                                                     'bg-green-50 border-green-100': ldata.estado_archivo === 'Aprobado',
                                                     'bg-red-50 border-red-100': ldata.estado_archivo === 'Corregir',
                                                     'bg-yellow-50 border-yellow-100': ldata.estado_archivo === 'Enviado'
                                                 }">
-                                                
+
                                                 <div class="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg"
                                                     :class="{
                                                         'bg-green-500/10 text-green-500': ldata.estado_archivo === 'Aprobado',
@@ -522,7 +523,7 @@
                                                 </div>
                                             </div>
                                             <template x-if="ldata.estado_archivo === 'Enviado'">
-                                                <form id="formValidacionDocente" action="{{ route('actualizar.estado.archivo') }}" method="POST" class="animate-fade-in">
+                                                <form id="formValidacionDocente" action="{{ $config['form_action'] }}" method="POST" class="animate-fade-in">
                                                     @csrf
                                                     <input type="hidden" name="id" id="id" :value="ldata.id">
                                                     <input type="hidden" name="tipo" id="tipo" :value="ldata.tipo">
@@ -600,7 +601,7 @@
                                             </template>
                                         </div>
                                     </template>
-                                </div>                            
+                                </div>
                             </div>
                         </template>
                 </div>
@@ -655,7 +656,7 @@
                     options += `<option value="${e.id}" ${selected}>${e.name}</option>`;
                 });
                 escuelaSelect.innerHTML = options;
-                
+
                 // Si había escuela seleccionada, cargar sus secciones
                 if (selectedEscuela) {
                     cargarSecciones(selectedEscuela, initSeccion);

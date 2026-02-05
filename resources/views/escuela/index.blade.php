@@ -4,10 +4,10 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ 
-    newModal: false, 
-    editModalId: null, 
-    deleteModalId: null 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{
+    newModal: false,
+    editModalId: null,
+    deleteModalId: null
 }">
     <x-header-content
         title="Lista de Escuelas"
@@ -73,11 +73,11 @@
     <!-- Modal Nueva Escuela -->
     <div x-show="newModal" class="fixed inset-0 z-[1060] flex items-center justify-center px-4" x-cloak>
         <div x-show="newModal" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" @click="newModal = false"></div>
-        
-        <div x-show="newModal" 
-            x-transition:enter="transition ease-out duration-300" 
-            x-transition:enter-start="opacity-0 scale-95 translate-y-4" 
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0" 
+
+        <div x-show="newModal"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
             class="relative bg-white dark:bg-slate-900 rounded-[1rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-[#111c44] to-blue-900 px-8 py-6">
                 <h3 class="text-white text-xl font-black tracking-tight flex items-center gap-3">
@@ -85,8 +85,8 @@
                     Nueva Escuela
                 </h3>
             </div>
-            
-            <form action="{{ route('escuela.store') }}" method="POST" class="p-8">
+
+            <form action="{{ route('academico.escuela.store') }}" method="POST" class="p-8">
                 @csrf
                 <div class="space-y-6">
                     <div class="space-y-2">
@@ -128,7 +128,7 @@
     <!-- Modal Editar -->
     <div x-show="editModalId === {{ $escuela->id }}" class="fixed inset-0 z-[1060] flex items-center justify-center px-4" x-cloak>
         <div x-show="editModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" @click="editModalId = null"></div>
-        
+
         <div x-show="editModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="relative bg-white dark:bg-slate-900 rounded-[1rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6">
                 <h3 class="text-white text-xl font-black tracking-tight flex items-center gap-3">
@@ -136,8 +136,8 @@
                     Editar Escuela
                 </h3>
             </div>
-            
-            <form action="{{ route('escuela.update', $escuela->id) }}" method="POST" class="p-8">
+
+            <form action="{{ route('academico.escuela.update', $escuela->id) }}" method="POST" class="p-8">
                 @csrf
                 @method('PUT')
                 <div class="space-y-6">
@@ -173,7 +173,7 @@
     <!-- Modal Eliminar -->
     <div x-show="deleteModalId === {{ $escuela->id }}" class="fixed inset-0 z-[1060] flex items-center justify-center px-4" x-cloak>
         <div x-show="deleteModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" @click="deleteModalId = null"></div>
-        
+
         <div x-show="deleteModalId === {{ $escuela->id }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0" class="relative bg-white dark:bg-slate-900 rounded-[1rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-rose-500 to-red-600 px-8 py-6">
                 <h3 class="text-white text-xl font-black tracking-tight flex items-center gap-3">
@@ -193,7 +193,7 @@
                     <button type="button" @click="deleteModalId = null" class="flex-1 px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
                         Mejor no
                     </button>
-                    <form action="{{ route('escuela.destroy', $escuela->id) }}" method="POST" class="flex-[1.5]">
+                    <form action="{{ route('academico.escuela.destroy', $escuela->id) }}" method="POST" class="flex-[1.5]">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="w-full px-6 py-4 bg-rose-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-rose-600 shadow-lg shadow-rose-500/20 transition-all active:scale-95">

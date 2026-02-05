@@ -16,7 +16,7 @@ class matriculaController extends Controller
         return view('matricula.indexM', compact('matricula', 'persona'));
     }
 
-        public function modal(){
+    public function modal(){
         $user = Auth::user(); // Usuario autenticado s
         $persona = $user->persona; // Relación uno a uno
         $matricula = $persona?->matricula; // Puede ser null si aún no tiene
@@ -46,7 +46,7 @@ class matriculaController extends Controller
         $id_semestre = session('semestre_actual_id');
         $authUser = auth()->user();
 
-        $ap_now = $authUser->persona->asignacion_persona;
+        $ap_now = $authUser->getAp();
 
         $archivo = Archivo::findOrFail($request->id);
         $archivo->estado_archivo = $request->estado;

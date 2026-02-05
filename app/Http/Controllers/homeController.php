@@ -148,7 +148,8 @@ class homeController extends Controller
     }
 
     public function matriculaEstudiante(){
-        $id_ap = auth()->user()->persona->asignacion_persona->id;
+        $ap = auth()->user()->persona->asignacion_persona->latest()->first();
+        $id_ap = $ap->id;
         $matricula = Matricula::where('id_ap', $id_ap)
             ->with(['archivos' => function($query) {
                 $query->orderBy('created_at', 'desc');
@@ -168,11 +169,26 @@ class homeController extends Controller
             $matricula = new Matricula(['id_ap' => $id_ap, 'estado_matricula' => 'Pendiente']);
         }
         
-        return view('matricula.estudiante', compact('matricula', 'ficha', 'record'));
+        return view('matricula.estudiante', compact('ap', 'matricula', 'ficha', 'record'));
+    }
+
+    public function matriculaIndex(){
+        $ap = auth()->user()->persona->asignacion_persona->latest()->first();
+        $id_ap = $ap->id;
+        $matricula = Matricula::where('id_ap', $id_ap)
+            ->with(['archivos' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }])
+            ->first();
+
+        if (!$matricula) {
+            $matricula = new Matricula(['id_ap' => $id_ap, 'estado_matricula' => 'Pendiente']);
+        }
+        
+        return view('matricula.index', compact('ap', 'matricula'));
     }
 
     public function practicasEstudiante(){
-        $semestre = session('semestre_actual_id');
         $persona = auth()->user()->persona;
         if (!$persona) {
             return redirect()->route('home')->with('error', 'No se encontró la persona asociada al usuario.');
@@ -184,6 +200,7 @@ class homeController extends Controller
                 'seccion_academica.escuela',
                 'seccion_academica.semestre'
             ])
+            ->latest()
             ->first();
         $id_escuela = $ap?->id_escuela;
         $id_semestre = $ap?->id_semestre;
@@ -212,6 +229,8 @@ class homeController extends Controller
         $supervisor = asignacion_persona::where('id_sa', $ap->id_sa)
                     ->where('id_rol', 4)
                     ->first()?->persona;
+
+        Log::info('DOCENTE: '.$docente);
 
         // si no hay docente todavia
         if (!$docente) {
@@ -243,6 +262,46 @@ class homeController extends Controller
             auth()->logout();
             return redirect()->route('login')->with('error', 'Aún no tienes acceso al sistema. Contacta al administrador.');
         }*/
-        return view('practicas.estudiante.index', compact('ap', 'practicas', 'escuela', 'semestre', 'docente', 'supervisor', 'matricula'));
+        return view('practicas.estudiante.practica', compact('ap', 'practicas', 'escuela', 'semestre', 'docente', 'supervisor', 'matricula'));
+    }
+
+    public function miPracticaIndex(){
+        $persona = auth()->user()->persona;
+        if (!$persona) {
+            return redirect()->route('home')->with('error', 'No se encontró la persona asociada al usuario.');
+        }
+        $ap = asignacion_persona::where('id_persona', $persona->id)
+            ->where('id_rol', 5)
+            ->with([
+                'persona',
+                'seccion_academica.escuela',
+                'seccion_academica.semestre'
+            ])
+            ->latest()
+            ->first();
+        
+        $practicas = Practica::where('id_ap', $ap->id)
+            ->with([
+                'empresa',
+                'jefeInmediato'
+            ])
+            ->first();
+
+        if (!$practicas) {
+            // crear una practica vacia o redirigir?
+            // El dashboard redirige a convalidacion o desarrollo si no hay practica.
+            // Para el indice, si no hay practica, podriamos mostrar un empty state o redirigir.
+            return redirect()->route('dashboard.dashboardEstudiante')->with('warning', 'Aún no tienes una práctica registrada.');
+        }
+
+        $docente = asignacion_persona::where('id_sa', $ap->id_sa)
+                    ->where('id_rol', 3)
+                    ->first()?->persona;
+        
+        $supervisor = asignacion_persona::where('id_sa', $ap->id_sa)
+                    ->where('id_rol', 4)
+                    ->first()?->persona;
+
+        return view('practicas.estudiante.index', compact('ap', 'practicas', 'docente', 'supervisor'));
     }
 }

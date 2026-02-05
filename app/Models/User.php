@@ -50,12 +50,17 @@ class User extends Authenticatable
     
     public function getRolId()
     {
-        return $this->persona?->asignacion_persona?->id_rol;
+        return $this->persona?->last_ap?->id_rol;
     }
     
     public function getRolName()
     {
-        return $this->persona?->asignacion_persona?->rol?->name;
+        return $this->persona?->last_ap?->rol->name;
+    }
+
+    public function getAP()
+    {
+        return $this->persona?->last_ap;
     }
 
     // Que roles acceden

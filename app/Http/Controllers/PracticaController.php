@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\asignacion_persona;
 use App\Models\Empresa;
 use App\Models\grupo_estudiante;
 use App\Models\grupo_practica;
@@ -18,44 +19,116 @@ use Illuminate\Support\Facades\Log;
 
 class PracticaController extends Controller
 {
-    public function lst_supervision(Request $request){
+    public function index(Request $request) {
         $user = auth()->user();
-        $userRolId = $user->getRolId();
         $id_semestre = session('semestre_actual_id');
-        $ap = $user->persona->asignacion_persona()->first();
+        
+        // 1. Obtener la asignación del usuario PARA EL SEMESTRE SELECCIONADO
+        $ap = asignacion_persona::where('id_persona', $user->persona->id)
+            ->where('id_semestre', $id_semestre)
+            ->first();
 
-        $facQuery = Facultad::query();
-        if ($userRolId == 2) {
-            $facQuery->where('id', $ap->seccion_academica->id_facultad);
+        // 2. Si no hay asignación en este semestre (ej: admin global o no asignado aún)
+        // buscamos la última como fallback para determinar el ROL base
+        if (!$ap) {
+            $ap = $user->getAP();
         }
 
+        $userRolId = $ap->id_rol ?? $user->getRolId();
+        Log::info('Semestre seleccionado: '.$id_semestre . ' | Rol detectado: ' . $userRolId);
+
+        $facQuery = Facultad::query();
+        if ($userRolId == 2 && $ap && $ap->seccion_academica) {
+            $facQuery->where('id', $ap->seccion_academica->id_facultad);
+        }
         $facultades = $facQuery->get();
 
-        $pQuery = Persona::whereHas('asignacion_persona.seccion_academica', function ($query) use ($request, $ap, $id_semestre) {
+        // 3. Consulta de Personas (Estudiantes)
+        $pQuery = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
+                $query->where('id_rol', 5)
+                      ->where('id_semestre', $id_semestre);
+            });
+
+        // Filtros dinámicos de búsqueda
+        $pQuery->whereHas('asignacion_persona.seccion_academica', function ($query) use ($request, $ap, $id_semestre, $userRolId) {
             $query->where('id_semestre', $id_semestre);
+            
             if($request->filled('facultad')){
-                $query->where('id_facultad', ($ap->id_rol == 2) ? $ap->seccion_academica->id_facultad : $request->facultad);
+                $facId = ($userRolId == 2 && $ap && $ap->seccion_academica) 
+                         ? $ap->seccion_academica->id_facultad 
+                         : $request->facultad;
+                $query->where('id_facultad', $facId);
             }
-            if($request->filled('escuela')){
-                $query->where('id_escuela', $request->escuela);
-            }
-            if($request->filled('seccion')){
-                $query->where('id', $request->seccion);
-            }
+            if($request->filled('escuela')) $query->where('id_escuela', $request->escuela);
+            if($request->filled('seccion')) $query->where('id', $request->seccion);
         });
-        
+
+        // 4. Restricción por Supervisor (Rol 3) o Docente (Rol 2)
+        if ($userRolId == 3 && $ap) {
+            $pQuery->whereHas('asignacion_persona', function($q) use ($ap) {
+                $q->where('id_sa', $ap->id_sa);
+            });
+        }
+
         $personas = $pQuery->with([
                 'asignacion_persona' => function($query) use ($id_semestre) {
                     $query->where('id_semestre', $id_semestre)
                           ->with(['seccion_academica.escuela', 'practicas.jefeInmediato']);
                 }
-            ])
-            ->whereHas('asignacion_persona', function ($query) use ($ap, $id_semestre) {
+            ])->get();
+
+        Log::info('Estudiantes encontrados: '. $personas->count());
+        
+        return view('practicas.admin.practica', compact('personas', 'facultades'));
+    }
+
+    public function lst_supervision(Request $request){
+        $user = auth()->user();
+        $id_semestre = session('semestre_actual_id');
+        
+        $ap = asignacion_persona::where('id_persona', $user->persona->id)
+            ->where('id_semestre', $id_semestre)
+            ->first();
+
+        if (!$ap) {
+            $ap = $user->getAP();
+        }
+
+        $userRolId = $ap->id_rol ?? $user->getRolId();
+
+        $facQuery = Facultad::query();
+        if ($userRolId == 2 && $ap && $ap->seccion_academica) {
+            $facQuery->where('id', $ap->seccion_academica->id_facultad);
+        }
+        $facultades = $facQuery->get();
+
+        $pQuery = Persona::whereHas('asignacion_persona', function ($query) use ($id_semestre) {
                 $query->where('id_rol', 5)
                       ->where('id_semestre', $id_semestre);
-                if($ap->id_rol == 3) $query->where('id_sa', $ap->id_sa);
-            })
-            ->get();
+            });
+
+        $pQuery->whereHas('asignacion_persona.seccion_academica', function ($query) use ($request, $ap, $id_semestre, $userRolId) {
+            $query->where('id_semestre', $id_semestre);
+            if($request->filled('facultad')){
+                $facId = ($userRolId == 2 && $ap && $ap->seccion_academica) ? $ap->seccion_academica->id_facultad : $request->facultad;
+                $query->where('id_facultad', $facId);
+            }
+            if($request->filled('escuela')) $query->where('id_escuela', $request->escuela);
+            if($request->filled('seccion')) $query->where('id', $request->seccion);
+        });
+
+        if ($userRolId == 3 && $ap) {
+            $pQuery->whereHas('asignacion_persona', function($q) use ($ap) {
+                $q->where('id_sa', $ap->id_sa);
+            });
+        }
+
+        $personas = $pQuery->with([
+                'asignacion_persona' => function($query) use ($id_semestre) {
+                    $query->where('id_semestre', $id_semestre)
+                          ->with(['seccion_academica.escuela', 'practicas.jefeInmediato']);
+                }
+            ])->get();
 
         return view('practicas.admin.supervision', compact('personas', 'facultades'));
     }
@@ -261,7 +334,7 @@ class PracticaController extends Controller
 
     public function storeDesarrollo(Request $request){
         $user = Auth::user();
-        $ap = $user->persona->asignacion_persona;
+        $ap = $user->getAP();
         $ed = $request->ed;
         
         // Validación rápida
@@ -342,211 +415,5 @@ class PracticaController extends Controller
         $jefeExiste = !is_null($practicaData->jefeInmediato);
         //dd($practicaData);
         return view('practicas.admin.convalidacion', compact('practicaData', 'empresaExiste', 'jefeExiste'));
-    }
-
-    public function storeFut(Request $request){
-        $request->validate([
-            'practica' => 'required|exists:practicas,id',
-            'fut' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $id_p = $request->practica;
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($id_p);
-
-        // Guardar el archivo
-        $file = $request->file('fut');
-        $nombre = 'fut_' . $practica->id_ap . '_' . time() . '.pdf';
-        $ruta = $file->storeAs('futs', $nombre, 'public');
-        $rutaCompleta = 'storage/' . $ruta;
-
-        //$nombre = 'fut_' . $practica->id_ap . '_' . time() . '.pdf';
-        //$ruta = $request->file('fut')->storeAs('futs', $nombre, 'public');
-
-        
-        $practica->update([
-            'estado_practica' => 'en proceso',
-        ]);
-
-        Archivo::create([
-            'archivo_id' => $practica->id,
-            'archivo_type' => Practica::class,
-            'estado_archivo' => 'Enviado',
-            'tipo' => 'fut',
-            'ruta' => $rutaCompleta,
-            'comentario' => null,
-            'subido_por_user_id' => $practica->id_ap,
-            'state' => 1
-        ]);
-
-        return back()->with('success', 'Formulario de Trámite (FUT) subido correctamente.');
-    }
-
-    public function storeCartaPresentacion(Request $request){
-        $request->validate([
-            'practica' => 'required|exists:practicas,id',
-            'carta_presentacion' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $id_p = $request->practica;
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($id_p);
-
-        // Guardar el archivo
-        $file = $request->file('carta_presentacion');
-        $nombre = 'carta_presentacion_' . $practica->id_ap . '_' . time() . '.pdf';
-        $ruta = $file->storeAs('carta_presentacion', $nombre, 'public');
-        $rutaCompleta = 'storage/' . $ruta;
-
-        $practica->update([
-            'estado_proceso' => 'en proceso',
-        ]);
-
-        Archivo::create([
-            'archivo_id' => $practica->id,
-            'archivo_type' => Practica::class,
-            'estado_archivo' => 'Enviado',
-            'tipo' => 'carta_presentacion',
-            'ruta' => $rutaCompleta,
-            'comentario' => null,
-            'subido_por_user_id' => $practica->id_ap,
-            'state' => 1
-        ]);
-
-        return back()->with('success', 'Carta de Presentación subida correctamente.');
-    }
-
-    public function storeCartaAceptacion(Request $request){
-        $request->validate([
-            'practica' => 'required|exists:practicas,id',
-            'carta_aceptacion' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $id_p = $request->practica;
-
-        // Guardar el archivo
-        $nombre = 'carta_aceptacion_' . $personaId . '_' . time() . '.pdf';
-        $ruta = $request->file('carta_aceptacion')->storeAs('cartas_aceptacion', $nombre, 'public');
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($personaId);
-        $practica->update([
-            'ruta_carta_aceptacion' => 'storage/' . $ruta,
-            'estado_proceso' => 'en proceso',
-        ]);
-
-        return back()->with('success', 'Carta de Aceptación subida correctamente.');
-    }
-
-    public function storePlanActividadesPPP(Request $request){
-        $request->validate([
-            'persona_id' => 'required|exists:personas,id',
-            'plan_actividades_ppp' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $personaId = $request->persona_id;
-
-        // Guardar el archivo
-        $nombre = 'plan_actividades_ppp_' . $personaId . '_' . time() . '.pdf';
-        $ruta = $request->file('plan_actividades_ppp')->storeAs('plan_actividades_ppp', $nombre, 'public');
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($personaId);
-        $practica->update([
-            'ruta_plan_actividades' => 'storage/' . $ruta,
-            'estado_proceso' => 'en proceso',
-        ]);
-
-        return back()->with('success', 'Plan de Actividades de las PPP subido correctamente.');
-    }
-
-    public function storeConstanciaCumplimiento(Request $request){
-        $request->validate([
-            'persona_id' => 'required|exists:personas,id',
-            'constancia_cumplimiento' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $personaId = $request->persona_id;
-
-        // Guardar el archivo
-        $nombre = 'constancia_cumplimiento_' . $personaId . '_' . time() . '.pdf';
-        $ruta = $request->file('constancia_cumplimiento')->storeAs('constancia_cumplimiento', $nombre, 'public');
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($personaId);
-        $practica->update([
-            'ruta_constancia_cumplimiento' => 'storage/' . $ruta,
-            'estado_proceso' => 'en proceso',
-        ]);
-
-        return back()->with('success', 'Constancia de Cumplimiento subida correctamente.');
-    }
-
-    public function storeInformeFinalPPP(Request $request){
-        $request->validate([
-            'persona_id' => 'required|exists:personas,id',
-            'informe_final_ppp' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $personaId = $request->persona_id;
-
-        // Guardar el archivo
-        $nombre = 'informe_final_ppp_' . $personaId . '_' . time() . '.pdf';
-        $ruta = $request->file('informe_final_ppp')->storeAs('informe_final_ppp', $nombre, 'public');
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($personaId);
-        $practica->update([
-            'ruta_informe_final' => 'storage/' . $ruta,
-            'estado_proceso' => 'en proceso',
-        ]);
-
-        return back()->with('success', 'Informe Final de PPP subido correctamente.');
-    }
-    
-    public function storeRegistroActividades(Request $request){
-        $request->validate([
-            'persona_id' => 'required|exists:personas,id',
-            'registro_actividades' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $personaId = $request->persona_id;
-
-        // Guardar el archivo
-        $nombre = 'registro_actividades_' . $personaId . '_' . time() . '.pdf';
-        $ruta = $request->file('registro_actividades')->storeAs('registro_actividades', $nombre, 'public');
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($personaId);
-        $practica->update([
-            'ruta_registro_actividades' => 'storage/' . $ruta,
-            'estado_proceso' => 'en proceso',
-        ]);
-
-        return back()->with('success', 'Registro de Actividades subido correctamente.');
-    }
-
-    public function storeControlMensualActividades(Request $request){
-        $request->validate([
-            'persona_id' => 'required|exists:personas,id',
-            'control_mensual_actividades' => 'required|file|mimes:pdf|max:20480',
-        ]);
-
-        $personaId = $request->persona_id;
-
-        // Guardar el archivo
-        $nombre = 'control_mensual_actividades_' . $personaId . '_' . time() . '.pdf';
-        $ruta = $request->file('control_mensual_actividades')->storeAs('control_mensual_actividades', $nombre, 'public');
-
-        // Buscar o crear la matrícula
-        $practica = Practica::findOrFail($personaId);
-        $practica->update([
-            'ruta_control_actividades' => 'storage/' . $ruta,
-            'estado_proceso' => 'en proceso',
-        ]);
-
-        return back()->with('success', 'Control Mensual de Actividades subido correctamente.');
     }
 }

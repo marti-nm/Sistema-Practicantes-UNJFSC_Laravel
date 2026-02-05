@@ -37,6 +37,10 @@ class Persona extends Model
         return $this->hasOne(asignacion_persona::class, 'id_persona');
     }
 
+    public function last_ap() {
+        return $this->hasOne(asignacion_persona::class, 'id_persona')->latestOfMany();
+    }
+
     /*public function matricula()
     {
         return $this->hasOne(Matricula::class);

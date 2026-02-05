@@ -3,8 +3,8 @@
 @section('subtitle', 'Administrar grupos de práctica por asignaturas y docentes')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" 
-    x-data="{ 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+    x-data="{
         newModalOpen: false,
         editModalOpen: false,
         deleteModalOpen: false,
@@ -102,7 +102,7 @@
                 this.dgrupo = await r.json();
             } finally { this.loading = false; }
         },
-        
+
         openNewModal(){
             this.newModalOpen = true;
             /*@if(Auth::user()->getRolId() == 3)
@@ -133,7 +133,7 @@
             this.requireDeleteData = data;
         },
     }">
-    
+
     <x-header-content
         title="Lista de Grupos de Práctica"
         subtitle="Gestión académica oficial de grupos de práctica"
@@ -142,12 +142,12 @@
         :typeButton=2
         msj="Registrar Grupo"
         icon_msj="bi-mortarboard-fill"
-        route="asignacion_index"
+        route="grupo.practica"
         function="openNewModal()"
     />
     @if(Auth::user()->hasAnyRoles([1, 2]))
     <x-data-filter
-        route="asignacion_index"
+        route="grupo.practica"
         :facultades="$facultades"
     />
     @endif
@@ -191,11 +191,11 @@
                     <td class="px-6 py-4">
                         <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 tracking-tight">{{ $grupo->supervisor->persona->nombres }} {{ $grupo->supervisor->persona->apellidos }}</span>
                     </td>
-                    
+
                     <td class="px-6 py-4">
                         <!-- Editar -->
                         <div class="flex items-center justify-center gap-2">
-                            <button @click="openEditModal({{ $grupo->id }}, {{ $grupo->id_sa }})" 
+                            <button @click="openEditModal({{ $grupo->id }}, {{ $grupo->id_sa }})"
                                 class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 border-1 border-amber-100 dark:border-amber-800/50 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
@@ -212,7 +212,7 @@
     </div>
 
     <div x-show="newModalOpen"
-        class="fixed inset-0 z-[1050] flex items-center justify-center px-4" 
+        class="fixed inset-0 z-[1050] flex items-center justify-center px-4"
         x-cloak>
         <x-backdrop-modal name="newModalOpen" />
         <div x-show="newModalOpen"
@@ -263,7 +263,7 @@
                                     <option value="{{ $ap->seccion_academica->id_escuela }}" selected>{{ $ap->seccion_academica->escuela->name ?? 'N/A' }}</option>
                                 </select>
                             @else
-                            <select name="escuela" x-model="escuelaId" @change="fetchSecciones()" :disabled="!facultadId || loading" 
+                            <select name="escuela" x-model="escuelaId" @change="fetchSecciones()" :disabled="!facultadId || loading"
                                 :class="!facultadId ? 'bg-slate-100 dark:bg-slate-800/40 opacity-60 cursor-not-allowed' : 'bg-slate-50 dark:bg-slate-800/50'"
                                 class="w-full px-4 py-3 border-1 border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700 dark:text-slate-200 text-sm" required>
                                 <option value="">Seleccione una escuela</option>
@@ -280,7 +280,7 @@
                                     <option value="{{ $ap->id_sa }}" selected>{{ $ap->seccion_academica->seccion ?? 'N/A' }}</option>
                                 </select>
                             @else
-                                <select name="seccion" x-model="seccionId" @change="fetchDocentes()" :disabled="!escuelaId || loading" 
+                                <select name="seccion" x-model="seccionId" @change="fetchDocentes()" :disabled="!escuelaId || loading"
                                     :class="!escuelaId ? 'bg-slate-100 dark:bg-slate-800/40 opacity-60 cursor-not-allowed' : 'bg-slate-50 dark:bg-slate-800/50'"
                                     class="w-full px-4 py-3 border-1 border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700 dark:text-slate-200 text-sm" required>
                                     <option value="">Seleccione una sección</option>
@@ -289,18 +289,18 @@
                                     </template>
                                 </select>
                             @endif
-                        </div>                        
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Docente Titular</label>
                             @if (Auth::user()->getRolId() == 3)
-                                <select name="dtitular" x-model="dtitularId" 
+                                <select name="dtitular" x-model="dtitularId"
                                     class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800/50 border-1 border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-slate-500 dark:text-slate-400 text-sm cursor-not-allowed" readonly>
                                     <option value="{{ $ap->id }}" selected>{{ $ap->persona->nombres }} {{ $ap->persona->apellidos }}</option>
                                 </select>
                             @else
-                            <select name="dtitular" x-model="dtitularId" :disabled="!seccionId || loading" 
+                            <select name="dtitular" x-model="dtitularId" :disabled="!seccionId || loading"
                                 :class="!seccionId ? 'bg-slate-100 dark:bg-slate-800/40 opacity-60 cursor-not-allowed' : 'bg-slate-50 dark:bg-slate-800/50'"
                                 class="w-full px-4 py-3 border-1 border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700 dark:text-slate-200 text-sm" required>
                                 <option value="">Seleccione un docente titular</option>
@@ -312,7 +312,7 @@
                         </div>
                         <div class="space-y-2">
                             <label class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Docente Supervisor</label>
-                            <select name="dsupervisor" x-model="dsupervisorId" :disabled="!seccionId || loading" 
+                            <select name="dsupervisor" x-model="dsupervisorId" :disabled="!seccionId || loading"
                                 :class="!seccionId ? 'bg-slate-100 dark:bg-slate-800/40 opacity-60 cursor-not-allowed' : 'bg-slate-50 dark:bg-slate-800/50'"
                                 class="w-full px-4 py-3 border-1 border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700 dark:text-slate-200 text-sm" required>
                                 <option value="">Seleccione un docente supervisor</option>
@@ -327,7 +327,7 @@
                         <label class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Nombre del Grupo</label>
                         <div class="relative group">
                             <i class="bi bi-collection absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 transition-colors group-focus-within:text-blue-500"></i>
-                            <input type="text" name="nombre_grupo" placeholder="Ej: Grupo A - Prácticas 2024" 
+                            <input type="text" name="nombre_grupo" placeholder="Ej: Grupo A - Prácticas 2024"
                                 class="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-1 border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700 dark:text-slate-200" required>
                         </div>
                     </div>
@@ -345,13 +345,13 @@
     </div>
 
     <div x-show="editModalOpen"
-        class="fixed inset-0 z-[1060] flex items-center justify-center px-4" 
+        class="fixed inset-0 z-[1060] flex items-center justify-center px-4"
         x-cloak>
         <x-backdrop-modal name="editModalOpen" />
         <div x-show="editModalOpen"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0" 
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
             class="relative bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border-1 border-slate-100 dark:border-slate-800">
             <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-4">
                 <div class="flex items-center justify-between">
@@ -369,7 +369,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="space-y-6 p-4">
                 <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-1 border-blue-100 dark:border-blue-800/50">
                     <div class="flex items-start gap-3">

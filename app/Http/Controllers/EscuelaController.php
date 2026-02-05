@@ -12,7 +12,6 @@ use Exception;
 
 class EscuelaController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      *
@@ -22,15 +21,15 @@ class EscuelaController extends Controller
     {
         $facultades = Facultad::all();
         // Trae todas las escuelas con la relación facultad
-        $escuelas = Escuela::with('facultad')->orderBy('id', 'desc')->get();
+        $escuelas = Escuela::with("facultad")->orderBy("id", "desc")->get();
 
-        return view('escuela.index', compact('escuelas', 'facultades'));
+        return view("escuela.index", compact("escuelas", "facultades"));
     }
 
     public function create()
     {
         $facultades = Facultad::all();
-        return view('escuela.create', compact('facultades'));
+        return view("escuela.create", compact("facultades"));
     }
 
     /**
@@ -45,19 +44,23 @@ class EscuelaController extends Controller
             DB::beginTransaction();
 
             Escuela::create([
-                'name' => $request->name,
-                'facultad_id' => $request->facultad_id,
-                'user_create' => null,
-                'date_create' => now(),
-                'estado' => true
+                "name" => $request->name,
+                "facultad_id" => $request->facultad_id,
+                "user_create" => null,
+                "date_create" => now(),
+                "estado" => true,
             ]);
 
             DB::commit();
 
-            return redirect()->route('escuela.index')->with('success', 'Escuela registrada correctamente.');
+            return redirect()
+                ->route("escuela.index")
+                ->with("success", "Escuela registrada correctamente.");
         } catch (Exception $e) {
             DB::rollBack();
-            return back()->withErrors('Error al registrar la escuela: ' . $e->getMessage());
+            return back()->withErrors(
+                "Error al registrar la escuela: " . $e->getMessage(),
+            );
         }
     }
 
@@ -66,7 +69,7 @@ class EscuelaController extends Controller
         $escuela = Escuela::findOrFail($id);
         $facultades = Facultad::all();
 
-        return view('escuela.edit', compact('escuela', 'facultades'));
+        return view("escuela.edit", compact("escuela", "facultades"));
     }
 
     /**
@@ -84,19 +87,23 @@ class EscuelaController extends Controller
             $escuela = Escuela::findOrFail($id);
 
             $escuela->update([
-                'name' => $request->name,
-                'facultad_id' => $request->facultad_id,
-                'date_update' => now()
+                "name" => $request->name,
+                "facultad_id" => $request->facultad_id,
+                "date_update" => now(),
             ]);
 
             DB::commit();
 
-            return redirect()->route('escuela.index')
-                             ->with('success', 'Escuela actualizada correctamente.');
+            return redirect()
+                ->route("escuela.index")
+                ->with("success", "Escuela actualizada correctamente.");
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                             ->withErrors('Error al actualizar la escuela: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->withErrors(
+                    "Error al actualizar la escuela: " . $e->getMessage(),
+                );
         }
     }
 
@@ -112,9 +119,13 @@ class EscuelaController extends Controller
             $escuela = Escuela::findOrFail($id);
             $escuela->delete();
 
-            return redirect()->route('escuela.index')->with('success', 'Escuela eliminada correctamente.');
+            return redirect()
+                ->route("escuela.index")
+                ->with("success", "Escuela eliminada correctamente.");
         } catch (Exception $e) {
-            return back()->withErrors('Error al eliminar la escuela: ' . $e->getMessage());
+            return back()->withErrors(
+                "Error al eliminar la escuela: " . $e->getMessage(),
+            );
         }
     }
 }

@@ -7,16 +7,16 @@
      x-data="supervisionLogic({{ $practicaData->state ?? 1 }}, {{ $practicaData->id }}, {{ $practicaData->calificacion ?? 'null' }})">
 
     <!-- Information Header -->
-    <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-sm border-1 border-slate-200 dark:border-slate-800 p-6">
+    <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl shadow-sm border-1 border-slate-200 dark:border-slate-800 p-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-500/30">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-500/30">
                     {{ substr($estudiante->nombres, 0, 1) }}{{ substr($estudiante->apellidos, 0, 1) }}
                 </div>
                 <div>
-                    <h2 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+                    <h4 class="text-lg font-black text-slate-800 dark:text-white tracking-tight">
                         {{ $estudiante->nombres }} {{ $estudiante->apellidos }}
-                    </h2>
+                    </h4>
                     <div class="flex flex-wrap gap-3 mt-2">
                         <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
                             <i class="bi bi-upc-scan mr-1"></i> {{ $estudiante->codigo }}
@@ -41,7 +41,7 @@
     </div>
 
     <!-- Stepper -->
-    <div class="mb-8 overflow-x-auto px-10 py-4">
+    <div class="mb-8 overflow-x-auto px-10 py-6">
         <div class="flex items-center justify-between min-w-[600px] relative">
             <!-- Line -->
             <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 dark:bg-slate-800 -z-10 -translate-y-1/2 rounded-full"></div>
@@ -308,7 +308,7 @@
 
         <!-- STAGE 5: EVALUACION -->
          <div x-show="currentStage === 5" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="p-8">
-             <div class="mb-8">
+            <div class="mb-8">
                <h3 class="text-lg font-black text-slate-800 dark:text-white">Evaluación Final</h3>
                <p class="text-sm text-slate-500 mt-1">Calificación y cierre del proceso.</p>
             </div>
